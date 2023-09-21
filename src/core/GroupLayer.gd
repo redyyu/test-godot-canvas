@@ -1,7 +1,7 @@
+extends BaseLayer
+
 class_name GroupLayer
 ## A class for group layer properties
-
-extends BaseLayer
 
 var type := LayerTypes.GROUP
 

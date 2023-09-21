@@ -5,12 +5,11 @@ extends BaseLayer
 
 
 var type := LayerTypes.PIXEL
-var opacity := 1.0
 
 
 # Overridden Methods:
 func new_empty_cel(width :int, height: int) -> PixelCel:
-	return PixelCel.new(width, height, opacity)
+	return PixelCel.new(width, height)
 
 
 func can_layer_get_drawn() -> bool:

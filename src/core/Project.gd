@@ -22,8 +22,16 @@ var has_changed :bool = false
 # the add/remove/move/swap_frames/layers methods
 var frames: Array[Frame] = []
 var layers: Array[BaseLayer] = []
-var current_frame := 0
-var current_layer := 0
+var current_frame :Frame :
+	get: return frames[current_frame_index]
+var current_layer :BaseLayer :
+	get: return layers[current_layer_index]
+var current_cel :BaseCel :
+	get: return frames[current_frame_index].cels[current_layer_index]
+
+var current_frame_index := 0
+var current_layer_index := 0
+
 var selected_cels := [[0, 0]]  # Array of Arrays of 2 integers (frame & layer)
 
 var animation_tags :Array[AnimationTag] = []
@@ -33,22 +41,18 @@ var reference_images :Array[ReferenceImage] = []
 var vanishing_points := []  # Array of Vanishing Points
 var fps := 6.0
 
-var save_dir_path := ''
-var export_dir_path := ''
+var save_dir_path := OS.get_system_dir(OS.SYSTEM_DIR_DESKTOP)
+var export_dir_path := OS.get_system_dir(OS.SYSTEM_DIR_DESKTOP)
 
 
-func _init(_frames: Array = [], _name = '',  _size = Vector2i(64, 64)):
-	frames = _frames
-	name = _name if _name else tr("untitled")
+func _init(_size := Vector2i(64, 64), _name := tr("untitled")):
+	name = _name
 	size = _size
 	tiles = Tiles.new(size)
 
 	if OS.get_name() == "Web":
 		save_dir_path = "user://"
 		export_dir_path = "user://"
-	else:
-		save_dir_path = OS.get_system_dir(OS.SYSTEM_DIR_DESKTOP)
-		export_dir_path = OS.get_system_dir(OS.SYSTEM_DIR_DESKTOP)
 
 
 func remove():
@@ -91,10 +95,6 @@ func new_empty_frame() -> Frame:
 	return frame
 
 
-func get_current_cel() -> BaseCel:
-	return frames[current_frame].cels[current_layer]
-
-
 func save():
 	pass
 
@@ -115,20 +115,20 @@ func change_size(value: Vector2i):
 		size = value
 
 
-func change_cel(new_frame := -1, new_layer := -1):
-	if new_frame < 0:
-		new_frame = current_frame
-	if new_layer < 0:
-		new_layer = current_layer
+func change_cel(new_frame_index := -1, new_layer_index := -1):
+	if new_frame_index < 0:
+		new_frame_index = current_frame_index
+	if new_layer_index < 0:
+		new_layer_index = current_layer_index
 
 	if selected_cels.is_empty():
-		selected_cels.append([new_frame, new_layer])
+		selected_cels.append([new_frame_index, new_layer_index])
 
-	if new_frame != current_frame:  # If the frame has changed
-		current_frame = new_frame
+	if new_frame_index != current_frame_index:  # If the frame has changed
+		current_frame_index = new_frame_index
 
-	if new_layer != current_layer:  # If the layer has changed
-		current_layer = new_layer
+	if new_layer_index != current_layer_index:  # If the layer has changed
+		current_layer_index = new_layer_index
 
 
 func is_empty() -> bool:
@@ -148,8 +148,8 @@ func can_pixel_get_drawn(pixel: Vector2i,
 	if pixel.x < 0 or pixel.y < 0 or pixel.x >= size.x or pixel.y >= size.y:
 		return false
 
-	if tiles.mode != Tiles.MODE.NONE and !tiles.has_point(pixel):
-		return false
+#	if tiles.mode != Tiles.MODE.NONE and !tiles.has_point(pixel):
+#		return false
 
 	if selection_position != Vector2i.ZERO:
 		if selection_position.x < 0:

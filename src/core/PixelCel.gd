@@ -1,22 +1,19 @@
-class_name PixelCel
+extends BaseCel
 
+class_name PixelCel
 # A class for the properties of cels in PixelLayers.
 # The term "cel" comes from "celluloid" (https://en.wikipedia.org/wiki/Cel).
 
-extends BaseCel
-
 var width := 0
 var height := 0
-var opacity :float = 1.0
 
 var image :Image :
 	set = image_changed
 
 
-func _init(_width :int, _height :int, _opacity := 1.0):
+func _init(_width :int, _height :int):
 	width = _width
 	height = _height
-	opacity = _opacity
 	
 	image = Image.create(width, height, false, Image.FORMAT_RGBA8)
 	image_texture = ImageTexture.create_from_image(image)

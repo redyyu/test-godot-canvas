@@ -12,15 +12,28 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_tve2u")
 
-[node name="DrawContainer" parent="." instance=ExtResource("1_wuu8o")]
-layout_mode = 0
-anchors_preset = 0
-anchor_right = 0.0
-anchor_bottom = 0.0
-grow_horizontal = 1
-grow_vertical = 1
+[node name="Artboard" parent="." instance=ExtResource("1_wuu8o")]
+layout_mode = 1
 
 [node name="Cursor" type="Sprite2D" parent="."]
 visible = false
 
-[connection signal="cursor_visible" from="DrawContainer" to="." method="_on_cursor_visible"]
+[node name="Button" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1051.0
+offset_top = 73.0
+offset_right = 1096.0
+offset_bottom = 104.0
+toggle_mode = true
+text = "Drag"
+
+[node name="Button2" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1051.0
+offset_top = 132.0
+offset_right = 1096.0
+offset_bottom = 163.0
+toggle_mode = true
+text = "Zoom"
+
+[connection signal="cursor_visible" from="Artboard" to="." method="_on_cursor_visible"]

@@ -1,11 +1,16 @@
-[gd_scene load_steps=9 format=3 uid="uid://c08qtjj7x8pnk"]
+[gd_scene load_steps=15 format=3 uid="uid://c08qtjj7x8pnk"]
 
-[ext_resource type="Script" path="res://src/canvas/Draw.gd" id="1_8b8y3"]
 [ext_resource type="Shader" path="res://src/shaders/TransparentChecker.gdshader" id="1_d8lm1"]
+[ext_resource type="Script" path="res://src/canvas/Artboard.gd" id="1_fg2jv"]
 [ext_resource type="Shader" path="res://src/shaders/Greyscale.gdshader" id="2_s2kkr"]
 [ext_resource type="Script" path="res://src/canvas/TransChecker.gd" id="3_dvs3t"]
-[ext_resource type="PackedScene" uid="uid://c2vhsj26batj3" path="res://src/canvas/canvas.tscn" id="4_moc5h"]
-[ext_resource type="Script" path="res://src/canvas/CameraMovement.gd" id="5_qf6jy"]
+[ext_resource type="Script" path="res://src/canvas/Canvas.gd" id="4_1y3pt"]
+[ext_resource type="Script" path="res://src/canvas/CurrentFrameDrawer.gd" id="5_agj6t"]
+[ext_resource type="Script" path="res://src/canvas/Camera.gd" id="5_ghk1k"]
+[ext_resource type="Script" path="res://src/canvas/Indicators.gd" id="6_2ns7n"]
+[ext_resource type="Script" path="res://src/canvas/Previews.gd" id="7_qprso"]
+[ext_resource type="Texture2D" uid="uid://bk6ocb3o8wtj6" path="res://assets/graphics/dotted_line.png" id="8_bu2cv"]
+[ext_resource type="Script" path="res://src/canvas/MouseGuide.gd" id="9_a670k"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_u122j"]
 shader = ExtResource("1_d8lm1")
@@ -19,42 +24,73 @@ shader_parameter/rect_size = Vector2(0, 0)
 shader_parameter/follow_movement = false
 shader_parameter/follow_scale = false
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_gavu7"]
+atlas = ExtResource("8_bu2cv")
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ib7er"]
 shader = ExtResource("2_s2kkr")
 
-[node name="DrawContainer" type="SubViewportContainer"]
+[node name="Artboard" type="SubViewportContainer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
-script = ExtResource("1_8b8y3")
+stretch = true
+script = ExtResource("1_fg2jv")
 
-[node name="DrawViewport" type="SubViewport" parent="."]
+[node name="Viewport" type="SubViewport" parent="."]
 handle_input_locally = false
 canvas_item_default_texture_filter = 0
+size = Vector2i(1152, 648)
 render_target_update_mode = 4
 
-[node name="TransChecker" type="ColorRect" parent="DrawViewport"]
+[node name="TransChecker" type="ColorRect" parent="Viewport"]
 material = SubResource("ShaderMaterial_u122j")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("3_dvs3t")
 
-[node name="Canvas" parent="DrawViewport" instance=ExtResource("4_moc5h")]
+[node name="Canvas" type="Node2D" parent="Viewport"]
+script = ExtResource("4_1y3pt")
 
-[node name="Camera" type="Camera2D" parent="DrawViewport"]
+[node name="CurrentDisplay" type="SubViewport" parent="Viewport/Canvas"]
+disable_3d = true
+transparent_bg = true
+render_target_update_mode = 3
+
+[node name="CurrentDrawer" type="Node2D" parent="Viewport/Canvas/CurrentDisplay"]
+script = ExtResource("5_agj6t")
+
+[node name="Indicators" type="Node2D" parent="Viewport/Canvas"]
+script = ExtResource("6_2ns7n")
+
+[node name="Previews" type="Node2D" parent="Viewport/Canvas"]
+script = ExtResource("7_qprso")
+
+[node name="MouseGuideContainer" type="Node2D" parent="Viewport/Canvas"]
+
+[node name="Vertical" type="Line2D" parent="Viewport/Canvas/MouseGuideContainer"]
+visible = false
+points = PackedVector2Array(0, 19999, 0, -19999)
+texture = SubResource("AtlasTexture_gavu7")
+texture_mode = 1
+script = ExtResource("9_a670k")
+
+[node name="Horizontal" type="Line2D" parent="Viewport/Canvas/MouseGuideContainer"]
+visible = false
+points = PackedVector2Array(0, 19999, 0, -19999)
+texture = SubResource("AtlasTexture_gavu7")
+texture_mode = 1
+script = ExtResource("9_a670k")
+
+[node name="Camera" type="Camera2D" parent="Viewport"]
 zoom = Vector2(0.15, 0.15)
-script = ExtResource("5_qf6jy")
+script = ExtResource("5_ghk1k")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="DrawViewport"]
+[node name="CanvasLayer" type="CanvasLayer" parent="Viewport"]
 
-[node name="GreyscaleVision" type="ColorRect" parent="DrawViewport/CanvasLayer"]
+[node name="GreyscaleVision" type="ColorRect" parent="Viewport/CanvasLayer"]
 visible = false
 material = SubResource("ShaderMaterial_ib7er")
 anchors_preset = 15
@@ -64,6 +100,4 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
-[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]
-[connection signal="resized" from="DrawViewport/TransChecker" to="DrawViewport/TransChecker" method="_on_resized"]
+[connection signal="changed" from="Viewport/Camera" to="." method="_on_camera_changed"]

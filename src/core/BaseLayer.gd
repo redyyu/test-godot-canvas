@@ -10,10 +10,9 @@ enum LayerTypes {
 
 var name := ""
 var index : = 0
+var opacity := 1.0
 var parent :BaseLayer
 var expanded :bool = false
-var width: int
-var height: int
 var visible :bool = true
 var locked :bool = false
 var cels_linked :bool = false

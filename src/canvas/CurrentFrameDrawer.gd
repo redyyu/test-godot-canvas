@@ -1,16 +1,14 @@
 extends Node2D
 
+var img_texture := ImageTexture.new()
+var opacity := 1.0
+
+
+func draw(_texture, _opacity :=1.0):
+	img_texture = _texture
+	opacity = _opacity
+	queue_redraw()
+	
 
 func _draw():
-	var project = g.current_project
-	var current_frame :int = project.current_frame
-	var current_cels :Array = project.frames[current_frame].cels
-	
-	for i in range(project.layers.size()):
-		if current_cels[i] is GroupCel:
-			continue
-
-		var is_visible = project.layers[i].is_visible_in_hierarchy()
-		if is_visible and current_cels[i].opacity > 0:
-			var modulate_color = Color(1, 1, 1, current_cels[i].opacity)
-			draw_texture(current_cels[i].image_texture, Vector2.ZERO, modulate_color)
+	draw_texture(img_texture, Vector2.ZERO, Color(1, 1, 1, opacity))
