@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3 uid="uid://cwp7c3v50tmil"]
+
+[ext_resource type="Script" path="res://src/control.gd" id="1_tve2u"]
+[ext_resource type="PackedScene" uid="uid://c08qtjj7x8pnk" path="res://src/canvas/draw_container.tscn" id="1_wuu8o"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_tve2u")
+
+[node name="DrawContainer" parent="." instance=ExtResource("1_wuu8o")]
+layout_mode = 0
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="Cursor" type="Sprite2D" parent="."]
+visible = false
+
+[connection signal="cursor_visible" from="DrawContainer" to="." method="_on_cursor_visible"]

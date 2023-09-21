@@ -1,0 +1,69 @@
+[gd_scene load_steps=9 format=3 uid="uid://c08qtjj7x8pnk"]
+
+[ext_resource type="Script" path="res://src/canvas/Draw.gd" id="1_8b8y3"]
+[ext_resource type="Shader" path="res://src/shaders/TransparentChecker.gdshader" id="1_d8lm1"]
+[ext_resource type="Shader" path="res://src/shaders/Greyscale.gdshader" id="2_s2kkr"]
+[ext_resource type="Script" path="res://src/canvas/TransChecker.gd" id="3_dvs3t"]
+[ext_resource type="PackedScene" uid="uid://c2vhsj26batj3" path="res://src/canvas/canvas.tscn" id="4_moc5h"]
+[ext_resource type="Script" path="res://src/canvas/CameraMovement.gd" id="5_qf6jy"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_u122j"]
+shader = ExtResource("1_d8lm1")
+shader_parameter/size = 10.0
+shader_parameter/alpha = 1.0
+shader_parameter/color1 = Color(0.7, 0.7, 0.7, 1)
+shader_parameter/color2 = Color(1, 1, 1, 1)
+shader_parameter/offset = Vector2(0, 0)
+shader_parameter/scale = Vector2(0, 0)
+shader_parameter/rect_size = Vector2(0, 0)
+shader_parameter/follow_movement = false
+shader_parameter/follow_scale = false
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ib7er"]
+shader = ExtResource("2_s2kkr")
+
+[node name="DrawContainer" type="SubViewportContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+script = ExtResource("1_8b8y3")
+
+[node name="DrawViewport" type="SubViewport" parent="."]
+handle_input_locally = false
+canvas_item_default_texture_filter = 0
+render_target_update_mode = 4
+
+[node name="TransChecker" type="ColorRect" parent="DrawViewport"]
+material = SubResource("ShaderMaterial_u122j")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_dvs3t")
+
+[node name="Canvas" parent="DrawViewport" instance=ExtResource("4_moc5h")]
+
+[node name="Camera" type="Camera2D" parent="DrawViewport"]
+zoom = Vector2(0.15, 0.15)
+script = ExtResource("5_qf6jy")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="DrawViewport"]
+
+[node name="GreyscaleVision" type="ColorRect" parent="DrawViewport/CanvasLayer"]
+visible = false
+material = SubResource("ShaderMaterial_ib7er")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]
+[connection signal="resized" from="DrawViewport/TransChecker" to="DrawViewport/TransChecker" method="_on_resized"]

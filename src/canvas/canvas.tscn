@@ -1,0 +1,79 @@
+[gd_scene load_steps=15 format=3 uid="uid://c2vhsj26batj3"]
+
+[ext_resource type="Script" path="res://src/canvas/canvas.gd" id="1_cs4oe"]
+[ext_resource type="Script" path="res://src/canvas/CurrentFrameDrawer.gd" id="2_qfpgv"]
+[ext_resource type="Script" path="res://src/canvas/TileMode.gd" id="3_0cps0"]
+[ext_resource type="Script" path="res://src/canvas/PixelGrid.gd" id="4_hwl5l"]
+[ext_resource type="Script" path="res://src/canvas/Grid.gd" id="5_budmj"]
+[ext_resource type="Script" path="res://src/canvas/Selection.gd" id="6_rdkud"]
+[ext_resource type="Script" path="res://src/canvas/CropRect.gd" id="7_yljdy"]
+[ext_resource type="Script" path="res://src/canvas/Indicators.gd" id="8_22nj3"]
+[ext_resource type="Script" path="res://src/canvas/Previews.gd" id="9_tdre7"]
+[ext_resource type="Script" path="res://src/canvas/OnionSkinning.gd" id="10_bvebw"]
+[ext_resource type="Texture2D" uid="uid://bk6ocb3o8wtj6" path="res://assets/graphics/dotted_line.png" id="11_poi73"]
+[ext_resource type="Script" path="res://src/canvas/MouseGuide.gd" id="12_gwvp3"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_gee2c"]
+blend_mode = 4
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ss24l"]
+atlas = ExtResource("11_poi73")
+
+[node name="Canvas" type="Node2D"]
+script = ExtResource("1_cs4oe")
+
+[node name="CurrentlyVisibleFrame" type="SubViewport" parent="."]
+disable_3d = true
+transparent_bg = true
+render_target_update_mode = 3
+
+[node name="CurrentFrameDrawer" type="Node2D" parent="CurrentlyVisibleFrame"]
+script = ExtResource("2_qfpgv")
+
+[node name="TileMode" type="Node2D" parent="."]
+show_behind_parent = true
+material = SubResource("CanvasItemMaterial_gee2c")
+script = ExtResource("3_0cps0")
+
+[node name="PixelGrid" type="Node2D" parent="."]
+script = ExtResource("4_hwl5l")
+
+[node name="Grid" type="Node2D" parent="."]
+script = ExtResource("5_budmj")
+
+[node name="Selection" type="Node2D" parent="."]
+script = ExtResource("6_rdkud")
+
+[node name="MarchingAntsOutline" type="Sprite2D" parent="Selection"]
+
+[node name="CropRect" type="Node2D" parent="."]
+visible = false
+script = ExtResource("7_yljdy")
+
+[node name="Indicators" type="Node2D" parent="."]
+script = ExtResource("8_22nj3")
+
+[node name="Previews" type="Node2D" parent="."]
+script = ExtResource("9_tdre7")
+
+[node name="OnionPast" type="Node2D" parent="."]
+script = ExtResource("10_bvebw")
+
+[node name="OnionFuture" type="Node2D" parent="."]
+script = ExtResource("10_bvebw")
+
+[node name="MouseGuideContainer" type="Node2D" parent="."]
+
+[node name="Vertical" type="Line2D" parent="MouseGuideContainer"]
+visible = false
+points = PackedVector2Array(0, 19999, 0, -19999)
+texture = SubResource("AtlasTexture_ss24l")
+texture_mode = 1
+script = ExtResource("12_gwvp3")
+
+[node name="Horizontal" type="Line2D" parent="MouseGuideContainer"]
+visible = false
+points = PackedVector2Array(0, 19999, 0, -19999)
+texture = SubResource("AtlasTexture_ss24l")
+texture_mode = 1
+script = ExtResource("12_gwvp3")
