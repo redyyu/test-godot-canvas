@@ -33,6 +33,9 @@ var symmetry_visible := false :
 @onready var canvas :Node2D = $Viewport/Canvas
 @onready var transChecker :ColorRect = $Viewport/TransChecker
 
+@onready var h_ruler :Button = $HRuler
+@onready var v_ruler :Button = $VRuler
+
 @onready var cursor :Sprite2D = $Cursor
 
 
@@ -41,12 +44,14 @@ func _ready():
 	add_child(symmetry_guide_v)
 	symmetry_visible = true
 	
+	v_ruler.type = CanvasRuler.RulerType.VERTICAL
+	h_ruler.type = CanvasRuler.RulerType.HORIZONTAL
+	
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 	resized.connect(_on_resized)
 	
 	camera.changed.connect(_on_camera_changed)
-	
 
 
 func load_project(proj :Project):
@@ -121,6 +126,7 @@ func _on_mouse_exited():
 #	update_trans_checker_offset()
 #	save_to_project()
 
+
 func place_symmetry_guide():
 	if symmetry_visible and project:
 		var _offset = camera.offset
@@ -136,8 +142,11 @@ func place_symmetry_guide():
 
 func _on_resized():
 	place_symmetry_guide()
+	h_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
+	v_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
 	
 
 func _on_camera_changed():
 	place_symmetry_guide()
-		
+	h_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
+	v_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
