@@ -1,6 +1,6 @@
 extends Button
 
-class_name CanvasRuler
+class_name Ruler
 
 const RULER_WIDTH := 16
 
@@ -202,7 +202,6 @@ func draw_v():
 					Vector2(RULER_WIDTH, pos.y),
 					Color.WHITE
 				)
-
 
 
 func _on_mouse_entered() -> void:

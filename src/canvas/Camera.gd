@@ -7,10 +7,22 @@ signal changed()
 const CAMERA_SPEED_RATE = 12.0
 
 var viewport_size := Vector2i.ZERO
-var canvas_size := Vector2i.ZERO
-
-var zoom_in_max := Vector2(500, 500)
-var zoom_out_max := Vector2(0.01, 0.01)
+var canvas_size := Vector2i.ZERO :
+	set(val):
+		canvas_size = val
+		limit_left = val.x * -100
+		limit_top = val.y * -100
+		limit_right = val.x * 100
+		limit_bottom = val.y * 100
+		# limit will effect zoom out
+		# when zoom out to very small size, might touch the limit.
+		# that will cause the canvas MOVE AWAY.
+		# so do not make it too small. 
+		# make the zoom_out_max (or zoom_in_max)
+		# fit the limit size will be nice.
+		
+var zoom_in_max := Vector2(100, 100)
+var zoom_out_max := Vector2(0.1, 0.1)
 var zoom_center_point := Vector2.ZERO
 
 var canvas_origin := Vector2.ZERO
@@ -67,13 +79,15 @@ func _input(event: InputEvent):
 
 
 func zoom_camera(direction: int):
-	var new_zoom := zoom + (zoom * direction / 10)
-	if use_integer_zoom:
-		new_zoom = (zoom + Vector2.ONE * direction).floor()
+	var new_zoom := zoom + (zoom * direction / 5)
+#	if use_integer_zoom:
+#		new_zoom = (zoom + Vector2.ONE * direction).floor()
 	if new_zoom < zoom_in_max && new_zoom > zoom_out_max:
 		zoom = new_zoom
 		offset = zoom_center_point
 		send_camera_changed()
+		
+		# use Tween to smooth the zoom effect. DO NEED for now.
 #		var tween = create_tween().set_parallel()
 #		tween.set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_IN)
 #		tween.step_finished.connect(_on_zoom_step_finished)

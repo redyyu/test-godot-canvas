@@ -11,7 +11,7 @@
 [ext_resource type="Script" path="res://src/canvas/Previews.gd" id="7_qprso"]
 [ext_resource type="Texture2D" uid="uid://bk6ocb3o8wtj6" path="res://assets/graphics/dotted_line.png" id="8_bu2cv"]
 [ext_resource type="Script" path="res://src/canvas/MouseGuide.gd" id="9_a670k"]
-[ext_resource type="Script" path="res://src/canvas/HRuler.gd" id="12_8alqu"]
+[ext_resource type="Script" path="res://src/canvas/guide/Ruler.gd" id="12_o861q"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_u122j"]
 shader = ExtResource("1_d8lm1")
@@ -86,11 +86,6 @@ texture_mode = 1
 script = ExtResource("9_a670k")
 
 [node name="Camera" type="Camera2D" parent="Viewport"]
-limit_left = -19999
-limit_top = -19999
-limit_right = 19999
-limit_bottom = 19999
-limit_smoothed = true
 script = ExtResource("5_ghk1k")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="Viewport"]
@@ -108,8 +103,8 @@ mouse_filter = 2
 
 [node name="HRuler" type="Button" parent="."]
 layout_mode = 2
-script = ExtResource("12_8alqu")
+script = ExtResource("12_o861q")
 
 [node name="VRuler" type="Button" parent="."]
 layout_mode = 2
-script = ExtResource("12_8alqu")
+script = ExtResource("12_o861q")

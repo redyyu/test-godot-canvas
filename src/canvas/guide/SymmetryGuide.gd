@@ -19,8 +19,3 @@ func set_guide(start_point :Vector2, end_point :Vector2):
 	clear_points()
 	add_point(start_point)
 	add_point(end_point)
-
-
-func _input(_event: InputEvent):
-	if !visible:
-		return

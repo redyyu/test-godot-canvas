@@ -44,14 +44,14 @@ func _ready():
 	add_child(symmetry_guide_v)
 	symmetry_visible = true
 	
-	v_ruler.type = CanvasRuler.RulerType.VERTICAL
-	h_ruler.type = CanvasRuler.RulerType.HORIZONTAL
+	v_ruler.type = Ruler.RulerType.VERTICAL
+	h_ruler.type = Ruler.RulerType.HORIZONTAL
 	
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
-	resized.connect(_on_resized)
 	
-	camera.changed.connect(_on_camera_changed)
+	resized.connect(_on_resized)
+	camera.changed.connect(_on_resized)
 
 
 func load_project(proj :Project):
@@ -136,8 +136,8 @@ func place_symmetry_guide():
 		# the origin in side the canvas is useless while on reised.
 		var _x = _origin.x + project.size.x * 0.5 * _zoom.x
 		var _y = _origin.y + project.size.y * 0.5 * _zoom.y
-		symmetry_guide_h.set_guide(Vector2(-19999, _y), Vector2(19999, _y))
-		symmetry_guide_v.set_guide(Vector2(_x, -19999), Vector2(_x, 19999))
+		symmetry_guide_h.set_guide(Vector2(-size.x, _y), Vector2(size.x, _y))
+		symmetry_guide_v.set_guide(Vector2(_x, -size.y), Vector2(_x, size.y))
 
 
 func _on_resized():
@@ -146,7 +146,3 @@ func _on_resized():
 	v_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
 	
 
-func _on_camera_changed():
-	place_symmetry_guide()
-	h_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
-	v_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)

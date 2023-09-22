@@ -15,7 +15,6 @@ var type :Types = Types.HORIZONTAL
 var locked :bool = false
 var has_focus :bool = false
 var mouse_start_pos :Vector2 = Vector2.ZERO
-var font :Font 
 
 
 func _ready():
@@ -43,14 +42,14 @@ func _input(event: InputEvent) -> void:
 				queue_redraw()
 
 
-func _draw() -> void:
-	if not has_focus or not font:
-		return
-	var text = "%spx" % str(position.y if Types.HORIZONTAL else position.x) 
-	var font_height = font.get_height()
-
-	draw_string(font, Vector2(font_height, font_height), text,
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 12, default_color)
+#func _draw() -> void:
+#	if visible:
+#		var font = get_theme_default_font()
+#		var text = "%spx" % str(position.y if Types.HORIZONTAL else position.x) 
+#		var font_height = font.get_height()
+#
+#		draw_string(font, Vector2(font_height, font_height), text,
+#					HORIZONTAL_ALIGNMENT_LEFT, -1, 12, default_color)
 
 
 func set_guide(y_or_x, length :int):
@@ -60,12 +59,4 @@ func set_guide(y_or_x, length :int):
 		Types.VERTICAL:
 			position.x = y_or_x
 
-	points.append_array([Vector2i.ZERO, Vector2i(0, length)]) 
-
-
-func set_color(color :Color):
-	default_color = color
-
-
-func set_font(theme_font :Font):
-	font = theme_font
+	points.append_array([Vector2i.ZERO, Vector2i(0, length)])
