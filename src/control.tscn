@@ -32,3 +32,12 @@ offset_right = 1096.0
 offset_bottom = 163.0
 toggle_mode = true
 text = "Zoom"
+
+[node name="Button3" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1051.0
+offset_top = 186.0
+offset_right = 1104.0
+offset_bottom = 217.0
+toggle_mode = true
+text = "None"

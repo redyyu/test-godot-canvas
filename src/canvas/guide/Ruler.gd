@@ -2,6 +2,8 @@ extends Button
 
 class_name Ruler
 
+signal guide_created(orientation)
+
 const RULER_WIDTH := 16
 
 var major_subdivision := 2
@@ -15,18 +17,30 @@ var canvas_size := Vector2i.ZERO
 var viewport_size := Vector2i.ZERO
 var camera_offset := Vector2.ZERO
 
-enum RulerType {
+var btn_pressed := false
+var mouse_position := Vector2.ZERO
+var create_guide_gate := false
+
+enum {
 	HORIZONTAL,
 	VERTICAL
 }
 
-var type := RulerType.HORIZONTAL
+var orientation := HORIZONTAL
 
 
 func _ready():
 	focus_mode = Control.FOCUS_NONE
-	mouse_entered.connect(_on_mouse_entered)
-	mouse_default_cursor_shape = Control.CURSOR_FDIAGSIZE
+	
+	if name.begins_with('H'):
+		orientation = HORIZONTAL
+	elif name.begins_with('V'):
+		orientation = VERTICAL
+		
+	if orientation == HORIZONTAL:
+		mouse_default_cursor_shape = Control.CURSOR_VSPLIT
+	else:
+		mouse_default_cursor_shape = Control.CURSOR_HSPLIT
 
 
 func set_ruler(_size :Vector2i, _canvas_size :Vector2i,
@@ -36,7 +50,7 @@ func set_ruler(_size :Vector2i, _canvas_size :Vector2i,
 	camera_offset = _offset
 	zoom = _zoom
 	
-	if type == RulerType.HORIZONTAL:
+	if orientation == HORIZONTAL:
 		size.x = viewport_size.x
 		size.y = RULER_WIDTH
 	else:
@@ -48,7 +62,7 @@ func set_ruler(_size :Vector2i, _canvas_size :Vector2i,
 
 # Code taken and modified from Godot's source code
 func _draw():
-	if type == RulerType.HORIZONTAL:
+	if orientation == HORIZONTAL:
 		draw_h()
 	else:
 		draw_v()
@@ -204,8 +218,20 @@ func draw_v():
 				)
 
 
-func _on_mouse_entered() -> void:
-	if type == RulerType.HORIZONTAL:
-		mouse_default_cursor_shape = Control.CURSOR_VSPLIT
-	else:
-		mouse_default_cursor_shape = Control.CURSOR_HSPLIT
+func _input(event):
+	if (event is InputEventMouseButton and 
+		event.button_index == MOUSE_BUTTON_LEFT):
+		btn_pressed = event.pressed
+		
+	elif event is InputEventMouseMotion:
+		mouse_position = get_local_mouse_position()
+		var rect = Rect2i(Vector2i.ZERO, size)
+		
+		if rect.has_point(mouse_position) and not btn_pressed:
+			create_guide_gate = true
+			
+		if not rect.has_point(mouse_position) and btn_pressed:
+			if create_guide_gate:
+				create_guide_gate = false
+				guide_created.emit(orientation)
+

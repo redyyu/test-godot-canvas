@@ -2,44 +2,63 @@ extends Line2D
 
 class_name Guide
 
-enum Types {
-	HORIZONTAL,
-	VERTICAL
-}
+signal released(guide)
+signal pressed(guide)
 
-const DEFAULT_WIDTH :int = 2
-const LINE_COLOR :Color = Color.PURPLE
+const DEFAULT_WIDTH := 2
+const LINE_COLOR := Color.REBECCA_PURPLE
 
-var type :Types = Types.HORIZONTAL
-
-var locked :bool = false
-var has_focus :bool = false
-var mouse_start_pos :Vector2 = Vector2.ZERO
+var orientation := HORIZONTAL
+var locked := false
+var is_pressed := false
+var is_new := false
 
 
 func _ready():
+#	default_color = LINE_COLOR.lerp(Color(.2, .2, .65), .6)
 	default_color = LINE_COLOR
-	modulate.a = 0.5
+	modulate.a = 0.6
 	width = DEFAULT_WIDTH
 
 
-func _input(event: InputEvent) -> void:
-	if event is InputEventMouseButton:
-		has_focus = event.pressed
-	if (event is InputEventMouseButton and has_focus and
-		event.button_index == MOUSE_BUTTON_LEFT):
-		mouse_start_pos = get_global_mouse_position()
-	elif event is InputEventMouseMotion and has_focus:
-		var delta :float = 0
-		match type:
-			Types.HORIZONTAL:
-				delta = get_global_mouse_position().y - mouse_start_pos.y
-				position.y += delta
-				queue_redraw()
-			Types.VERTICAL: 
-				delta = get_global_mouse_position().x - mouse_start_pos.x
-				position.x += delta
-				queue_redraw()
+func _input(event: InputEvent):
+	if is_new:
+		if (event is InputEventMouseButton and 
+			event.button_index == MOUSE_BUTTON_LEFT):
+
+			is_pressed = event.pressed
+			if not is_pressed:
+				released.emit(self)
+				is_new = false
+				
+		if event is InputEventMouseMotion and is_pressed:
+			match orientation:
+				HORIZONTAL:
+					position.y = get_global_mouse_position().y
+				VERTICAL: 
+					position.x = get_global_mouse_position().x
+	else:
+		if (event is InputEventMouseButton and event.pressed and 
+			event.button_index == MOUSE_BUTTON_LEFT):
+			if (orientation == HORIZONTAL and 
+				abs(position.y - get_global_mouse_position().y) < 3 ):
+				pressed.emit(self)
+				is_pressed = true
+			elif (orientation == VERTICAL and
+				  abs(position.x - get_global_mouse_position().x) < 3):
+				pressed.emit(self)
+				is_pressed = true
+				
+		elif (event is InputEventMouseButton and not event.pressed):
+			is_pressed = false
+			released.emit(self)
+				
+		elif event is InputEventMouseMotion and is_pressed:
+			match orientation:
+				HORIZONTAL:
+					position.y = get_global_mouse_position().y
+				VERTICAL: 
+					position.x = get_global_mouse_position().x
 
 
 #func _draw() -> void:
@@ -52,11 +71,18 @@ func _input(event: InputEvent) -> void:
 #					HORIZONTAL_ALIGNMENT_LEFT, -1, 12, default_color)
 
 
-func set_guide(y_or_x, length :int):
-	match type:
-		Types.HORIZONTAL:
-			position.y = y_or_x
-		Types.VERTICAL:
-			position.x = y_or_x
-
-	points.append_array([Vector2i.ZERO, Vector2i(0, length)])
+func set_guide(orient :Orientation, size :Vector2):
+	is_new = true
+	is_pressed = true
+	clear_points()
+	orientation = orient
+	match orientation:
+		HORIZONTAL:
+			add_point(Vector2(-size.x, 0))
+			add_point(Vector2(size.x, 0))
+#			position.y = get_global_mouse_position().y
+#			mouse_default_cursor_shape = Control.CURSOR_VSPLIT
+		VERTICAL:
+			add_point(Vector2(0, -size.y))
+			add_point(Vector2(0, size.y))
+#			position.x = get_global_mouse_position().x

@@ -11,7 +11,9 @@ func _ready():
 #	texture_mode = LINE_TEXTURE_TILE 
 	width = 1
 	
-	default_color = Color.PALE_VIOLET_RED.lerp(Color(.2, .2, .65), .6)
+#	default_color = Color.DARK_SALMON.lerp(Color(.2, .2, .65), .6)
+	default_color = Color.DARK_SALMON
+	modulate.a = 0.6
 	hide()
 
 

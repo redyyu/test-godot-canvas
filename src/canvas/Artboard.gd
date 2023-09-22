@@ -44,8 +44,8 @@ func _ready():
 	add_child(symmetry_guide_v)
 	symmetry_visible = true
 	
-	v_ruler.type = Ruler.RulerType.VERTICAL
-	h_ruler.type = Ruler.RulerType.HORIZONTAL
+	h_ruler.guide_created.connect(_on_guide_created)
+	v_ruler.guide_created.connect(_on_guide_created)
 	
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
@@ -140,9 +140,55 @@ func place_symmetry_guide():
 		symmetry_guide_v.set_guide(Vector2(_x, -size.y), Vector2(_x, size.y))
 
 
-func _on_resized():
-	place_symmetry_guide()
+func place_rulers():
 	h_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
 	v_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
+
+
+func place_guides():
+	for guide in guides:
+		pass
+
+
+func _on_resized():
+	place_rulers()
+	place_guides()
+	place_symmetry_guide()
+
+
+# guides
+
+func _on_guide_created(type):
+	var guide = Guide.new()
+	guide.set_guide(type, size)
+	guides.append(guide)
+	add_child(guide)
+	guide.pressed.connect(_on_guide_pressed)
+	guide.released.connect(_on_guide_released)
 	
 
+func _on_guide_pressed(guide):
+	for _guide in guides:
+		if _guide != guide:
+			_guide.is_pressed = false
+
+
+func _on_guide_released(guide):
+	
+	match guide.orientation:
+		HORIZONTAL:
+			if guide.position.y < h_ruler.size.y:
+				print(guide.position.y, '    ', h_ruler.size.y)
+				guide.pressed.disconnect(_on_guide_pressed)
+				guide.released.disconnect(_on_guide_released)
+				guides.erase(guide)
+				guide.queue_free()
+		VERTICAL:
+			if guide.position.x < v_ruler.size.x:
+				guide.pressed.disconnect(_on_guide_pressed)
+				guide.released.disconnect(_on_guide_released)
+				guides.erase(guide)
+				guide.queue_free()
+	
+#	guide.selected.disconnect(_on_guide_selected)
+#	guide.destroyed.disconnect(_on_guide_destroyed)
