@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://c2vhsj26batj3"]
 
-[ext_resource type="Script" path="res://src/canvas/canvas.gd" id="1_cs4oe"]
+[ext_resource type="Script" path="res://src/canvas/Canvas.gd" id="1_cs4oe"]
 [ext_resource type="Script" path="res://src/canvas/CurrentFrameDrawer.gd" id="2_qfpgv"]
 [ext_resource type="Script" path="res://src/canvas/Indicators.gd" id="8_22nj3"]
 [ext_resource type="Script" path="res://src/canvas/Previews.gd" id="9_tdre7"]

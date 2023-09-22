@@ -53,7 +53,7 @@ func _draw() -> void:
 				HORIZONTAL_ALIGNMENT_LEFT, -1, 12, default_color)
 
 
-func set_guide(y_or_x, length :float):
+func set_guide(y_or_x, length :int):
 	match type:
 		Types.HORIZONTAL:
 			position.y = y_or_x

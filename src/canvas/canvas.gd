@@ -4,7 +4,7 @@ class_name Canvas
 
 var current_pixel := Vector2.ZERO
 #var sprite_changed_this_frame = false  ## For optimization purposes
-var camera_zoom: Vector2 = Vector2.ZERO
+var camera_zoom := Vector2.ZERO
 var move_preview_location = Vector2.ZERO
 var mouse_pos :Vector2 = Vector2.ZERO
 #var mirror_view :bool = false

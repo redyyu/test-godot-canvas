@@ -85,13 +85,16 @@ texture_mode = 1
 script = ExtResource("9_a670k")
 
 [node name="Camera" type="Camera2D" parent="Viewport"]
-zoom = Vector2(0.15, 0.15)
+limit_left = -19999
+limit_top = -19999
+limit_right = 19999
+limit_bottom = 19999
+limit_smoothed = true
 script = ExtResource("5_ghk1k")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="Viewport"]
 
 [node name="GreyscaleVision" type="ColorRect" parent="Viewport/CanvasLayer"]
-visible = false
 material = SubResource("ShaderMaterial_ib7er")
 anchors_preset = 15
 anchor_right = 1.0
@@ -100,4 +103,4 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[connection signal="changed" from="Viewport/Camera" to="." method="_on_camera_changed"]
+[node name="Cursor" type="Sprite2D" parent="."]

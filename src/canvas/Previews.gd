@@ -1,7 +1,7 @@
 extends Node2D
 
 
-func _input(event: InputEvent) -> void:
+func _input(_event: InputEvent) -> void:
 	pass
 #	if Global.has_focus:
 #		if event is InputEventMouse or event is InputEventKey:

@@ -2,19 +2,25 @@ extends Camera2D
 
 class_name CameraMovement
 
-signal changed(zoom_val, origin_val, scale_val)
+signal changed()
 
 const CAMERA_SPEED_RATE = 12.0
 
-var viewport_size := Vector2.ZERO
+var viewport_size := Vector2i.ZERO
+var canvas_size := Vector2i.ZERO
 
 var zoom_in_max := Vector2(500, 500)
 var zoom_out_max := Vector2(0.01, 0.01)
+var zoom_center_point := Vector2.ZERO
 
-var zoom_pos := Vector2.ZERO
+var canvas_origin := Vector2.ZERO
+var canvas_scale := Vector2.ZERO
+
+var use_integer_zoom := false
 var dragging := false
 var zooming := false
 var btn_pressed := false
+
 
 func _ready():
 	set_process_input(false)
@@ -37,8 +43,10 @@ func _input(event: InputEvent):
 	
 	# hit the hot key directly.
 	elif event.is_action_pressed("zoom_in"):
+		zoom_center_point = canvas_size * 0.5 
 		zoom_camera(1)
 	elif event.is_action_released("zoom_out"):
+		zoom_center_point = canvas_size * 0.5
 		zoom_camera(-1)
 	
 	# activated by pan tool.
@@ -48,40 +56,42 @@ func _input(event: InputEvent):
 	
 	# activated by zoom tool, with mouse click to zoom in and out.
 	elif zooming and event is InputEventMouseButton and btn_pressed:
-		if event.button_index == MOUSE_BUTTON_LEFT:
+		if (event.button_index == MOUSE_BUTTON_LEFT or 
+			event.button_index == MOUSE_BUTTON_WHEEL_UP):
+			zoom_center_point = get_local_mouse_position()
 			zoom_camera(1)
-		else:
+		elif (event.button_index == MOUSE_BUTTON_RIGHT or 
+			  event.button_index == MOUSE_BUTTON_WHEEL_DOWN):
+			zoom_center_point = get_local_mouse_position()
 			zoom_camera(-1)
 
 
 func zoom_camera(direction: int):
-	var new_zoom := zoom + (zoom * direction / 6)
-	if zoom >= Vector2.ONE and direction > 0:
+	var new_zoom := zoom + (zoom * direction / 10)
+	if use_integer_zoom:
 		new_zoom = (zoom + Vector2.ONE * direction).floor()
 	if new_zoom < zoom_in_max && new_zoom > zoom_out_max:
-		var new_offset = (
-			offset + (
-				(-0.5 * viewport_size + zoom_pos)
-				* (Vector2.ONE / zoom - Vector2.ONE / new_zoom)
-			)
-		)
-		var tween = create_tween().set_parallel()
-		tween.set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_IN)
-		tween.step_finished.connect(_on_zoom_step)
-		tween.tween_property(self, "zoom", new_zoom, 0.05)
-		tween.tween_property(self, "offset", new_offset, 0.05)	
+		zoom = new_zoom
+		offset = zoom_center_point
+		send_camera_changed()
+#		var tween = create_tween().set_parallel()
+#		tween.set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_IN)
+#		tween.step_finished.connect(_on_zoom_step_finished)
+#		tween.tween_property(self, "zoom", new_zoom, 0.05)
+#		tween.tween_property(self, "offset", zoom_center_point, 0.05)
 
 
 func zoom_100():
 	zoom = Vector2.ONE
-	offset = viewport_size / 2
+	zoom_center_point = canvas_size * 0.5
+	offset = zoom_center_point
 	send_camera_changed()
 	
 
-func fit_to_frame(size: Vector2) -> void:
-	offset = size / 2
-	var h_ratio = viewport_size.x / size.x
-	var v_ratio = viewport_size.y / size.y
+func fit_to_frame() -> void:
+	offset = canvas_size / 2
+	var h_ratio = viewport_size.x / float(canvas_size.x)
+	var v_ratio = viewport_size.y / float(canvas_size.y)
 	var ratio = minf(h_ratio, v_ratio)
 	if ratio == 0 or not visible:
 		ratio = 0.1  # Set it to a non-zero value just in case
@@ -91,12 +101,7 @@ func fit_to_frame(size: Vector2) -> void:
 	send_camera_changed()
 
 
-func _on_zoom_step(_idx: int):
-	send_camera_changed()
-
-
 func send_camera_changed():
-	var o := get_global_transform_with_canvas().get_origin()
-	var s := get_global_transform_with_canvas().get_scale()
-	o.y = get_viewport_rect().size.y - o.y
-	changed.emit(zoom, o, s)
+	canvas_origin = get_global_transform_with_canvas().get_origin()
+	canvas_scale = get_global_transform_with_canvas().get_scale()
+	changed.emit()

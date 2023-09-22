@@ -2,8 +2,6 @@ extends SubViewportContainer
 
 class_name Artboard
 
-signal cursor_visible(state)
-
 
 enum StateType {
 	NONE,
@@ -16,31 +14,39 @@ var project :Project
 var state := StateType.NONE :
 	set = activate_state
 
+var guides :Array[Guide] = []
 
+var symmetry_guide_h := SymmetryGuide.new()
+var symmetry_guide_v := SymmetryGuide.new()
+var symmetry_visible := false :
+	set(val):
+		symmetry_visible = val
+		if symmetry_visible:
+			symmetry_guide_h.show()
+			symmetry_guide_v.show()
+		else:
+			symmetry_guide_h.hide()
+			symmetry_guide_v.hide()
 
 @onready var viewport :SubViewport = $Viewport
 @onready var camera :Camera2D = $Viewport/Camera
 @onready var canvas :Node2D = $Viewport/Canvas
 @onready var transChecker :ColorRect = $Viewport/TransChecker
 
+@onready var cursor :Sprite2D = $Cursor
+
 
 func _ready():
+	add_child(symmetry_guide_h)
+	add_child(symmetry_guide_v)
+	symmetry_visible = true
+	
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
+	resized.connect(_on_resized)
 	
-#	print(g.current_project)
-#	material = CanvasItemMaterial.new()
-#	material.blend_mode = CanvasItemMaterial.BLEND_MODE_PREMULT_ALPHA
+	camera.changed.connect(_on_camera_changed)
 	
-#	camera.zoom_100(g.current_project.size)
-#	camera.camera_zoom_changed.connect(_on_camera_zoom_changed)
-#	camera.camera_offset_changed.connect(_on_camera_offset_changed)
-#
-#	gui_input.connect(_on_gui_input)
-#
-#	transChecker.update_rect()
-#	update_trans_checker_offset()
-	pass
 
 
 func load_project(proj :Project):
@@ -48,16 +54,17 @@ func load_project(proj :Project):
 
 #	material = CanvasItemMaterial.new()
 #	material.blend_mode = CanvasItemMaterial.BLEND_MODE_PREMULT_ALPHA
-	
+	camera.canvas_size = project.size
 	camera.viewport_size = viewport.size
 	camera.zoom_100()
-
+	
 #	camera.camera_offset_changed.connect(_on_camera_offset_changed)
 	
 	canvas.set_canvas_size(project.size)
 	transChecker.update_rect(project.size)
 	
-	gui_input.connect(_on_gui_input)
+	
+#	gui_input.connect(_on_gui_input)
 
 
 func activate_state(op_state):
@@ -78,6 +85,7 @@ func activate_state(op_state):
 	state = op_state
 
 
+
 func update_canvas():
 	canvas.queue_redraw()
 
@@ -89,17 +97,18 @@ func update_canvas():
 
 func _on_mouse_entered():
 	camera.set_process_input(true)
-	cursor_visible.emit(true)
+	cursor.show()
 
 
 func _on_mouse_exited():
 	camera.set_process_input(false)
-	cursor_visible.emit(false)
+	cursor.hide()
 
 
-func _on_gui_input(event):
-	if event is InputEventMouseMotion:
-		camera.zoom_pos = get_local_mouse_position()
+#func _on_gui_input(event):
+#	if event is InputEventMouseMotion:
+##		camera.zoom_pos = 
+#		pass
 	
 
 #func _on_camera_offset_changed(offset_val :float):
@@ -112,8 +121,23 @@ func _on_gui_input(event):
 #	update_trans_checker_offset()
 #	save_to_project()
 
+func place_symmetry_guide():
+	if symmetry_visible and project:
+		var _offset = camera.offset
+		var _zoom = camera.zoom
+		var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
+#		var _origin = camera.canvas_origin 
+		# the origin in side the canvas is useless while on reised.
+		var _x = _origin.x + project.size.x * 0.5 * _zoom.x
+		var _y = _origin.y + project.size.y * 0.5 * _zoom.y
+		symmetry_guide_h.set_guide(Vector2(-19999, _y), Vector2(19999, _y))
+		symmetry_guide_v.set_guide(Vector2(_x, -19999), Vector2(_x, 19999))
 
 
-func _on_camera_changed(zoom_val, _origin_val, _scale_val):
-	if canvas:
-		canvas.camera_zoom = zoom_val
+func _on_resized():
+	place_symmetry_guide()
+	
+
+func _on_camera_changed():
+	place_symmetry_guide()
+		

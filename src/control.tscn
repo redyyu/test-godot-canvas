@@ -15,9 +15,6 @@ script = ExtResource("1_tve2u")
 [node name="Artboard" parent="." instance=ExtResource("1_wuu8o")]
 layout_mode = 1
 
-[node name="Cursor" type="Sprite2D" parent="."]
-visible = false
-
 [node name="Button" type="Button" parent="."]
 layout_mode = 0
 offset_left = 1051.0
@@ -35,5 +32,3 @@ offset_right = 1096.0
 offset_bottom = 163.0
 toggle_mode = true
 text = "Zoom"
-
-[connection signal="cursor_visible" from="Artboard" to="." method="_on_cursor_visible"]
