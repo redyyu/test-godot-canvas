@@ -146,8 +146,18 @@ func place_rulers():
 
 
 func place_guides():
-	for guide in guides:
-		pass
+	var _offset = camera.offset
+	var _zoom = camera.zoom
+	var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
+	$ColorRect.position = _origin
+	for guide in guides:		
+		var _x = _origin.x + guide.position.x * 0.5 * _zoom.x
+		var _y = _origin.y + guide.position.y * 0.5 * _zoom.y
+		match guide.orientation:
+			HORIZONTAL:
+				guide.position.y = _offset.y + _origin.y
+			VERTICAL:
+				guide.position.x = (_offset - project.size * 0.5).x
 
 
 func _on_resized():
@@ -168,17 +178,17 @@ func _on_guide_created(type):
 	
 
 func _on_guide_pressed(guide):
+	# clear up other guide status
 	for _guide in guides:
 		if _guide != guide:
+			_guide.is_new = false
 			_guide.is_pressed = false
 
 
 func _on_guide_released(guide):
-	
 	match guide.orientation:
 		HORIZONTAL:
 			if guide.position.y < h_ruler.size.y:
-				print(guide.position.y, '    ', h_ruler.size.y)
 				guide.pressed.disconnect(_on_guide_pressed)
 				guide.released.disconnect(_on_guide_released)
 				guides.erase(guide)
@@ -189,6 +199,3 @@ func _on_guide_released(guide):
 				guide.released.disconnect(_on_guide_released)
 				guides.erase(guide)
 				guide.queue_free()
-	
-#	guide.selected.disconnect(_on_guide_selected)
-#	guide.destroyed.disconnect(_on_guide_destroyed)
