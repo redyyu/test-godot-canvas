@@ -17,7 +17,6 @@ func _ready():
 	
 
 func _on_btn_pressed(btn):
-	print(btn.name)
 	match btn.name:
 		'Button':
 			artboard.activate_state(Artboard.StateType.DRAG)

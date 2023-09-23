@@ -149,16 +149,20 @@ func place_guides():
 	var _offset = camera.offset
 	var _zoom = camera.zoom
 	var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
-	for guide in guides:		
+	$ColorRect.position = _origin
+	$ColorRect.size = Vector2(40, 40) * _zoom
+	for guide in guides:
+		
 		match guide.orientation:
 			HORIZONTAL:
-				var _y = (size.y * 0.5 - guide.position.y) * camera.zoom.y
-				guide.position.y = camera.offset.y * camera.zoom.y + _y
+				var _y = guide.relative_position.y * _zoom.y
+				guide.position.y = _origin.y - _y
 			VERTICAL:
-				guide.position.x = guide.relative_position.x * camera.zoom.x
+				var _x = guide.relative_position.x * _zoom.x
+				guide.position.x = _origin.x - _x
 
 
-func _on_resized():
+func _on_resized(): 
 	place_rulers()
 	place_guides()
 	place_symmetry_guide()
@@ -184,11 +188,10 @@ func _on_guide_pressed(guide):
 
 
 func _on_guide_released(guide):
-#	var _offset = camera.offset
-#	var _zoom = camera.zoom
-#	var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
-#	$ColorRect.position = _origin
-#	guide.relative_position = _origin - guide.position
+	var _offset = camera.offset
+	var _zoom = camera.zoom
+	var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
+	guide.relative_position = _origin - guide.position
 	match guide.orientation:
 		HORIZONTAL:
 			if guide.position.y < h_ruler.size.y:

@@ -43,16 +43,20 @@ func _input(event: InputEvent):
 			event.button_index == MOUSE_BUTTON_LEFT):
 			if (orientation == HORIZONTAL and 
 				abs(position.y - get_global_mouse_position().y) < 3 ):
-				pressed.emit(self)
-				is_pressed = true
+				# check mouse is closet to guide.
+				if not is_pressed:
+					is_pressed = true
+					pressed.emit(self)
 			elif (orientation == VERTICAL and
 				  abs(position.x - get_global_mouse_position().x) < 3):
-				pressed.emit(self)
-				is_pressed = true
-				
+				# check mouse is closet to guide.
+				if not is_pressed:
+					is_pressed = true
+					pressed.emit(self)
 		elif (event is InputEventMouseButton and not event.pressed):
-			is_pressed = false
-			released.emit(self)
+			if is_pressed:
+				is_pressed = false
+				released.emit(self)
 				
 		elif event is InputEventMouseMotion and is_pressed:
 			match orientation:
