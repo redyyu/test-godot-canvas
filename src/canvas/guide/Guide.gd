@@ -23,51 +23,38 @@ func _ready():
 
 
 func _input(event: InputEvent):
-	if is_new:
-		if (event is InputEventMouseButton and 
-			event.button_index == MOUSE_BUTTON_LEFT):
-
-			is_pressed = event.pressed
+	# grab a guide
+	if (event is InputEventMouseButton and event.pressed and 
+		event.button_index == MOUSE_BUTTON_LEFT):
+		if (orientation == HORIZONTAL and 
+			abs(position.y - get_global_mouse_position().y) < 3 ):
+			# check mouse is closet to guide.
 			if not is_pressed:
-				released.emit(self)
-				is_new = false
-				
-		if event is InputEventMouseMotion and is_pressed:
-			match orientation:
-				HORIZONTAL:
-					position.y = get_global_mouse_position().y
-				VERTICAL: 
-					position.x = get_global_mouse_position().x
-	else:
-		if (event is InputEventMouseButton and event.pressed and 
-			event.button_index == MOUSE_BUTTON_LEFT):
-			if (orientation == HORIZONTAL and 
-				abs(position.y - get_global_mouse_position().y) < 3 ):
-				# check mouse is closet to guide.
-				if not is_pressed:
-					is_pressed = true
-					pressed.emit(self)
-			elif (orientation == VERTICAL and
-				  abs(position.x - get_global_mouse_position().x) < 3):
-				# check mouse is closet to guide.
-				if not is_pressed:
-					is_pressed = true
-					pressed.emit(self)
-		elif (event is InputEventMouseButton and not event.pressed):
-			if is_pressed:
-				is_pressed = false
-				released.emit(self)
-				
-		elif event is InputEventMouseMotion and is_pressed:
-			match orientation:
-				HORIZONTAL:
-					position.y = get_global_mouse_position().y
-				VERTICAL: 
-					position.x = get_global_mouse_position().x
+				is_pressed = true
+				pressed.emit(self)
+		elif (orientation == VERTICAL and
+			  abs(position.x - get_global_mouse_position().x) < 3):
+			# check mouse is closet to guide.
+			if not is_pressed:
+				is_pressed = true
+				pressed.emit(self)
+	
+	# release a guide
+	elif (event is InputEventMouseButton and not event.pressed):
+		if is_pressed:
+			is_pressed = false
+			released.emit(self)
+	
+	# drag a guide		
+	elif event is InputEventMouseMotion and is_pressed:
+		match orientation:
+			HORIZONTAL:
+				position.y = get_global_mouse_position().y
+			VERTICAL: 
+				position.x = get_global_mouse_position().x
 
 
 func set_guide(orient :Orientation, size :Vector2):
-	is_new = true
 	is_pressed = true
 	clear_points()
 	orientation = orient
