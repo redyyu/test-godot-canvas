@@ -15,9 +15,13 @@ var relative_position := Vector2.ZERO
 # use to keep the right position when place guide while is zoomed.
 
 var orientation := HORIZONTAL
-var locked := false
 var is_pressed := false
 var is_hovered := false
+var locked := false :
+	set (val):
+		locked = bool(val)
+		is_pressed = false
+		is_hovered = false
 
 
 func _ready():

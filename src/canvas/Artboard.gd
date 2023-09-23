@@ -175,9 +175,6 @@ func _on_guide_hovered(guide):
 
 
 func _on_guide_leaved(guide):
-	for _guide in guides:
-		if _guide != guide:
-			_guide.is_hovered = false
 	mouse_default_cursor_shape = Control.CURSOR_ARROW
 
 
@@ -204,9 +201,11 @@ func _on_guide_released(guide):
 				guide.released.disconnect(_on_guide_released)
 				guides.erase(guide)
 				guide.queue_free()
+				mouse_default_cursor_shape = Control.CURSOR_ARROW
 		VERTICAL:
 			if guide.position.x < v_ruler.size.x:
 				guide.pressed.disconnect(_on_guide_pressed)
 				guide.released.disconnect(_on_guide_released)
 				guides.erase(guide)
 				guide.queue_free()
+				mouse_default_cursor_shape = Control.CURSOR_ARROW
