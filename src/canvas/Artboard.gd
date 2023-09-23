@@ -36,8 +36,6 @@ var symmetry_visible := false :
 @onready var h_ruler :Button = $HRuler
 @onready var v_ruler :Button = $VRuler
 
-@onready var cursor :Sprite2D = $Cursor
-
 
 func _ready():
 	add_child(symmetry_guide_h)
@@ -66,6 +64,7 @@ func load_project(proj :Project):
 #	camera.camera_offset_changed.connect(_on_camera_offset_changed)
 	
 	canvas.set_canvas_size(project.size)
+	canvas.load_iamge(null)
 	transChecker.update_rect(project.size)
 	
 	
@@ -102,12 +101,10 @@ func update_canvas():
 
 func _on_mouse_entered():
 	camera.set_process_input(true)
-	cursor.show()
 
 
 func _on_mouse_exited():
 	camera.set_process_input(false)
-	cursor.hide()
 
 
 func place_symmetry_guide():

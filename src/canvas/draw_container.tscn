@@ -70,16 +70,15 @@ script = ExtResource("6_2ns7n")
 script = ExtResource("7_qprso")
 
 [node name="MouseGuideContainer" type="Node2D" parent="Viewport/Canvas"]
+visible = false
 
 [node name="Vertical" type="Line2D" parent="Viewport/Canvas/MouseGuideContainer"]
-visible = false
 points = PackedVector2Array(0, 19999, 0, -19999)
 texture = SubResource("AtlasTexture_gavu7")
 texture_mode = 1
 script = ExtResource("9_a670k")
 
 [node name="Horizontal" type="Line2D" parent="Viewport/Canvas/MouseGuideContainer"]
-visible = false
 points = PackedVector2Array(0, 19999, 0, -19999)
 texture = SubResource("AtlasTexture_gavu7")
 texture_mode = 1
@@ -98,8 +97,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-
-[node name="Cursor" type="Sprite2D" parent="."]
 
 [node name="HRuler" type="Button" parent="."]
 layout_mode = 2

@@ -8,8 +8,8 @@ var type := LayerTypes.PIXEL
 
 
 # Overridden Methods:
-func new_empty_cel(width :int, height: int) -> PixelCel:
-	return PixelCel.new(width, height)
+func new_empty_cel(size:Vector2i) -> PixelCel:
+	return PixelCel.new(size.x, size.y)
 
 
 func can_layer_get_drawn() -> bool:

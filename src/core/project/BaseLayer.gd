@@ -29,19 +29,6 @@ func is_ancestor_of(layer: BaseLayer):
 	return false
 
 
-func get_children(layers :Array[BaseLayer], recursive: bool) -> Array:
-	var children: Array[BaseLayer] = []
-	if recursive:
-		for i in index:
-			if is_ancestor_of(layers[i]):
-				children.append(layers[i])
-	else:
-		for i in index:
-			if layers[i].parent == self:
-				children.append(layers[i])
-	return children
-
-
 func is_expanded_in_hierarchy() -> bool:
 	if is_instance_valid(parent):
 		return parent.expanded and parent.is_expanded_in_hierarchy()

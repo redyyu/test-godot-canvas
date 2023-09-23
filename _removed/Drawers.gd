@@ -28,6 +28,7 @@ class ColorOp:
 		return src
 
 
+
 class SimpleDrawer:
 	func set_pixel(image: Image, position: Vector2i, color: Color, op: ColorOp) -> void:
 		var color_old := image.get_pixelv(position)
@@ -38,12 +39,7 @@ class SimpleDrawer:
 
 
 class PixelPerfectDrawer:
-	const NEIGHBOURS: Array[Vector2i] = [Vector2i.DOWN, Vector2i.RIGHT, Vector2i.LEFT, Vector2i.UP]
-	const CORNERS: Array[Vector2i] = [Vector2i.ONE, -Vector2i.ONE, Vector2i(-1, 1), Vector2i(1, -1)]
-	var last_pixels := [null, null]
-
-	func reset() -> void:
-		last_pixels = [null, null]
+	
 
 	func set_pixel(image: Image, position: Vector2i, color: Color, op: ColorOp) -> void:
 		var color_old := image.get_pixelv(position)
@@ -68,18 +64,18 @@ func reset() -> void:
 
 
 func set_pixel(image: Image, position: Vector2i, color: Color, ignore_mirroring := false) -> void:
-	var project := Global.current_project
+#	var project := Global.current_project
 	drawers[0].set_pixel(image, position, color, color_op)
 	if ignore_mirroring:
 		return
 
 	# Handle Mirroring
-	var mirror_x := project.x_symmetry_point - position.x
-	var mirror_y := project.y_symmetry_point - position.y
+#	var mirror_x := project.x_symmetry_point - position.x
+#	var mirror_y := project.y_symmetry_point - position.y
 
-	if horizontal_mirror and project.can_pixel_get_drawn(Vector2i(mirror_x, position.y)):
-		drawers[1].set_pixel(image, Vector2i(mirror_x, position.y), color, color_op)
-		if vertical_mirror and project.can_pixel_get_drawn(Vector2i(position.x, mirror_y)):
-			drawers[2].set_pixel(image, Vector2i(mirror_x, mirror_y), color, color_op)
-	if vertical_mirror and project.can_pixel_get_drawn(Vector2i(position.x, mirror_y)):
-		drawers[3].set_pixel(image, Vector2i(position.x, mirror_y), color, color_op)
+#	if horizontal_mirror and project.can_pixel_get_drawn(Vector2i(mirror_x, position.y)):
+#		drawers[1].set_pixel(image, Vector2i(mirror_x, position.y), color, color_op)
+#		if vertical_mirror and project.can_pixel_get_drawn(Vector2i(position.x, mirror_y)):
+#			drawers[2].set_pixel(image, Vector2i(mirror_x, mirror_y), color, color_op)
+#	if vertical_mirror and project.can_pixel_get_drawn(Vector2i(position.x, mirror_y)):
+#		drawers[3].set_pixel(image, Vector2i(position.x, mirror_y), color, color_op)

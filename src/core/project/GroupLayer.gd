@@ -5,6 +5,20 @@ class_name GroupLayer
 
 var type := LayerTypes.GROUP
 
+
+func get_children(layers :Array[BaseLayer], recursive: bool) -> Array:
+	var children: Array[BaseLayer] = []
+	if recursive:
+		for i in index:
+			if is_ancestor_of(layers[i]):
+				children.append(layers[i])
+	else:
+		for i in index:
+			if layers[i].parent == self:
+				children.append(layers[i])
+	return children
+
+
 # Blends all of the images of children layer 
 # of the group layer into a single image.
 func blend_children(frame: Frame, layers :Array[BaseLayer], size:Vector2i,

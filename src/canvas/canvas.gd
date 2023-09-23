@@ -2,11 +2,12 @@ extends Node2D
 
 class_name Canvas
 
-var current_pixel := Vector2.ZERO
-#var sprite_changed_this_frame = false  ## For optimization purposes
+
 var camera_zoom := Vector2.ZERO
-var move_preview_location = Vector2.ZERO
-var mouse_pos :Vector2 = Vector2.ZERO
+var is_pressed := false
+var drawer := PixelDrawer.new()
+var image := Image.new()
+
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
 #var grid_draw_over_tile_mode :bool = false
@@ -49,6 +50,21 @@ func set_canvas_size(canvas_size :Vector2i):
 
 func get_canvas_size() -> Vector2i:
 	return current_display.size
+
+
+func load_iamge(current_image :Variant):
+	if current_image is Image:
+		current_drawer.image = current_image
+
+
+func _input(event :InputEvent):
+	print('fuck')
+	if event is InputEventMouseButton:
+		is_pressed = event.pressed
+	
+	elif event is InputEventMouseMotion and is_pressed:
+		var pos = get_local_mouse_position()
+		drawer.draw_pixel(image, pos, Color.RED)
 
 
 #func _on_stop_draw():
@@ -113,8 +129,7 @@ func get_canvas_size() -> Vector2i:
 #		queue_redraw()
 #
 #
-func update_zoom(zoom_val :Vector2):
-	camera_zoom = zoom_val
+
 #	selection.update_zoom(camera_zoom)
 #
 #
