@@ -221,7 +221,7 @@ func draw_v():
 func _input(event):
 	
 	if event is InputEventMouse:
-		var mouse_position = get_local_mouse_position()
+		mouse_position = get_local_mouse_position()
 		var rect = Rect2i(Vector2i.ZERO, size)
 		
 		if (event is InputEventMouseButton and 

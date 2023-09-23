@@ -4,15 +4,20 @@ class_name Guide
 
 signal released(guide)
 signal pressed(guide)
+signal hovered(guide)
+signal leaved(guide)
 
 const DEFAULT_WIDTH := 2
 const LINE_COLOR := Color.REBECCA_PURPLE
 
-var relative_position := Vector2.ZERO
+var relative_position := Vector2.ZERO 
+# it is calculated position to parent scene when zoom is 1.0
+# use to keep the right position when place guide while is zoomed.
+
 var orientation := HORIZONTAL
 var locked := false
 var is_pressed := false
-var is_new := false
+var is_hovered := false
 
 
 func _ready():
@@ -23,18 +28,17 @@ func _ready():
 
 
 func _input(event: InputEvent):
+	if locked:
+		return
+		
 	# grab a guide
 	if (event is InputEventMouseButton and event.pressed and 
 		event.button_index == MOUSE_BUTTON_LEFT):
-		if (orientation == HORIZONTAL and 
-			abs(position.y - get_global_mouse_position().y) < 3 ):
-			# check mouse is closet to guide.
+		if orientation == HORIZONTAL and is_hovered:
 			if not is_pressed:
 				is_pressed = true
 				pressed.emit(self)
-		elif (orientation == VERTICAL and
-			  abs(position.x - get_global_mouse_position().x) < 3):
-			# check mouse is closet to guide.
+		elif orientation == VERTICAL and is_hovered:
 			if not is_pressed:
 				is_pressed = true
 				pressed.emit(self)
@@ -52,6 +56,30 @@ func _input(event: InputEvent):
 				position.y = get_global_mouse_position().y
 			VERTICAL: 
 				position.x = get_global_mouse_position().x
+	
+	# mouse over 
+	elif event is InputEventMouseMotion:
+		if orientation == HORIZONTAL:
+			if abs(position.y - get_global_mouse_position().y) < 3:
+				# check mouse is closet to guide.
+				if not is_hovered:
+					is_hovered = true
+					hovered.emit(self)
+			else:
+				if is_hovered:
+					is_hovered = false
+					leaved.emit(self)
+			
+		elif orientation == VERTICAL:
+			if abs(position.x - get_global_mouse_position().x) < 3:
+				# check mouse is closet to guide.
+				if not is_hovered:
+					is_hovered = true
+					hovered.emit(self)
+			else:
+				if is_hovered:
+					is_hovered = false
+					leaved.emit(self)
 
 
 func set_guide(orient :Orientation, size :Vector2):

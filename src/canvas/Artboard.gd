@@ -110,23 +110,6 @@ func _on_mouse_exited():
 	cursor.hide()
 
 
-#func _on_gui_input(event):
-#	if event is InputEventMouseMotion:
-##		camera.zoom_pos = 
-#		pass
-	
-
-#func _on_camera_offset_changed(offset_val :float):
-#	update_trans_checker_offset()
-#	save_to_project()
-#
-#
-#func _on_camera_zoom_changed(zoom_val :Vector2):
-#	canvas.update_zoom(zoom_val)
-#	update_trans_checker_offset()
-#	save_to_project()
-
-
 func place_symmetry_guide():
 	if symmetry_visible and project:
 		var _offset = camera.offset
@@ -146,13 +129,12 @@ func place_rulers():
 
 
 func place_guides():
-	var _offset = camera.offset
 	var _zoom = camera.zoom
+	var _offset = camera.offset
 	var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
 	$ColorRect.position = _origin
-	$ColorRect.size = Vector2(40, 40) * _zoom
+	$ColorRect.size = 40 * _zoom
 	for guide in guides:
-		
 		match guide.orientation:
 			HORIZONTAL:
 				var _y = guide.relative_position.y * _zoom.y
@@ -177,21 +159,44 @@ func _on_guide_created(type):
 	add_child(guide)
 	guide.pressed.connect(_on_guide_pressed)
 	guide.released.connect(_on_guide_released)
+	guide.hovered.connect(_on_guide_hovered)
+	guide.leaved.connect(_on_guide_leaved)
 	
+
+func _on_guide_hovered(guide):
+	for _guide in guides:
+		if _guide != guide:
+			_guide.is_hovered = false
+	match guide.orientation:
+		HORIZONTAL:
+			mouse_default_cursor_shape = Control.CURSOR_VSPLIT
+		VERTICAL:
+			mouse_default_cursor_shape = Control.CURSOR_HSPLIT
+
+
+func _on_guide_leaved(guide):
+	for _guide in guides:
+		if _guide != guide:
+			_guide.is_hovered = false
+	mouse_default_cursor_shape = Control.CURSOR_ARROW
+
 
 func _on_guide_pressed(guide):
 	# clear up other guide status
 	for _guide in guides:
 		if _guide != guide:
-			_guide.is_new = false
 			_guide.is_pressed = false
 
 
 func _on_guide_released(guide):
 	var _offset = camera.offset
 	var _zoom = camera.zoom
-	var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
-	guide.relative_position = _origin - guide.position
+	var _origin = Vector2(size * 0.5 - _offset * _zoom) # to get origin
+	
+	guide.relative_position = (_origin - guide.position) / _zoom
+	# calculate to the right position when zoom is 1.0.
+	# otherwise position might mess-up place guide while is zoomed.
+	
 	match guide.orientation:
 		HORIZONTAL:
 			if guide.position.y < h_ruler.size.y:
