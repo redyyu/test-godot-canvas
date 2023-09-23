@@ -2,11 +2,9 @@ extends Node2D
 
 class_name Canvas
 
-
-var camera_zoom := Vector2.ZERO
 var is_pressed := false
 var drawer := PixelDrawer.new()
-var image := Image.new()
+var project :Project
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -18,8 +16,8 @@ var image := Image.new()
 #var onion_skinning_past_rate := 1.0
 #var onion_skinning_future_rate := 1.0
 
-@onready var current_display :SubViewport = $CurrentDisplay
-@onready var current_drawer :Node2D = $CurrentDisplay/CurrentDrawer
+@onready var current_display := $CurrentDisplay
+@onready var current_drawer  := $CurrentDisplay/CurrentDrawer
 #@onready var tile_mode :Node2D = $TileMode
 #@onready var pixel_grid :Node2D = $PixelGrid
 #@onready var grid :Node2D = $Grid
@@ -42,29 +40,62 @@ func _ready():
 #	selection.gizmo_selected.connect(_on_stop_draw)
 #	selection.gizmo_released.connect(_on_reset_draw)
 #	selection.selection_map_changed.connect(_on_selection_map_changed)
-	
 
-func set_canvas_size(canvas_size :Vector2i):
-	current_display.size = canvas_size
+
+func subscribe(proj :Project):
+	project = proj
+	current_display.size = project.size
 	
 
 func get_canvas_size() -> Vector2i:
 	return current_display.size
 
 
-func load_iamge(current_image :Variant):
-	if current_image is Image:
-		current_drawer.image = current_image
-
-
 func _input(event :InputEvent):
-	print('fuck')
+#	if event is InputEventMouse:
+#		var mouse_pos = get_local_mouse_position()
+#		var tmp_transform := get_canvas_transform().affine_inverse()
+#		var current_pixel = tmp_transform.basis_xform(mouse_pos) + tmp_transform.origin
+#		queue_redraw()
+	var pos = get_local_mouse_position()
+	drawer.draw_pixel(project.current_cel.image, pos, Color.RED)
 	if event is InputEventMouseButton:
 		is_pressed = event.pressed
-	
+
 	elif event is InputEventMouseMotion and is_pressed:
-		var pos = get_local_mouse_position()
-		drawer.draw_pixel(image, pos, Color.RED)
+#		var pos = get_local_mouse_position()
+		var rect = Rect2i(Vector2i.ZERO, get_canvas_size())
+		if rect.has_point(pos) and project.current_cel is PixelCel:
+			drawer.draw_pixel(project.current_cel.image, pos, Color.RED)
+			project.current_cel.update_texture()
+		queue_redraw()
+
+
+func _draw():
+	if not project:
+		return
+	var position_tmp := position
+	var scale_tmp := scale
+#	if Global.mirror_view:
+#		position_tmp.x = position_tmp.x + Global.current_project.size.x
+#		scale_tmp.x = -1
+#	draw_set_transform(position_tmp, 0.0, scale_tmp)
+	# Draw current frame layers
+	for i in project.layers.size():
+		if project.current_frame.cels[i] is GroupCel:
+			continue
+		var modulate_color := Color(1, 1, 1, project.layers[i].opacity)
+		if project.layers[i].is_visible_in_hierarchy():
+			draw_texture(project.current_frame.cels[i].image_texture, 
+						 Vector2.ZERO, 
+						 modulate_color)
+
+	current_display.size = project.size
+#	current_drawer.queue_redraw()
+#	if Global.current_project.tiles.mode != Tiles.MODE.NONE:
+#		tile_mode.queue_redraw()
+#	draw_set_transform(position, 0.0, Vector2.ONE)
+	
 
 
 #func _on_stop_draw():

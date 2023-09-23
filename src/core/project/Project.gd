@@ -14,6 +14,7 @@ var undos :int = 0  ## The number of times we added undo properties
 var can_undo :bool = true
 
 var tiles: Tiles
+var fill_color :Color = Color.BLACK
 
 var has_changed :bool = false
 
@@ -50,6 +51,9 @@ func _init(_size := Vector2i(64, 64), _name := tr("untitled")):
 	size = _size
 	tiles = Tiles.new(size)
 	
+	add_empty_frame()
+	create_pixel_layer()
+	
 	if OS.get_name() == "Web":
 		save_dir_path = "user://"
 		export_dir_path = "user://"
@@ -60,9 +64,6 @@ func remove():
 	for ri in reference_images:
 		ri.queue_free()
 		
-	for guide in guides:
-		guide.queue_free()
-		
 	for frame in frames:
 		for l in layers.size():
 			var cel: BaseCel = frame.cels[l]
@@ -70,18 +71,6 @@ func remove():
 	# Prevents memory leak (due to the layers' project 
 	# reference stopping ref counting from freeing)
 	layers.clear()
-
-
-func commit_undo():
-	if not can_undo:
-		return
-	undo_redo.undo()
-
-
-func commit_redo():
-	if not can_undo:
-		return
-	undo_redo.redo()
 
 
 func save():
@@ -144,6 +133,7 @@ func create_pixel_layer(index := 0) -> PixelLayer:
 	for f in frames.size():
 		var cel = layer.new_empty_cel(size)
 		frames[f].cels.insert(index, cel)
+	layers.insert(index, layer)
 	return layer
 
 
@@ -187,11 +177,15 @@ func move_layers(from_indices :Array[int], to_index: int,
 		
 
 # frames
-func add_empty_frame(index :int) -> Frame:
+func add_empty_frame(index :=0) -> Frame:
 	var frame := Frame.new()
+	var bottom_layer := true
 	for l in layers:  # Create as many cels as there are layers
 		var cel = l.new_empty_cel()
+		if cel is PixelCel and bottom_layer and fill_color.a > 0:
+			cel.image.fill(fill_color)
 		frame.append_cel(cel)
+		bottom_layer = false
 	frames.insert(index, frame)
 	return frame
 

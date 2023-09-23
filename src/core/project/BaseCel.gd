@@ -7,7 +7,7 @@ class_name BaseCel
 
 signal texture_changed
 
-var image_texture :Texture2D:
+var image_texture :Texture2D = ImageTexture.new(): 
 	get = get_image_texture
 
 	

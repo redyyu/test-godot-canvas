@@ -24,11 +24,18 @@ func reset():
 
 
 func draw_pixel(image: Image, position: Vector2i, color: Color):
+	var rect = Rect2i(
+		Vector2i.ZERO, 
+		Vector2i(image.get_width(), image.get_height())
+	)
+				
+	if not rect.has_point(position):
+		return
+
 	var color_old := image.get_pixelv(position)
 	var color_new := color_op.process(Color(color), color_old)
 	
-	if not color_new.is_equal_approx(color_old):
-		image.set_pixelv(position, color_new)
+	image.set_pixelv(position, color_new)
 	
 	if pixel_perfect:
 		last_pixels.push_back([position, color_old])

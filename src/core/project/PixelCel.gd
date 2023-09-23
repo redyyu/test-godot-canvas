@@ -25,14 +25,16 @@ func image_changed(value: Image):
 		image_texture.set_image(image)
 
 
-func set_content(content, texture: ImageTexture = null):
+func get_content():
+	return image
+
+
+func set_content(content: Image, texture: ImageTexture = null):
 	image = content
 	if is_instance_valid(texture):
 		image_texture = texture
 		if image_texture.get_image().get_size() != image.get_size():
 			image_texture = ImageTexture.create_from_image(image)
-	else:
-		image_texture = ImageTexture.create_from_image(image)
 
 
 func create_empty_content():

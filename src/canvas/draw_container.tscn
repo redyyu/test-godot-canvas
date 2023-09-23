@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://c08qtjj7x8pnk"]
+[gd_scene load_steps=17 format=3 uid="uid://c08qtjj7x8pnk"]
 
 [ext_resource type="Shader" path="res://src/shaders/TransparentChecker.gdshader" id="1_d8lm1"]
 [ext_resource type="Script" path="res://src/canvas/Artboard.gd" id="1_fg2jv"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://src/canvas/Previews.gd" id="7_qprso"]
 [ext_resource type="Texture2D" uid="uid://bk6ocb3o8wtj6" path="res://assets/graphics/dotted_line.png" id="8_bu2cv"]
 [ext_resource type="Script" path="res://src/canvas/MouseGuide.gd" id="9_a670k"]
+[ext_resource type="Texture2D" uid="uid://c301hklwgs2q1" path="res://icon.svg" id="10_pwoht"]
 [ext_resource type="Script" path="res://src/canvas/guide/Ruler.gd" id="12_o861q"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_u122j"]
@@ -58,10 +59,15 @@ script = ExtResource("4_1y3pt")
 [node name="CurrentDisplay" type="SubViewport" parent="Viewport/Canvas"]
 disable_3d = true
 transparent_bg = true
+handle_input_locally = false
 render_target_update_mode = 3
 
 [node name="CurrentDrawer" type="Node2D" parent="Viewport/Canvas/CurrentDisplay"]
+visible = false
 script = ExtResource("5_agj6t")
+
+[node name="Sprite2D" type="Sprite2D" parent="Viewport/Canvas/CurrentDisplay"]
+texture = ExtResource("10_pwoht")
 
 [node name="Indicators" type="Node2D" parent="Viewport/Canvas"]
 script = ExtResource("6_2ns7n")
@@ -88,6 +94,7 @@ script = ExtResource("9_a670k")
 script = ExtResource("5_ghk1k")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="Viewport"]
+visible = false
 
 [node name="GreyscaleVision" type="ColorRect" parent="Viewport/CanvasLayer"]
 material = SubResource("ShaderMaterial_ib7er")
@@ -99,9 +106,11 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="HRuler" type="Button" parent="."]
+visible = false
 layout_mode = 2
 script = ExtResource("12_o861q")
 
 [node name="VRuler" type="Button" parent="."]
+visible = false
 layout_mode = 2
 script = ExtResource("12_o861q")

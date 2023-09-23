@@ -44,6 +44,8 @@ func _ready():
 	
 	h_ruler.guide_created.connect(_on_guide_created)
 	v_ruler.guide_created.connect(_on_guide_created)
+	h_ruler.show()
+	v_ruler.show()
 	
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
@@ -62,13 +64,9 @@ func load_project(proj :Project):
 	camera.zoom_100()
 	
 #	camera.camera_offset_changed.connect(_on_camera_offset_changed)
-	
-	canvas.set_canvas_size(project.size)
-	canvas.load_iamge(null)
+	canvas.subscribe(project)
 	transChecker.update_rect(project.size)
-	
-	
-#	gui_input.connect(_on_gui_input)
+
 
 
 func activate_state(op_state):
