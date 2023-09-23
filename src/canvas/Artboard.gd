@@ -132,8 +132,6 @@ func place_guides():
 	var _zoom = camera.zoom
 	var _offset = camera.offset
 	var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
-	$ColorRect.position = _origin
-	$ColorRect.size = 40 * _zoom
 	for guide in guides:
 		match guide.orientation:
 			HORIZONTAL:
@@ -174,7 +172,7 @@ func _on_guide_hovered(guide):
 			mouse_default_cursor_shape = Control.CURSOR_HSPLIT
 
 
-func _on_guide_leaved(guide):
+func _on_guide_leaved(_guide):
 	mouse_default_cursor_shape = Control.CURSOR_ARROW
 
 
