@@ -108,8 +108,3 @@ script = ExtResource("12_o861q")
 [node name="VRuler" type="Button" parent="."]
 layout_mode = 2
 script = ExtResource("12_o861q")
-
-[node name="ColorRect" type="ColorRect" parent="."]
-custom_minimum_size = Vector2(24, 24)
-layout_mode = 2
-color = Color(1, 0.45098, 1, 1)

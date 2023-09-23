@@ -8,6 +8,7 @@ signal pressed(guide)
 const DEFAULT_WIDTH := 2
 const LINE_COLOR := Color.REBECCA_PURPLE
 
+var relative_position := Vector2.ZERO
 var orientation := HORIZONTAL
 var locked := false
 var is_pressed := false
@@ -59,16 +60,6 @@ func _input(event: InputEvent):
 					position.y = get_global_mouse_position().y
 				VERTICAL: 
 					position.x = get_global_mouse_position().x
-
-
-#func _draw() -> void:
-#	if visible:
-#		var font = get_theme_default_font()
-#		var text = "%spx" % str(position.y if Types.HORIZONTAL else position.x) 
-#		var font_height = font.get_height()
-#
-#		draw_string(font, Vector2(font_height, font_height), text,
-#					HORIZONTAL_ALIGNMENT_LEFT, -1, 12, default_color)
 
 
 func set_guide(orient :Orientation, size :Vector2):

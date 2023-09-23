@@ -219,19 +219,24 @@ func draw_v():
 
 
 func _input(event):
-	if (event is InputEventMouseButton and 
-		event.button_index == MOUSE_BUTTON_LEFT):
-		btn_pressed = event.pressed
-		
-	elif event is InputEventMouseMotion:
-		mouse_position = get_local_mouse_position()
+	
+	if event is InputEventMouse:
+		var mouse_position = get_local_mouse_position()
 		var rect = Rect2i(Vector2i.ZERO, size)
 		
-		if rect.has_point(mouse_position) and not btn_pressed:
-			create_guide_gate = true
+		if (event is InputEventMouseButton and 
+			event.button_index == MOUSE_BUTTON_LEFT):
+			if rect.has_point(mouse_position):
+				btn_pressed = event.pressed
+			else:
+				btn_pressed = false
 			
-		if not rect.has_point(mouse_position) and btn_pressed:
-			if create_guide_gate:
-				create_guide_gate = false
-				guide_created.emit(orientation)
+		elif event is InputEventMouseMotion:
+			if rect.has_point(mouse_position) and not btn_pressed:
+				create_guide_gate = true
+				
+			if not rect.has_point(mouse_position) and btn_pressed:
+				if create_guide_gate:
+					create_guide_gate = false
+					guide_created.emit(orientation)
 
