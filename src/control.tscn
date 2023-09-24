@@ -15,7 +15,7 @@ script = ExtResource("1_tve2u")
 [node name="Artboard" parent="." instance=ExtResource("1_wuu8o")]
 layout_mode = 1
 
-[node name="Button" type="Button" parent="."]
+[node name="Button1" type="Button" parent="."]
 layout_mode = 0
 offset_left = 1051.0
 offset_top = 73.0
@@ -41,3 +41,11 @@ offset_right = 1104.0
 offset_bottom = 217.0
 toggle_mode = true
 text = "None"
+
+[node name="Button4" type="Button" parent="."]
+layout_mode = 0
+offset_left = 996.0
+offset_top = 240.0
+offset_right = 1101.0
+offset_bottom = 271.0
+text = "Perfect Pixel"

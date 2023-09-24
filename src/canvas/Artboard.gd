@@ -68,7 +68,6 @@ func load_project(proj :Project):
 	transChecker.update_rect(project.size)
 
 
-
 func activate_state(op_state):
 	# turn off old state
 	match state:

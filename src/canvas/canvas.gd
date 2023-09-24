@@ -4,7 +4,20 @@ class_name Canvas
 
 var is_pressed := false
 var drawer := PixelDrawer.new()
+var canvas_size := Vector2i.ZERO
 var project :Project
+
+const DEFAULT_PEN_PRESSURE := 1.0
+const DEFAULT_PEN_VELOCITY := 1.0
+
+var dynamics_alpha := Dynamics.NONE
+var dynamics_stroke_size := Dynamics.NONE
+var pressure_min_thres := 0.2
+var pressure_max_thres := 0.8
+var pressure_buf := [0, 0]  # past pressure value buffer
+var mouse_velocity_min_thres := 0.2
+var mouse_velocity_max_thres := 0.8
+var mouse_velocity_max := 1000.0
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -16,8 +29,6 @@ var project :Project
 #var onion_skinning_past_rate := 1.0
 #var onion_skinning_future_rate := 1.0
 
-@onready var current_display := $CurrentDisplay
-@onready var current_drawer  := $CurrentDisplay/CurrentDrawer
 #@onready var tile_mode :Node2D = $TileMode
 #@onready var pixel_grid :Node2D = $PixelGrid
 #@onready var grid :Node2D = $Grid
@@ -31,6 +42,14 @@ var project :Project
 
 
 func _ready():
+	drawer.fill_inside = false
+	drawer.pixel_perfect = false
+#	drawer.stroke_offset = Vector2i(105, 150)
+#	drawer.stroke_spacing = Vector2i(15, 50)
+	drawer.stroke_weight = 10
+	drawer.use_dynamics_alpha = Dynamics.VELOCITY
+	drawer.use_dynamics_stroke = Dynamics.PRESSURE
+	
 	pass
 #	onion_past.type = onion_past.PAST
 #	onion_past.blue_red_color = Color.RED
@@ -44,11 +63,36 @@ func _ready():
 
 func subscribe(proj :Project):
 	project = proj
-	current_display.size = project.size
-	
+	canvas_size = project.size
 
-func get_canvas_size() -> Vector2i:
-	return current_display.size
+
+func prepare_pressure(pressure):
+	if drawer.use_dynamics_stroke == Dynamics.NONE:
+		return DEFAULT_PEN_PRESSURE
+	# Workaround https://github.com/godotengine/godot/issues/53033#issuecomment-930409407
+	# If a pressure value of 1 is encountered, "correct" the value by
+	# extrapolating from the delta of the past two values. This will
+	# correct the jumping to 1 error while also allowing values that
+	# are "supposed" to be 1.
+	if pressure == 1 && pressure_buf[0] != 0:
+		pressure = minf(1, pressure_buf[0] + pressure_buf[0] - pressure_buf[1])
+	pressure_buf.pop_back()
+	pressure_buf.push_front(pressure)
+	pressure = remap(pressure, pressure_min_thres, pressure_max_thres, 0.0, 1.0)
+	pressure = clampf(pressure, 0.0, 1.0)
+	return pressure
+
+
+func prepare_velocity(mouse_velocity):
+	if dynamics_alpha != Dynamics.PRESSURE and \
+	   dynamics_alpha != Dynamics.VELOCITY:
+		return 1.0
+	mouse_velocity = mouse_velocity.length() / mouse_velocity_max
+	mouse_velocity = remap(
+		mouse_velocity, mouse_velocity_min_thres, mouse_velocity_max_thres, 0.0, 1.0
+	)
+	mouse_velocity = clampf(mouse_velocity, 0.0, 1.0)
+	return mouse_velocity
 
 
 func _input(event :InputEvent):
@@ -57,16 +101,24 @@ func _input(event :InputEvent):
 #		var tmp_transform := get_canvas_transform().affine_inverse()
 #		var current_pixel = tmp_transform.basis_xform(mouse_pos) + tmp_transform.origin
 #		queue_redraw()
-	var pos = get_local_mouse_position()
-	drawer.draw_pixel(project.current_cel.image, pos, Color.RED)
+
+	drawer.image = project.current_cel.image
+	drawer.stroke_color = Color.RED
+	
 	if event is InputEventMouseButton:
 		is_pressed = event.pressed
 
-	elif event is InputEventMouseMotion and is_pressed:
-#		var pos = get_local_mouse_position()
-		var rect = Rect2i(Vector2i.ZERO, get_canvas_size())
+	elif event is InputEventMouseMotion:
+		var pos = get_local_mouse_position()
+		var rect = Rect2i(Vector2i.ZERO, canvas_size)
 		if rect.has_point(pos) and project.current_cel is PixelCel:
-			drawer.draw_pixel(project.current_cel.image, pos, Color.RED)
+			drawer.pen_pressure = event.pressure
+			if is_pressed:
+				drawer.set_stroke_dynamics(prepare_pressure(event.pressure),
+										   prepare_velocity(event.velocity))
+				drawer.draw_move(pos)
+			elif drawer.is_drawing:
+				drawer.draw_end(pos)
 			project.current_cel.update_texture()
 		queue_redraw()
 
@@ -74,23 +126,22 @@ func _input(event :InputEvent):
 func _draw():
 	if not project:
 		return
-	var position_tmp := position
-	var scale_tmp := scale
+#	var position_tmp := position
+#	var scale_tmp := scale
 #	if Global.mirror_view:
 #		position_tmp.x = position_tmp.x + Global.current_project.size.x
 #		scale_tmp.x = -1
 #	draw_set_transform(position_tmp, 0.0, scale_tmp)
 	# Draw current frame layers
 	for i in project.layers.size():
-		if project.current_frame.cels[i] is GroupCel:
+		var cels = project.current_frame.cels 
+		if cels[i] is GroupCel:
 			continue
 		var modulate_color := Color(1, 1, 1, project.layers[i].opacity)
 		if project.layers[i].is_visible_in_hierarchy():
-			draw_texture(project.current_frame.cels[i].image_texture, 
-						 Vector2.ZERO, 
-						 modulate_color)
+			var tex = cels[i].image_texture
+			draw_texture(tex, Vector2.ZERO, modulate_color)
 
-	current_display.size = project.size
 #	current_drawer.queue_redraw()
 #	if Global.current_project.tiles.mode != Tiles.MODE.NONE:
 #		tile_mode.queue_redraw()
