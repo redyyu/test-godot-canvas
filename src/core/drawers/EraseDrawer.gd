@@ -1,70 +1,28 @@
 extends BaseDrawer
 
-class_name PixelDrawer
+class_name EraseDrawer
 
-const NEIGHBOURS: Array[Vector2i] = [
-		Vector2i.DOWN,
-		Vector2i.RIGHT,
-		Vector2i.LEFT,
-		Vector2i.UP
-	]
-
-const CORNERS: Array[Vector2i] = [
-	Vector2i.ONE,
-	-Vector2i.ONE,
-	Vector2i(-1, 1),
-	Vector2i(1, -1)
-]
-
-var last_pixels := [null, null]
-var pixel_perfect := true
-
-var drawn_points := []
 var last_position :Vector2i
-var fill_inside := false
 
-class PencilOp:
+class EraseOp:
 	extends BaseDrawer.ColorOp
-#	var blending := true
-	# blending option is useless here, 
-	# because drawing will take draw_pixel many times.
-	# (ex., drawing and holding a while)
-	# the dst color is take from dst (old) color which is already on canvas.
-	# which mean is the color to be blend could be the color just drawing.
-	# thats why cause the color look same with src color, 
-	# no blender effect at all.
-	# blender should working after drawing, such as on layer option.
+	const ERASE_COLOR := Color(1, 1, 1, 0)
 	
-#	func process(src: Color, dst: Color) -> Color:
-#		src.a *= strength
-#		if blending:
-#			return dst.blend(src)
-#		else:
-#			return src
-
-	func process(src: Color) -> Color:
-		src.a *= strength
-		return src
+	func process(dst: Color) -> Color:
+		if dst != ERASE_COLOR:
+			dst = dst.lerp(ERASE_COLOR, strength)
+		return dst
 
 
 func _init():
-	color_op = PencilOp.new()
-	
-
-func reset():
-	drawn_points = []
-	last_pixels = [null, null]
+	color_op = EraseOp.new()
 
 
 func draw_pixel(position: Vector2i):
 	super.draw_pixel(position)
-	var drawing_color :Color = color_op.process(stroke_color)
 	
-	var pixel_perfect_color :Color
-	if pixel_perfect and stroke_weight_dynamics == 1:
-		# pixel_perfect might only work for 1px stroke.
-		# only take old color when need it.
-		pixel_perfect_color = image.get_pixelv(position)
+	var color_old := image.get_pixelv(position)
+	var drawing_color :Color = color_op.process(color_old)
 
 	# for different stroke weight, draw pixel is one by one, 
 	# even the stroke is large weight. actually its draw many pixel once.
@@ -78,35 +36,14 @@ func draw_pixel(position: Vector2i):
 	for coord in coords_to_draw:
 		if can_draw(coord):
 			image.set_pixelv(coord, drawing_color)
-	
-	if pixel_perfect_color:
-		last_pixels.push_back([position, pixel_perfect_color])
-		var corner = last_pixels.pop_front()
-		var neighbour = last_pixels[0]
-
-		if corner == null or neighbour == null:
-			return
-		
-		var pos = position  # for short the line only.
-		
-		if (pos - corner[0]) in CORNERS and (pos - neighbour[0]) in NEIGHBOURS:
-			var perfect_coord = Vector2i(neighbour[0].x, neighbour[0].y)
-			var perfect_color = neighbour[1]
-			if can_draw(perfect_coord):
-				image.set_pixelv(perfect_coord, perfect_color)
-			last_pixels[0] = corner
 
 
 func draw_start(pos: Vector2i):
 #	pos = snap_position(pos)
 	super.draw_start(pos)
 	
-	reset()
-	
 	last_position = pos
 	
-	if fill_inside:
-		drawn_points.append(pos)
 	draw_pixel(pos)
 
 
@@ -116,27 +53,12 @@ func draw_move(pos: Vector2i):
 	
 	draw_fill_gap(last_position, pos)
 	last_position = pos
-	if fill_inside:
-		drawn_points.append(pos)
 
 
 func draw_end(pos: Vector2i):
 #	pos = snap_position(pos)
 	super.draw_end(pos)
-	
-	if fill_inside:
-		drawn_points.append(pos)
-		if drawn_points.size() <= 3:
-			return
-		var v := Vector2i()
-		for x in image.get_width():
-			v.x = x
-			for y in image.get_height():
-				v.y = y
-				if Geometry2D.is_point_in_polygon(v, drawn_points):
-					if draw_spacing_mode:
-						v = get_spacing_position(v)
-					draw_pixel(v)
+
 
 #
 #func snap_position(pos: Vector2) -> Vector2:

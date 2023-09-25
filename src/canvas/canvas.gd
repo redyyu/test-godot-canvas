@@ -2,9 +2,23 @@ extends Node2D
 
 class_name Canvas
 
-var drawing := false
-var is_pressed := false
-var drawer := PixelDrawer.new()
+enum {
+	NONE,
+	DRAWING,
+	ERASING,
+}
+
+var state := NONE :
+	set(val):
+		if state != val:
+			state = val
+			match state:
+				DRAWING:
+					drawer = PixelDrawer.new()
+				ERASING:
+					drawer = EraseDrawer.new()
+
+var drawer : BaseDrawer
 var project :Project
 
 const DEFAULT_PEN_PRESSURE := 1.0
@@ -14,6 +28,8 @@ var pressure_min_thres := 0.0
 var pressure_max_thres := 1.0
 var mouse_velocity_min_thres := 0.0
 var mouse_velocity_max_thres := 1.0
+
+var is_pressed := false
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -47,20 +63,36 @@ func _ready():
 #	selection.gizmo_selected.connect(_on_stop_draw)
 #	selection.gizmo_released.connect(_on_reset_draw)
 #	selection.selection_map_changed.connect(_on_selection_map_changed)
-
-
-func subscribe(proj :Project):
-	project = proj
 	
-	drawer.image = project.current_cel.image
-	drawer.stroke_color = Color.RED
-	drawer.fill_inside = false
-#	drawer.stroke_offset = Vector2i(105, 150)
-#	drawer.stroke_spacing = Vector2i(15, 50)
 
-	drawer.stroke_weight = 1
-	drawer.use_dynamics_alpha = Dynamics.NONE
-	drawer.use_dynamics_stroke = Dynamics.NONE
+
+func set_canvas(proj):
+	project = proj
+
+
+func set_drawer(stroke_weight,
+				stroke_color=null,
+				stroke_spacing=null,
+				dynamics := Dynamics.NONE,
+				fill_inside := false):
+	if project.current_cel is PixelCel:
+		drawer.image = project.current_cel.image
+	
+	if stroke_color != null:
+		drawer.stroke_color = stroke_color
+	
+	if drawer is PixelDrawer:
+		drawer.fill_inside = fill_inside
+	
+	if stroke_spacing is Vector2i:
+		drawer.stroke_spacing = stroke_spacing
+		
+	if stroke_weight != null:
+		drawer.stroke_weight = stroke_weight
+		
+	if dynamics != null:
+		drawer.use_dynamics_alpha = dynamics
+		drawer.use_dynamics_stroke = dynamics
 
 
 func prepare_pressure(pressure):
@@ -89,15 +121,7 @@ func prepare_velocity(mouse_velocity):
 	return mouse_velocity
 
 
-func _input(event :InputEvent):
-	if not drawing:
-		return
-#	if event is InputEventMouse:
-#		var mouse_pos = get_local_mouse_position()
-#		var tmp_transform := get_canvas_transform().affine_inverse()
-#		var current_pixel = tmp_transform.basis_xform(mouse_pos) + tmp_transform.origin
-#		queue_redraw()
-	
+func process_drawing(event):
 	if event is InputEventMouseButton:
 		is_pressed = event.pressed
 
@@ -113,10 +137,44 @@ func _input(event :InputEvent):
 				drawer.draw_end(pos)
 			project.current_cel.update_texture()
 		queue_redraw()
+		
+
+func process_erasing(event):
+	if event is InputEventMouseButton:
+		is_pressed = event.pressed
+
+	elif event is InputEventMouseMotion:
+		var pos = get_local_mouse_position()
+		if drawer.can_draw(pos):
+			drawer.pen_pressure = event.pressure
+			if is_pressed:
+				drawer.set_stroke_dynamics(prepare_pressure(event.pressure),
+										   prepare_velocity(event.velocity))
+				drawer.draw_move(pos)
+			elif drawer.is_drawing:
+				drawer.draw_end(pos)
+			project.current_cel.update_texture()
+		queue_redraw()
+		
+
+
+func _input(event :InputEvent):
+	if not project.current_cel:
+		return
+#	if event is InputEventMouse:
+#		var mouse_pos = get_local_mouse_position()
+#		var tmp_transform := get_canvas_transform().affine_inverse()
+#		var current_pixel = tmp_transform.basis_xform(mouse_pos) + tmp_transform.origin
+#		queue_redraw()
+	match state:
+		DRAWING: 
+			process_drawing(event)
+		ERASING:
+			process_erasing(event)
 
 
 func _draw():
-	if not project:
+	if not project.current_cel:
 		return
 #	var position_tmp := position
 #	var scale_tmp := scale
@@ -133,6 +191,7 @@ func _draw():
 		if project.layers[i].is_visible_in_hierarchy():
 			var tex = cels[i].image_texture
 			draw_texture(tex, Vector2.ZERO, modulate_color)
+
 
 #	current_drawer.queue_redraw()
 #	if Global.current_project.tiles.mode != Tiles.MODE.NONE:

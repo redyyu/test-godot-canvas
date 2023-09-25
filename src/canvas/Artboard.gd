@@ -58,7 +58,7 @@ func load_project(proj :Project):
 	camera.zoom_100()
 	
 #	camera.camera_offset_changed.connect(_on_camera_offset_changed)
-	canvas.subscribe(project)
+	canvas.set_canvas(project)
 	transChecker.update_rect(project.size)
 
 
@@ -70,7 +70,9 @@ func activate_state(op_state):
 		ArtboardState.ZOOM:
 			camera.zooming = false
 		ArtboardState.DRAW:
-			canvas.drawing = false
+			canvas.state = Canvas.NONE
+		ArtboardState.ERASE:
+			canvas.state = Canvas.NONE
 	
 	# trun on new state	
 	match op_state:
@@ -79,7 +81,9 @@ func activate_state(op_state):
 		ArtboardState.ZOOM:
 			camera.zooming = true
 		ArtboardState.DRAW:
-			canvas.drawing = true
+			canvas.state = Canvas.DRAWING
+		ArtboardState.ERASE:
+			canvas.state = Canvas.ERASING
 			
 	state = op_state
 

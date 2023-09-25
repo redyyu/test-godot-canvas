@@ -21,12 +21,18 @@ var vertical_mirror := false
 var color_op := ColorOp.new()
 
 var is_drawing := false
+
+var image := Image.new() :
+	set(img):
+		image = img
+		size = Vector2i(image.get_width(), image.get_height())
+
 var size := Vector2i.ONE :
 	set(_size):
 		size = _size
 		draw_rect = Rect2i(Vector2i.ZERO, size)
 
-var draw_rect := Rect2i(Vector2i.ZERO, Vector2i.ONE)
+var draw_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 var draw_start_position := Vector2i.ZERO
 var draw_spacing_mode :bool :
 	get: return stroke_spacing != Vector2i.ZERO
@@ -73,7 +79,10 @@ class ColorOp:
 
 
 func can_draw(pos :Vector2i):
-	return draw_rect.has_point(pos)
+	if image.is_empty():
+		return false
+	else:
+		return draw_rect.has_point(pos)
 	
 
 func draw_start(pos: Vector2i):
@@ -136,10 +145,44 @@ func get_spacing_position(pos: Vector2i) -> Vector2i:
 	return Vector2i(snap_pos)
 
 
-func draw_pixel(_position: Vector2i):
-	pass
+func draw_pixel(position: Vector2i):
+	if not can_draw(position):
+		return
 
-	
+
+# Bresenham's Algorithm, Thanks to 
+# https://godotengine.org/qa/35276/tile-based-line-drawing-algorithm-efficiency
+func draw_fill_gap(start: Vector2i, end: Vector2i):
+	var dx := absi(end.x - start.x)
+	var dy := -absi(end.y - start.y)
+	var err := dx + dy
+	var e2 := err << 1
+	var sx := 1 if start.x < end.x else -1
+	var sy := 1 if start.y < end.y else -1
+	var x := start.x
+	var y := start.y
+	# This needs to be a dictionary to ensure duplicate coordinates are not being added
+	var coords_to_draw := {}
+	while !(x == end.x && y == end.y):
+		e2 = err << 1
+		if e2 >= dy:
+			err += dy
+			x += sx
+		if e2 <= dx:
+			err += dx
+			y += sy
+		
+		var coord := Vector2(x, y)
+		
+		if draw_spacing_mode:
+			coord = get_spacing_position(coord)
+			
+		coords_to_draw[coord] = 0
+
+	for c in coords_to_draw.keys():
+		draw_pixel(c)
+
+
 func set_stroke_dynamics(pressure:float, velocity:float):
 	pen_pressure = clampf(pressure, 0.1, 1.0)
 	pen_velocity = clampf(velocity, 0.1, 1.0)

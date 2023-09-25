@@ -7,4 +7,5 @@ enum {
 	DRAG,
 	ZOOM,
 	DRAW,
+	ERASE,
 }
