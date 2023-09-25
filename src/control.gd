@@ -22,15 +22,17 @@ func _ready():
 func _on_btn_pressed(btn):
 	match btn.name:
 		'Button':
-			artboard.activate_state(Artboard.StateType.DRAG)
+			artboard.activate_state(ArtboardState.DRAG)
 		'Button2':
-			artboard.activate_state(Artboard.StateType.ZOOM)
+			artboard.activate_state(ArtboardState.ZOOM)
 		'Button3':
-			artboard.activate_state(Artboard.StateType.NONE)
+			artboard.activate_state(ArtboardState.NONE)
 		'Button4':
-			artboard.canvas.drawer.pixel_perfect = not artboard.canvas.drawer.pixel_perfect
-			if artboard.canvas.drawer.pixel_perfect:
-				btn.text = 'PPix on'
+			artboard.activate_state(ArtboardState.DRAW)
+			if artboard.canvas.drawer.stroke_color == Color.RED:
+				artboard.canvas.drawer.stroke_color = Color.GREEN
+				btn.text = 'GREEN'
 			else:
-				btn.text = 'PPix off'
+				artboard.canvas.drawer.stroke_color = Color.RED
+				btn.text = 'RED'
 

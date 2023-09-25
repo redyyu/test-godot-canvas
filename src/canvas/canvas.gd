@@ -2,20 +2,18 @@ extends Node2D
 
 class_name Canvas
 
+var drawing := false
 var is_pressed := false
 var drawer := PixelDrawer.new()
-var canvas_size := Vector2i.ZERO
 var project :Project
 
 const DEFAULT_PEN_PRESSURE := 1.0
 const DEFAULT_PEN_VELOCITY := 1.0
 
-var pressure_min_thres := 0.2
-var pressure_max_thres := 0.8
-var pressure_buf := [0, 0]  # past pressure value buffer
-var mouse_velocity_min_thres := 0.2
-var mouse_velocity_max_thres := 0.8
-var mouse_velocity_max := 1000.0
+var pressure_min_thres := 0.0
+var pressure_max_thres := 1.0
+var mouse_velocity_min_thres := 0.0
+var mouse_velocity_max_thres := 1.0
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -40,14 +38,6 @@ var mouse_velocity_max := 1000.0
 
 
 func _ready():
-	drawer.fill_inside = false
-	drawer.pixel_perfect = false
-#	drawer.stroke_offset = Vector2i(105, 150)
-#	drawer.stroke_spacing = Vector2i(15, 50)
-	drawer.stroke_weight = 10
-	drawer.use_dynamics_alpha = Dynamics.VELOCITY
-	drawer.use_dynamics_stroke = Dynamics.PRESSURE
-	
 	pass
 #	onion_past.type = onion_past.PAST
 #	onion_past.blue_red_color = Color.RED
@@ -61,21 +51,21 @@ func _ready():
 
 func subscribe(proj :Project):
 	project = proj
-	canvas_size = project.size
+	
+	drawer.image = project.current_cel.image
+	drawer.stroke_color = Color.RED
+	drawer.fill_inside = false
+#	drawer.stroke_offset = Vector2i(105, 150)
+#	drawer.stroke_spacing = Vector2i(15, 50)
+
+	drawer.stroke_weight = 1
+	drawer.use_dynamics_alpha = Dynamics.NONE
+	drawer.use_dynamics_stroke = Dynamics.NONE
 
 
 func prepare_pressure(pressure):
 	if not drawer.need_pressure:
 		return DEFAULT_PEN_PRESSURE
-	# Workaround https://github.com/godotengine/godot/issues/53033#issuecomment-930409407
-	# If a pressure value of 1 is encountered, "correct" the value by
-	# extrapolating from the delta of the past two values. This will
-	# correct the jumping to 1 error while also allowing values that
-	# are "supposed" to be 1.
-	if pressure == 1 && pressure_buf[0] != 0:
-		pressure = minf(1, pressure_buf[0] + pressure_buf[0] - pressure_buf[1])
-	pressure_buf.pop_back()
-	pressure_buf.push_front(pressure)
 	pressure = remap(pressure, pressure_min_thres, pressure_max_thres, 0.0, 1.0)
 	pressure = clampf(pressure, 0.0, 1.0)
 	return pressure
@@ -84,31 +74,36 @@ func prepare_pressure(pressure):
 func prepare_velocity(mouse_velocity):
 	if not drawer.need_velocity:
 		return DEFAULT_PEN_VELOCITY
-	mouse_velocity = mouse_velocity.length() / mouse_velocity_max
+	
+	# convert velocity to 0.0~1.0
+	mouse_velocity = mouse_velocity.length() / 1000.0 
+	
 	mouse_velocity = remap(
-		mouse_velocity, mouse_velocity_min_thres, mouse_velocity_max_thres, 0.0, 1.0
+		mouse_velocity, 
+		mouse_velocity_min_thres, 
+		mouse_velocity_max_thres, 
+		0.0,
+		1.0
 	)
 	mouse_velocity = clampf(mouse_velocity, 0.0, 1.0)
 	return mouse_velocity
 
 
 func _input(event :InputEvent):
+	if not drawing:
+		return
 #	if event is InputEventMouse:
 #		var mouse_pos = get_local_mouse_position()
 #		var tmp_transform := get_canvas_transform().affine_inverse()
 #		var current_pixel = tmp_transform.basis_xform(mouse_pos) + tmp_transform.origin
 #		queue_redraw()
-
-	drawer.image = project.current_cel.image
-	drawer.stroke_color = Color.RED
 	
 	if event is InputEventMouseButton:
 		is_pressed = event.pressed
 
 	elif event is InputEventMouseMotion:
 		var pos = get_local_mouse_position()
-		var rect = Rect2i(Vector2i.ZERO, canvas_size)
-		if rect.has_point(pos) and project.current_cel is PixelCel:
+		if drawer.can_draw(pos) and project.current_cel is PixelCel:
 			drawer.pen_pressure = event.pressure
 			if is_pressed:
 				drawer.set_stroke_dynamics(prepare_pressure(event.pressure),

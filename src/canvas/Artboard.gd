@@ -3,16 +3,10 @@ extends SubViewportContainer
 class_name Artboard
 
 
-enum StateType {
-	NONE,
-	DRAG,
-	ZOOM,
-}
+var state := ArtboardState.NONE :
+	set = activate_state
 
 var project :Project
-
-var state := StateType.NONE :
-	set = activate_state
 
 var guides :Array[Guide] = []
 
@@ -71,17 +65,21 @@ func load_project(proj :Project):
 func activate_state(op_state):
 	# turn off old state
 	match state:
-		StateType.DRAG:
+		ArtboardState.DRAG:
 			camera.dragging = false
-		StateType.ZOOM:
+		ArtboardState.ZOOM:
 			camera.zooming = false
+		ArtboardState.DRAW:
+			canvas.drawing = false
 	
 	# trun on new state	
 	match op_state:
-		StateType.DRAG:
+		ArtboardState.DRAG:
 			camera.dragging = true
-		StateType.ZOOM:
+		ArtboardState.ZOOM:
 			camera.zooming = true
+		ArtboardState.DRAW:
+			canvas.drawing = true
 			
 	state = op_state
 

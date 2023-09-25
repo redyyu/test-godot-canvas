@@ -3,7 +3,6 @@ extends RefCounted
 class_name BaseDrawer
 
 
-
 var need_pressure :bool :
 	get: return [
 		use_dynamics_stroke,
@@ -22,7 +21,12 @@ var vertical_mirror := false
 var color_op := ColorOp.new()
 
 var is_drawing := false
+var size := Vector2i.ONE :
+	set(_size):
+		size = _size
+		draw_rect = Rect2i(Vector2i.ZERO, size)
 
+var draw_rect := Rect2i(Vector2i.ZERO, Vector2i.ONE)
 var draw_start_position := Vector2i.ZERO
 var draw_spacing_mode :bool :
 	get: return stroke_spacing != Vector2i.ZERO
@@ -64,13 +68,13 @@ var spacing_factor :Vector2i :
 	# to keep a space `stroke_spacing` between two strokes 
 	# of dimensions `stroke_dimensions`.
 	
-
 class ColorOp:
 	var strength := 1.0
 
-	func process(src: Color, _dst: Color) -> Color:
-		return src
 
+func can_draw(pos :Vector2i):
+	return draw_rect.has_point(pos)
+	
 
 func draw_start(pos: Vector2i):
 	is_drawing = true
@@ -139,7 +143,7 @@ func draw_pixel(_position: Vector2i):
 func set_stroke_dynamics(pressure:float, velocity:float):
 	pen_pressure = clampf(pressure, 0.1, 1.0)
 	pen_velocity = clampf(velocity, 0.1, 1.0)
-	
+
 	match use_dynamics_stroke: 
 		Dynamics.PRESSURE:
 			stroke_weight_dynamics = roundi(
@@ -160,4 +164,3 @@ func set_stroke_dynamics(pressure:float, velocity:float):
 									  alpha, pen_velocity)
 		_:
 			color_op.strength = alpha
-
