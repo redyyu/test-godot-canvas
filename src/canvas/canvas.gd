@@ -10,8 +10,6 @@ var project :Project
 const DEFAULT_PEN_PRESSURE := 1.0
 const DEFAULT_PEN_VELOCITY := 1.0
 
-var dynamics_alpha := Dynamics.NONE
-var dynamics_stroke_size := Dynamics.NONE
 var pressure_min_thres := 0.2
 var pressure_max_thres := 0.8
 var pressure_buf := [0, 0]  # past pressure value buffer
@@ -67,7 +65,7 @@ func subscribe(proj :Project):
 
 
 func prepare_pressure(pressure):
-	if drawer.use_dynamics_stroke == Dynamics.NONE:
+	if not drawer.need_pressure:
 		return DEFAULT_PEN_PRESSURE
 	# Workaround https://github.com/godotengine/godot/issues/53033#issuecomment-930409407
 	# If a pressure value of 1 is encountered, "correct" the value by
@@ -84,9 +82,8 @@ func prepare_pressure(pressure):
 
 
 func prepare_velocity(mouse_velocity):
-	if dynamics_alpha != Dynamics.PRESSURE and \
-	   dynamics_alpha != Dynamics.VELOCITY:
-		return 1.0
+	if not drawer.need_velocity:
+		return DEFAULT_PEN_VELOCITY
 	mouse_velocity = mouse_velocity.length() / mouse_velocity_max
 	mouse_velocity = remap(
 		mouse_velocity, mouse_velocity_min_thres, mouse_velocity_max_thres, 0.0, 1.0

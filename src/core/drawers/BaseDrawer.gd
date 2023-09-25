@@ -3,6 +3,20 @@ extends RefCounted
 class_name BaseDrawer
 
 
+
+var need_pressure :bool :
+	get: return [
+		use_dynamics_stroke,
+		use_dynamics_alpha
+	].any(func(val): return val == Dynamics.PRESSURE)
+	
+
+var need_velocity :bool :
+	get: return [
+		use_dynamics_stroke,
+		use_dynamics_alpha
+	].any(func(val): return val == Dynamics.VELOCITY)
+
 var horizontal_mirror := false
 var vertical_mirror := false
 var color_op := ColorOp.new()
@@ -25,13 +39,13 @@ var stroke_weight := 1 :
 		# weight must less 1, and not greater than 600
 		stroke_weight = clampi(val, 1, 600)
 
-var stroke_dynamics_ratio := 0.1
+var stroke_dynamics_minimal := 1
 		
 var alpha := 1.0 :
 	set(val):
 		alpha = clampf(val, 0.0, 1.0)
 		
-var alpha_dynamics_ratio := 0.6
+var alpha_dynamics_minimal := 0.0
 
 var use_dynamics_alpha := Dynamics.NONE
 var use_dynamics_stroke := Dynamics.NONE
@@ -125,26 +139,25 @@ func draw_pixel(_position: Vector2i):
 func set_stroke_dynamics(pressure:float, velocity:float):
 	pen_pressure = clampf(pressure, 0.1, 1.0)
 	pen_velocity = clampf(velocity, 0.1, 1.0)
-	var _weight_limit = clampf(stroke_weight * stroke_dynamics_ratio, 
-							   1, stroke_weight)
+	
 	match use_dynamics_stroke: 
 		Dynamics.PRESSURE:
 			stroke_weight_dynamics = roundi(
-				lerpf(_weight_limit, stroke_weight, pen_pressure))
+				lerpf(stroke_dynamics_minimal, stroke_weight, pen_pressure))
 				
 		Dynamics.VELOCITY:
 			stroke_weight_dynamics = roundi(
-				lerpf(_weight_limit, stroke_weight, pen_velocity))
+				lerpf(stroke_dynamics_minimal, stroke_weight, pen_velocity))
 		_:
 			stroke_weight_dynamics = stroke_weight
 	
-	var _alpha_limit = clampf(alpha * alpha_dynamics_ratio, 0.0, alpha)
 	match use_dynamics_alpha:
 		Dynamics.PRESSURE:
-			color_op.strength *= lerpf(_alpha_limit, alpha, pen_pressure)
+			color_op.strength = lerpf(alpha_dynamics_minimal, 
+									  alpha, pen_pressure)
 		Dynamics.VELOCITY:
-			color_op.strength *= lerpf(_alpha_limit, alpha, pen_velocity)
+			color_op.strength = lerpf(alpha_dynamics_minimal, 
+									  alpha, pen_velocity)
 		_:
 			color_op.strength = alpha
 
-	print(color_op.strength)
