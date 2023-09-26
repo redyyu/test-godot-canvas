@@ -58,8 +58,8 @@ func load_project(proj :Project):
 	camera.zoom_100()
 	
 #	camera.camera_offset_changed.connect(_on_camera_offset_changed)
-	canvas.set_canvas(project)
-	transChecker.update_rect(project.size)
+	canvas.set_project(project)
+	transChecker.update_bounds(project.size)
 
 
 func activate_state(op_state):
@@ -75,14 +75,6 @@ func update_canvas():
 #func save_to_project():
 #	g.current_project.cameras_zoom = camera.zoom
 #	g.current_project.cameras_offset = camera.offset
-	
-
-func _on_mouse_entered():
-	camera.set_process_input(true)
-
-
-func _on_mouse_exited():
-	camera.set_process_input(false)
 
 
 func place_symmetry_guide():
@@ -121,6 +113,14 @@ func _on_resized():
 	place_rulers()
 	place_guides()
 	place_symmetry_guide()
+
+
+func _on_mouse_entered():
+	camera.set_process_input(true)
+
+
+func _on_mouse_exited():
+	camera.set_process_input(false)
 
 
 # guides

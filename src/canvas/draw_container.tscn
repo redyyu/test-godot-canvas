@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://c08qtjj7x8pnk"]
+[gd_scene load_steps=14 format=3 uid="uid://c08qtjj7x8pnk"]
 
 [ext_resource type="Shader" path="res://src/shaders/TransparentChecker.gdshader" id="1_d8lm1"]
 [ext_resource type="Script" path="res://src/canvas/Artboard.gd" id="1_fg2jv"]
@@ -7,7 +7,6 @@
 [ext_resource type="Script" path="res://src/canvas/Canvas.gd" id="4_1y3pt"]
 [ext_resource type="Script" path="res://src/canvas/Camera.gd" id="5_ghk1k"]
 [ext_resource type="Script" path="res://src/canvas/Indicators.gd" id="6_2ns7n"]
-[ext_resource type="Script" path="res://src/canvas/Previews.gd" id="7_qprso"]
 [ext_resource type="Texture2D" uid="uid://bk6ocb3o8wtj6" path="res://assets/graphics/dotted_line.png" id="8_bu2cv"]
 [ext_resource type="Script" path="res://src/canvas/MouseGuide.gd" id="9_a670k"]
 [ext_resource type="Script" path="res://src/canvas/guide/Ruler.gd" id="12_o861q"]
@@ -56,9 +55,6 @@ script = ExtResource("4_1y3pt")
 
 [node name="Indicators" type="Node2D" parent="Viewport/Canvas"]
 script = ExtResource("6_2ns7n")
-
-[node name="Previews" type="Node2D" parent="Viewport/Canvas"]
-script = ExtResource("7_qprso")
 
 [node name="MouseGuideContainer" type="Node2D" parent="Viewport/Canvas"]
 visible = false

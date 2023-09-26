@@ -36,6 +36,12 @@ func _ready():
 	slider_stroke_width.value_changed.connect(_on_stroke_width_changed)
 	slider_stroke_space.value_changed.connect(_on_stroke_space_changed)
 	
+#	var image = Image.new()
+#	if image.load('res://test.png') == OK:
+#		artboard.canvas.reference_image.set_image(image)
+#		artboard.canvas.reference_image.scale = Vector2(0.2, 0.2)
+#		artboard.canvas.reference_image.offset = Vector2(250, 100)
+#
 #	var color_1 = Color.RED
 #	var color_2 = Color.GREEN
 ##	color_1.a *= 1.0

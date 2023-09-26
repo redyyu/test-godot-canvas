@@ -1,25 +1,49 @@
 extends ColorRect
 
+var checker_size := 10.0 :
+	set(val):
+		checker_size = val
+		material.set_shader_parameter("size", checker_size)
+
+var color_1 := Color.GRAY :
+	set(val):
+		color_1 = val
+		material.set_shader_parameter("color1", color_1)
+		
+var color_2 := Color.TRANSPARENT :
+	set(val):
+		color_2 = val
+		material.set_shader_parameter("color2", color_2)
+	
+var follow_movement := false :
+	set(val):
+		follow_movement = val
+		material.set_shader_parameter("follow_movement", follow_movement)
+			
+var follow_scale := false :
+	set(val):
+		follow_scale = val
+		material.set_shader_parameter("follow_scale", follow_scale)
+			
+var offset := Vector2.ZERO :
+	set(val):
+		offset = val
+		material.set_shader_parameter("offset", offset)
+		
+var canvas_scale := Vector2.ZERO :
+	set(val):
+		canvas_scale = val
+		material.set_shader_parameter("scale", canvas_scale)
+
 
 func _ready():
 	resized.connect(_on_resized)
-
-
-func update_rect(canvas_size :Vector2i):
-	# Set the size to be the same as the project size.
-	set_bounds(canvas_size)
 	
-#	fit_rect(g.current_project.tiles.get_bounding_rect())
-#	material.set_shader_parameter("size", g.checker_size)
-#	material.set_shader_parameter("color1", g.checker_color_1)
-#	material.set_shader_parameter("color2", g.checker_color_2)
-#	material.set_shader_parameter("follow_movement", g.checker_follow_movement)
-#	material.set_shader_parameter("follow_scale", g.checker_follow_scale)
 
-
-func update_offset(offset: Vector2, canvas_scale: Vector2) -> void:
-	material.set_shader_parameter("offset", offset)
-	material.set_shader_parameter("scale", canvas_scale)
+func update_bounds(bounds_size :Vector2i):
+	# Set the size to be the same as the project size.
+	set_bounds(bounds_size)
+#	refresh()
 
 
 func set_bounds(bounds: Vector2) -> void:

@@ -22,6 +22,8 @@ var state := ArtboardState.NONE
 var dynamics_stroke_width := Dynamics.NONE
 var dynamics_stroke_alpha := Dynamics.NONE
 
+var reference_image := ReferenceImage.new()
+
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
 #var grid_draw_over_tile_mode :bool = false
@@ -40,12 +42,11 @@ var dynamics_stroke_alpha := Dynamics.NONE
 #@onready var onion_future :Node2D = $OnionFuture
 #@onready var crop_rect :CropRect = $CropRect
 @onready var indicators :Node2D = $Indicators
-@onready var previews :Node2D = $Previews
 @onready var mouse_guide_container :Node2D = $MouseGuideContainer
 
 
 func _ready():
-	pass
+	add_child(reference_image)
 #	onion_past.type = onion_past.PAST
 #	onion_past.blue_red_color = Color.RED
 #	onion_future.type = onion_future.FUTURE
@@ -56,8 +57,10 @@ func _ready():
 #	selection.selection_map_changed.connect(_on_selection_map_changed)
 
 
-func set_canvas(proj):
+func set_project(proj):
 	project = proj
+	reference_image.size = project.size
+	
 	if project.current_cel is PixelCel:
 		pencil.image = project.current_cel.image
 		brush.image = project.current_cel.image

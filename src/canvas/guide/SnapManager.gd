@@ -4,6 +4,14 @@ class_name SnapTo
 
 var canvas_size := Vector2.ZERO
 
+var snap_to_rectangular_grid_boundary := false
+var snap_to_rectangular_grid_center := false
+var snap_to_guides := false
+var snap_to_perspective_guides := false
+
+var snapping_distance := 0.0
+var grid_size := Vector2i.ONE
+
 
 func _get_closest_point_to_grid(pos: Vector2, distance: float, grid_pos: Vector2) -> Vector2:
 	# If the cursor is close to the start/origin of a grid cell, snap to that
@@ -66,10 +74,8 @@ func _snap_to_guide(
 
 
 func snap_position(pos: Vector2) -> Vector2:
-	var snapping_distance := Global.snapping_distance / Global.camera.zoom.x
-	if Global.snap_to_rectangular_grid_boundary:
-		var grid_pos := pos.snapped(Global.grid_size)
-		grid_pos += Vector2(Global.grid_offset)
+	if snap_to_rectangular_grid_boundary:
+		var grid_pos := pos.snapped(grid_size)
 		# keeping grid_pos as is would have been fine but this adds extra accuracy as to
 		# which snap point (from the list below) is closest to mouse and occupy THAT point
 		var t_l := grid_pos + Vector2(-Global.grid_size.x, -Global.grid_size.y)
@@ -90,7 +96,7 @@ func snap_position(pos: Vector2) -> Vector2:
 		if grid_point != Vector2.INF:
 			pos = grid_point.floor()
 
-	if Global.snap_to_rectangular_grid_center:
+	if snap_to_rectangular_grid_center:
 		var grid_center := pos.snapped(Global.grid_size) + Vector2(Global.grid_size / 2)
 		grid_center += Vector2(Global.grid_offset)
 		# keeping grid_center as is would have been fine but this adds extra accuracy as to
@@ -112,7 +118,7 @@ func snap_position(pos: Vector2) -> Vector2:
 			pos = grid_center.floor()
 
 	var snap_to := Vector2.INF
-	if Global.snap_to_guides:
+	if snap_to_guides:
 		for guide in Global.current_project.guides:
 			if guide is SymmetryGuide:
 				continue
@@ -123,7 +129,7 @@ func snap_position(pos: Vector2) -> Vector2:
 				continue
 			snap_to = snap
 
-	if Global.snap_to_perspective_guides:
+	if snap_to_perspective_guides:
 		for point in Global.current_project.vanishing_points:
 			if not (point.has("pos_x") and point.has("pos_y")):  # Sanity check
 				continue
