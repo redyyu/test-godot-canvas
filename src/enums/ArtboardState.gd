@@ -6,6 +6,7 @@ enum {
 	NONE,
 	DRAG,
 	ZOOM,
-	DRAW,
+	PENCIL,
+	BRUSH,
 	ERASE,
 }

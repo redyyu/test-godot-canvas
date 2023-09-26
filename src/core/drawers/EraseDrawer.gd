@@ -2,33 +2,41 @@ extends BaseDrawer
 
 class_name EraseDrawer
 
-var last_position :Vector2i
+var shadow_image := Image.new()
+
 
 class EraseOp:
 	extends BaseDrawer.ColorOp
-	const ERASE_COLOR := Color(1, 1, 1, 0)
+	const ERASE_COLOR := Color.TRANSPARENT
 	
 	func process(dst: Color) -> Color:
-		if dst != ERASE_COLOR:
-			dst = dst.lerp(ERASE_COLOR, strength)
+		if dst:
+			dst.a *= (1 - strength)
+			return dst.blend(ERASE_COLOR)
 		return dst
 
 
 func _init():
 	color_op = EraseOp.new()
+	allow_dynamics_stroke = true
+	allow_dynamics_alpha = true
 
+
+func reset():
+	shadow_image.copy_from(image)
+	
 
 func draw_pixel(position: Vector2i):
-	super.draw_pixel(position)
-	
-	var color_old := image.get_pixelv(position)
+	if not can_draw(position):
+		return
+	var color_old := shadow_image.get_pixelv(position)
 	var drawing_color :Color = color_op.process(color_old)
 
 	# for different stroke weight, draw pixel is one by one, 
 	# even the stroke is large weight. actually its draw many pixel once.
 	var coords_to_draw := PackedVector2Array()
-	var start := position - Vector2i.ONE * (stroke_weight_dynamics >> 1)
-	var end := start + Vector2i.ONE * stroke_weight_dynamics
+	var start := position - Vector2i.ONE * (stroke_width_dynamics >> 1)
+	var end := start + Vector2i.ONE * stroke_width_dynamics
 	
 	for y in range(start.y, end.y):
 		for x in range(start.x, end.x):
@@ -39,26 +47,9 @@ func draw_pixel(position: Vector2i):
 
 
 func draw_start(pos: Vector2i):
+	reset()
 #	pos = snap_position(pos)
 	super.draw_start(pos)
-	
-	last_position = pos
-	
-	draw_pixel(pos)
-
-
-func draw_move(pos: Vector2i):
-#	pos = snap_position(pos)
-	super.draw_move(pos)
-	
-	draw_fill_gap(last_position, pos)
-	last_position = pos
-
-
-func draw_end(pos: Vector2i):
-#	pos = snap_position(pos)
-	super.draw_end(pos)
-
 
 #
 #func snap_position(pos: Vector2) -> Vector2:

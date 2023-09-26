@@ -29,9 +29,9 @@ var canvas_origin := Vector2.ZERO
 var canvas_scale := Vector2.ZERO
 
 var use_integer_zoom := false
-var dragging := false
-var zooming := false
+
 var btn_pressed := false
+var state := ArtboardState.NONE
 
 
 func _ready():
@@ -40,9 +40,6 @@ func _ready():
 
 
 func _input(event: InputEvent):
-	if event is InputEventMouseButton:
-		btn_pressed = event.pressed
-	
 	if event is InputEventMagnifyGesture:  # Zoom Gesture on a laptop touchpad
 		if event.factor < 1:
 			zoom_camera(1)
@@ -61,13 +58,26 @@ func _input(event: InputEvent):
 		zoom_center_point = canvas_size * 0.5
 		zoom_camera(-1)
 	
+	if event is InputEventMouseButton:
+		btn_pressed = event.pressed
+		
+	match state:
+		ArtboardState.DRAG:
+			process_dragging(event)
+		ArtboardState.ZOOM:
+			process_zooming(event)
+
+
+func process_dragging(event):
 	# activated by pan tool.
-	elif dragging and event is InputEventMouseMotion and btn_pressed:
+	if event is InputEventMouseMotion and btn_pressed:
 		offset = offset - event.relative / zoom
 		send_camera_changed()
-	
+
+
+func process_zooming(event):
 	# activated by zoom tool, with mouse click to zoom in and out.
-	elif zooming and event is InputEventMouseButton and btn_pressed:
+	if event is InputEventMouseButton and btn_pressed:
 		if (event.button_index == MOUSE_BUTTON_LEFT or 
 			event.button_index == MOUSE_BUTTON_WHEEL_UP):
 			zoom_center_point = get_local_mouse_position()
@@ -75,7 +85,7 @@ func _input(event: InputEvent):
 		elif (event.button_index == MOUSE_BUTTON_RIGHT or 
 			  event.button_index == MOUSE_BUTTON_WHEEL_DOWN):
 			zoom_center_point = get_local_mouse_position()
-			zoom_camera(-1)
+			zoom_camera(-1)	
 
 
 func zoom_camera(direction: int):

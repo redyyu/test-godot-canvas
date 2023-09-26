@@ -63,30 +63,9 @@ func load_project(proj :Project):
 
 
 func activate_state(op_state):
-	# turn off old state
-	match state:
-		ArtboardState.DRAG:
-			camera.dragging = false
-		ArtboardState.ZOOM:
-			camera.zooming = false
-		ArtboardState.DRAW:
-			canvas.state = Canvas.NONE
-		ArtboardState.ERASE:
-			canvas.state = Canvas.NONE
-	
-	# trun on new state	
-	match op_state:
-		ArtboardState.DRAG:
-			camera.dragging = true
-		ArtboardState.ZOOM:
-			camera.zooming = true
-		ArtboardState.DRAW:
-			canvas.state = Canvas.DRAWING
-		ArtboardState.ERASE:
-			canvas.state = Canvas.ERASING
-			
 	state = op_state
-
+	canvas.state = state
+	camera.state = state
 
 
 func update_canvas():

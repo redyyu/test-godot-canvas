@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://cwp7c3v50tmil"]
+[gd_scene load_steps=4 format=3 uid="uid://cwp7c3v50tmil"]
 
 [ext_resource type="Script" path="res://src/control.gd" id="1_tve2u"]
 [ext_resource type="PackedScene" uid="uid://c08qtjj7x8pnk" path="res://src/canvas/draw_container.tscn" id="1_wuu8o"]
+[ext_resource type="Script" path="res://src/widgets/ValSlider.gd" id="3_orn6h"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -39,18 +40,50 @@ offset_right = 1096.0
 offset_bottom = 163.0
 text = "Zoom"
 
-[node name="BtnDraw" type="Button" parent="."]
+[node name="BtnPencil" type="Button" parent="."]
 layout_mode = 0
 offset_left = 1053.0
 offset_top = 233.0
 offset_right = 1103.0
 offset_bottom = 264.0
-text = "Draw"
+text = "Pencil
+"
+
+[node name="BtnBrush" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1053.0
+offset_top = 276.0
+offset_right = 1103.0
+offset_bottom = 307.0
+text = "Brush"
 
 [node name="BtnErase" type="Button" parent="."]
 layout_mode = 0
 offset_left = 1051.0
-offset_top = 279.0
-offset_right = 1101.0
-offset_bottom = 310.0
+offset_top = 322.0
+offset_right = 1102.0
+offset_bottom = 353.0
 text = "Erase"
+
+[node name="OptBtn" type="OptionButton" parent="."]
+layout_mode = 0
+offset_left = 957.0
+offset_top = 18.0
+offset_right = 1097.0
+offset_bottom = 49.0
+item_count = 3
+selected = 0
+popup/item_0/text = "NONE"
+popup/item_0/id = 0
+popup/item_1/text = "PRESSURE"
+popup/item_1/id = 1
+popup/item_2/text = "VELOCTIY"
+popup/item_2/id = 2
+
+[node name="ValSlider" type="ProgressBar" parent="."]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 0
+offset_right = 4.0
+offset_bottom = 30.0
+show_percentage = false
+script = ExtResource("3_orn6h")

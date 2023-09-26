@@ -3,19 +3,6 @@ extends RefCounted
 class_name BaseDrawer
 
 
-var need_pressure :bool :
-	get: return [
-		use_dynamics_stroke,
-		use_dynamics_alpha
-	].any(func(val): return val == Dynamics.PRESSURE)
-	
-
-var need_velocity :bool :
-	get: return [
-		use_dynamics_stroke,
-		use_dynamics_alpha
-	].any(func(val): return val == Dynamics.VELOCITY)
-
 var horizontal_mirror := false
 var vertical_mirror := false
 var color_op := ColorOp.new()
@@ -38,33 +25,31 @@ var draw_spacing_mode :bool :
 	get: return stroke_spacing != Vector2i.ZERO
 
 var stroke_dimensions :Vector2i :
-	get: return Vector2i(stroke_weight, stroke_weight)
+	get: return Vector2i(stroke_width, stroke_width)
 	# use stroke_max to get dimensions.
 		
 var stroke_spacing := Vector2i.ZERO  # the space between each draw strokes.
 var stroke_color := Color.WHEAT
 
-var stroke_weight := 1 :
+var stroke_width := 1 :
 	set(val):
 		# weight must less 1, and not greater than 600
-		stroke_weight = clampi(val, 1, 600)
+		stroke_width = clampi(val, 1, 100)
+		stroke_width_dynamics = stroke_width
+
+var stroke_width_dynamics :int = stroke_width
 
 var stroke_dynamics_minimal := 1
 		
 var alpha := 1.0 :
 	set(val):
 		alpha = clampf(val, 0.0, 1.0)
+		color_op.strength = alpha
 		
 var alpha_dynamics_minimal := 0.0
 
-var use_dynamics_alpha := Dynamics.NONE
-var use_dynamics_stroke := Dynamics.NONE
-	
-var pen_pressure := 1.0
-var pen_velocity := 1.0
-
-# High frequency val, try not to use setter / getter with operation.
-var stroke_weight_dynamics :int = stroke_weight
+var allow_dynamics_alpha := false
+var allow_dynamics_stroke := false
 
 var cursor_position := Vector2i.ZERO
 
@@ -73,21 +58,26 @@ var spacing_factor :Vector2i :
 	# spacing_factor is the distance the mouse needs to get snapped by in order
 	# to keep a space `stroke_spacing` between two strokes 
 	# of dimensions `stroke_dimensions`.
-	
+
+var last_position :Vector2i
+
+
 class ColorOp:
 	var strength := 1.0
-
+	
 
 func can_draw(pos :Vector2i):
 	if image.is_empty():
 		return false
 	else:
 		return draw_rect.has_point(pos)
-	
+
 
 func draw_start(pos: Vector2i):
 	is_drawing = true
+	last_position = pos
 	draw_start_position = pos
+	draw_pixel(pos)
 
 
 func draw_move(pos: Vector2i):
@@ -95,10 +85,14 @@ func draw_move(pos: Vector2i):
 	# while using another tool
 	if !is_drawing:
 		draw_start(pos)
+	draw_fill_gap(last_position, pos)
+	last_position = pos
 
 
 func draw_end(_pos: Vector2i):
 	is_drawing = false
+#	draw_pixel(pos)
+	# no need draw in the end.
 
 
 func cursor_move(pos: Vector2i):
@@ -108,14 +102,14 @@ func cursor_move(pos: Vector2i):
 		cursor_position = pos
 
 
-func get_spacing_offset(pos: Vector2i) -> Vector2i:
+func _get_spacing_offset(pos: Vector2i) -> Vector2i:
 	# since we just started drawing, the "position" is our intended location
 	# so the error (_spacing_offset) is measured by subtracting `space_factor`
 	return pos - pos.snapped(spacing_factor)
 
 
 func get_spacing_position(pos: Vector2i) -> Vector2i:
-	var _spacing_offset = get_spacing_offset(draw_start_position)
+	var _spacing_offset = _get_spacing_offset(draw_start_position)
 	# get spacing offset must by the position when draw start.
 	# otherwise the spaceing offset will update every time.
 	var snap_pos := Vector2(pos.snapped(spacing_factor) + _spacing_offset)
@@ -145,9 +139,8 @@ func get_spacing_position(pos: Vector2i) -> Vector2i:
 	return Vector2i(snap_pos)
 
 
-func draw_pixel(position: Vector2i):
-	if not can_draw(position):
-		return
+func draw_pixel(_position: Vector2i):
+	pass
 
 
 # Bresenham's Algorithm, Thanks to 
@@ -183,27 +176,24 @@ func draw_fill_gap(start: Vector2i, end: Vector2i):
 		draw_pixel(c)
 
 
-func set_stroke_dynamics(pressure:float, velocity:float):
-	pen_pressure = clampf(pressure, 0.1, 1.0)
-	pen_velocity = clampf(velocity, 0.1, 1.0)
+func set_stroke_dynamics(value := 1.0):
+	if value < 0:
+		return
+		
+	value = clampf(value, 0.1, 1.0)
 
-	match use_dynamics_stroke: 
-		Dynamics.PRESSURE:
-			stroke_weight_dynamics = roundi(
-				lerpf(stroke_dynamics_minimal, stroke_weight, pen_pressure))
-				
-		Dynamics.VELOCITY:
-			stroke_weight_dynamics = roundi(
-				lerpf(stroke_dynamics_minimal, stroke_weight, pen_velocity))
-		_:
-			stroke_weight_dynamics = stroke_weight
+	if allow_dynamics_stroke: 
+		stroke_width_dynamics = roundi(
+			lerpf(stroke_dynamics_minimal, stroke_width, value))
+	else:
+		stroke_width_dynamics = stroke_width
+
+
+func set_alpha_dynamics(value := 1.0):
+	if value < 0:
+		return
 	
-	match use_dynamics_alpha:
-		Dynamics.PRESSURE:
-			color_op.strength = lerpf(alpha_dynamics_minimal, 
-									  alpha, pen_pressure)
-		Dynamics.VELOCITY:
-			color_op.strength = lerpf(alpha_dynamics_minimal, 
-									  alpha, pen_velocity)
-		_:
-			color_op.strength = alpha
+	if allow_dynamics_alpha:
+		color_op.strength = lerpf(alpha_dynamics_minimal, alpha, value)
+	else:
+		color_op.strength = alpha

@@ -62,6 +62,8 @@ func _init():
 	show_percentage = false
 	if custom_minimum_size.y < 30:
 		custom_minimum_size.y = 30
+	if custom_minimum_size.x < 30:
+		custom_minimum_size.x = 30
 
 
 func _ready():

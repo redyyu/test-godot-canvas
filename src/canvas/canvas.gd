@@ -2,23 +2,10 @@ extends Node2D
 
 class_name Canvas
 
-enum {
-	NONE,
-	DRAWING,
-	ERASING,
-}
+var pencil := PencilDrawer.new()
+var brush := BrushDrawer.new()
+var eraser := EraseDrawer.new()
 
-var state := NONE :
-	set(val):
-		if state != val:
-			state = val
-			match state:
-				DRAWING:
-					drawer = PixelDrawer.new()
-				ERASING:
-					drawer = EraseDrawer.new()
-
-var drawer : BaseDrawer
 var project :Project
 
 const DEFAULT_PEN_PRESSURE := 1.0
@@ -26,10 +13,12 @@ const DEFAULT_PEN_VELOCITY := 1.0
 
 var pressure_min_thres := 0.0
 var pressure_max_thres := 1.0
-var mouse_velocity_min_thres := 0.0
-var mouse_velocity_max_thres := 1.0
+var velocity_min_thres := 0.0
+var velocity_max_thres := 1.0
 
 var is_pressed := false
+var state := ArtboardState.NONE
+var dynamics := Dynamics.NONE
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -63,99 +52,84 @@ func _ready():
 #	selection.gizmo_selected.connect(_on_stop_draw)
 #	selection.gizmo_released.connect(_on_reset_draw)
 #	selection.selection_map_changed.connect(_on_selection_map_changed)
-	
 
 
 func set_canvas(proj):
 	project = proj
-
-
-func set_drawer(stroke_weight,
-				stroke_color=null,
-				stroke_spacing=null,
-				dynamics := Dynamics.NONE,
-				fill_inside := false):
 	if project.current_cel is PixelCel:
-		drawer.image = project.current_cel.image
+		pencil.image = project.current_cel.image
+		eraser.image = project.current_cel.image
+
+
+func set_pencil(stroke_width,
+				stroke_color = null,
+				stroke_spacing = null,
+				fill_inside := false):
+	if stroke_width != null:
+		pencil.stroke_width = stroke_width
 	
 	if stroke_color != null:
-		drawer.stroke_color = stroke_color
-	
-	if drawer is PixelDrawer:
-		drawer.fill_inside = fill_inside
+		pencil.stroke_color = stroke_color
 	
 	if stroke_spacing is Vector2i:
-		drawer.stroke_spacing = stroke_spacing
-		
-	if stroke_weight != null:
-		drawer.stroke_weight = stroke_weight
-		
-	if dynamics != null:
-		drawer.use_dynamics_alpha = dynamics
-		drawer.use_dynamics_stroke = dynamics
+		pencil.stroke_spacing = stroke_spacing
+
+	pencil.fill_inside = bool(fill_inside)
 
 
-func prepare_pressure(pressure):
-	if not drawer.need_pressure:
-		return DEFAULT_PEN_PRESSURE
+func set_brush(stroke_width, stroke_color = null, stroke_spacing = null):
+	if stroke_width != null:
+		brush.stroke_width = stroke_width
+	
+	if stroke_color != null:
+		brush.stroke_color = stroke_color
+	
+	if stroke_spacing is Vector2i:
+		brush.stroke_spacing = stroke_spacing
+
+
+func set_eraser(eraser_size):
+	if eraser_size != null:
+		eraser.stroke_width = eraser_size
+	
+
+func prepare_pressure(pressure:float) -> float:
 	pressure = remap(pressure, pressure_min_thres, pressure_max_thres, 0.0, 1.0)
 	pressure = clampf(pressure, 0.0, 1.0)
 	return pressure
 
 
-func prepare_velocity(mouse_velocity):
-	if not drawer.need_velocity:
-		return DEFAULT_PEN_VELOCITY
-	
+func prepare_velocity(mouse_velocity:Vector2i) -> float:
 	# convert velocity to 0.0~1.0
-	mouse_velocity = mouse_velocity.length() / 1000.0 
+	var velocity = mouse_velocity.length() / 1000.0 
 	
-	mouse_velocity = remap(
-		mouse_velocity, 
-		mouse_velocity_min_thres, 
-		mouse_velocity_max_thres, 
-		0.0,
-		1.0
-	)
-	mouse_velocity = clampf(mouse_velocity, 0.0, 1.0)
-	return mouse_velocity
+	velocity = remap(velocity, velocity_min_thres, velocity_max_thres, 0.0, 1.0)
+	velocity = clampf(velocity, 0.0, 1.0)
+	return 1 - velocity  # more fast should be more week.
 
 
-func process_drawing(event):
-	if event is InputEventMouseButton:
-		is_pressed = event.pressed
-
-	elif event is InputEventMouseMotion:
+func process_drawing_or_erasing(event, drawer):
+	if event is InputEventMouseMotion:
 		var pos = get_local_mouse_position()
 		if drawer.can_draw(pos) and project.current_cel is PixelCel:
-			drawer.pen_pressure = event.pressure
 			if is_pressed:
-				drawer.set_stroke_dynamics(prepare_pressure(event.pressure),
-										   prepare_velocity(event.velocity))
+				match dynamics:
+					Dynamics.PRESSURE:
+						var pressure = prepare_pressure(event.pressure)
+						drawer.set_stroke_dynamics(pressure)
+						drawer.set_alpha_dynamics(pressure)
+					Dynamics.VELOCITY:
+						var velocity = prepare_velocity(event.velocity)
+						drawer.set_stroke_dynamics(velocity)
+						drawer.set_alpha_dynamics(velocity)
+					_:
+						drawer.set_stroke_dynamics()
+						drawer.set_alpha_dynamics()
 				drawer.draw_move(pos)
 			elif drawer.is_drawing:
 				drawer.draw_end(pos)
 			project.current_cel.update_texture()
-		queue_redraw()
-		
-
-func process_erasing(event):
-	if event is InputEventMouseButton:
-		is_pressed = event.pressed
-
-	elif event is InputEventMouseMotion:
-		var pos = get_local_mouse_position()
-		if drawer.can_draw(pos):
-			drawer.pen_pressure = event.pressure
-			if is_pressed:
-				drawer.set_stroke_dynamics(prepare_pressure(event.pressure),
-										   prepare_velocity(event.velocity))
-				drawer.draw_move(pos)
-			elif drawer.is_drawing:
-				drawer.draw_end(pos)
-			project.current_cel.update_texture()
-		queue_redraw()
-		
+			queue_redraw()
 
 
 func _input(event :InputEvent):
@@ -166,11 +140,16 @@ func _input(event :InputEvent):
 #		var tmp_transform := get_canvas_transform().affine_inverse()
 #		var current_pixel = tmp_transform.basis_xform(mouse_pos) + tmp_transform.origin
 #		queue_redraw()
+	if event is InputEventMouseButton:
+		is_pressed = event.pressed
+
 	match state:
-		DRAWING: 
-			process_drawing(event)
-		ERASING:
-			process_erasing(event)
+		ArtboardState.PENCIL:
+			process_drawing_or_erasing(event, pencil)
+		ArtboardState.BRUSH:
+			process_drawing_or_erasing(event, brush)
+		ArtboardState.ERASE:
+			process_drawing_or_erasing(event, eraser)
 
 
 func _draw():
