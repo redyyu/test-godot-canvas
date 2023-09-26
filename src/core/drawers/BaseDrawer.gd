@@ -48,8 +48,8 @@ var alpha := 1.0 :
 		
 var stroke_alpha_dynamics_minimal := 0.0
 
-var allow_dynamics_stroke_alpha := false
-var allow_dynamics_stroke_width := false
+var allow_dyn_stroke_alpha := false
+var allow_dyn_stroke_width := false
 
 var cursor_position := Vector2i.ZERO
 
@@ -182,7 +182,7 @@ func set_stroke_width_dynamics(value := 1.0):
 		
 	value = clampf(value, 0.1, 1.0)
 
-	if allow_dynamics_stroke_width: 
+	if allow_dyn_stroke_width: 
 		stroke_width_dynamics = roundi(
 			lerpf(stroke_width_dynamics_minimal, stroke_width, value))
 	else:
@@ -194,7 +194,7 @@ func set_stroke_alpha_dynamics(value := 1.0):
 	if value < 0:
 		return
 	
-	if allow_dynamics_stroke_alpha:
+	if allow_dyn_stroke_alpha:
 		color_op.strength = lerpf(stroke_alpha_dynamics_minimal, alpha, value)
 	else:
 		# dynamics might changed, must switch back to default alpha.

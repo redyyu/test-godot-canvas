@@ -73,7 +73,7 @@ func _on_btn_pressed(btn):
 			else:
 				current_color = Color.RED
 			var tmp_color = Color(current_color)
-			tmp_color.a *= 0.5
+#			tmp_color.a *= 0.5
 			current_drawer = artboard.canvas.brush
 			current_drawer.stroke_color = tmp_color
 			btn.modulate = current_color
@@ -83,9 +83,8 @@ func _on_btn_pressed(btn):
 			current_drawer = artboard.canvas.eraser
 		
 	if current_drawer:
-		opt_stroke_dynamics.disabled = current_drawer.allow_dynamics_stroke_width
-		if not current_drawer.allow_dynamics_stroke_alpha:
-			opt_alpha_dynamics.disabled = true
+		opt_stroke_dynamics.disabled = not current_drawer.allow_dyn_stroke_width
+		opt_alpha_dynamics.disabled = not current_drawer.allow_dyn_stroke_alpha
 		slider_stroke_width.value = current_drawer.stroke_width
 		slider_stroke_space.value = current_drawer.stroke_spacing.x
 

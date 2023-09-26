@@ -45,8 +45,8 @@ class BrushOp:
 
 
 func _init():
-	allow_dynamics_stroke_alpha = true
-	allow_dynamics_stroke_width = true
+	allow_dyn_stroke_alpha = true
+	allow_dyn_stroke_width = true
 	color_op = BrushOp.new()
 	stroke_width = 12
 	

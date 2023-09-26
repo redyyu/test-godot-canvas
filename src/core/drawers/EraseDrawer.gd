@@ -17,8 +17,8 @@ class EraseOp:
 
 func _init():
 	color_op = EraseOp.new()
-	allow_dynamics_stroke_width = true
-	allow_dynamics_stroke_alpha = true
+	allow_dyn_stroke_width = true
+	allow_dyn_stroke_alpha = true
 
 
 func reset():
