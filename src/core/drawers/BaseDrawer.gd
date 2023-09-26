@@ -39,17 +39,17 @@ var stroke_width := 1 :
 
 var stroke_width_dynamics :int = stroke_width
 
-var stroke_dynamics_minimal := 1
-		
+var stroke_width_dynamics_minimal := 1
+
 var alpha := 1.0 :
 	set(val):
 		alpha = clampf(val, 0.0, 1.0)
 		color_op.strength = alpha
 		
-var alpha_dynamics_minimal := 0.0
+var stroke_alpha_dynamics_minimal := 0.0
 
-var allow_dynamics_alpha := false
-var allow_dynamics_stroke := false
+var allow_dynamics_stroke_alpha := false
+var allow_dynamics_stroke_width := false
 
 var cursor_position := Vector2i.ZERO
 
@@ -176,24 +176,26 @@ func draw_fill_gap(start: Vector2i, end: Vector2i):
 		draw_pixel(c)
 
 
-func set_stroke_dynamics(value := 1.0):
+func set_stroke_width_dynamics(value := 1.0):
 	if value < 0:
 		return
 		
 	value = clampf(value, 0.1, 1.0)
 
-	if allow_dynamics_stroke: 
+	if allow_dynamics_stroke_width: 
 		stroke_width_dynamics = roundi(
-			lerpf(stroke_dynamics_minimal, stroke_width, value))
+			lerpf(stroke_width_dynamics_minimal, stroke_width, value))
 	else:
+		# dynamics might changed, must switch back to default width.
 		stroke_width_dynamics = stroke_width
 
 
-func set_alpha_dynamics(value := 1.0):
+func set_stroke_alpha_dynamics(value := 1.0):
 	if value < 0:
 		return
 	
-	if allow_dynamics_alpha:
-		color_op.strength = lerpf(alpha_dynamics_minimal, alpha, value)
+	if allow_dynamics_stroke_alpha:
+		color_op.strength = lerpf(stroke_alpha_dynamics_minimal, alpha, value)
 	else:
+		# dynamics might changed, must switch back to default alpha.
 		color_op.strength = alpha

@@ -18,7 +18,9 @@ var velocity_max_thres := 1.0
 
 var is_pressed := false
 var state := ArtboardState.NONE
-var dynamics := Dynamics.NONE
+
+var dynamics_stroke_width := Dynamics.NONE
+var dynamics_stroke_alpha := Dynamics.NONE
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -58,42 +60,15 @@ func set_canvas(proj):
 	project = proj
 	if project.current_cel is PixelCel:
 		pencil.image = project.current_cel.image
+		brush.image = project.current_cel.image
 		eraser.image = project.current_cel.image
 
 
-func set_pencil(stroke_width,
-				stroke_color = null,
-				stroke_spacing = null,
-				fill_inside := false):
-	if stroke_width != null:
-		pencil.stroke_width = stroke_width
-	
-	if stroke_color != null:
-		pencil.stroke_color = stroke_color
-	
-	if stroke_spacing is Vector2i:
-		pencil.stroke_spacing = stroke_spacing
-
-	pencil.fill_inside = bool(fill_inside)
-
-
-func set_brush(stroke_width, stroke_color = null, stroke_spacing = null):
-	if stroke_width != null:
-		brush.stroke_width = stroke_width
-	
-	if stroke_color != null:
-		brush.stroke_color = stroke_color
-	
-	if stroke_spacing is Vector2i:
-		brush.stroke_spacing = stroke_spacing
-
-
-func set_eraser(eraser_size):
-	if eraser_size != null:
-		eraser.stroke_width = eraser_size
-	
-
 func prepare_pressure(pressure:float) -> float:
+	if pressure == 0.0:
+		# when the device pressure is not supported will always be 0.0
+		# use it with button pressed check some where.
+		return 1.0
 	pressure = remap(pressure, pressure_min_thres, pressure_max_thres, 0.0, 1.0)
 	pressure = clampf(pressure, 0.0, 1.0)
 	return pressure
@@ -110,24 +85,33 @@ func prepare_velocity(mouse_velocity:Vector2i) -> float:
 
 func process_drawing_or_erasing(event, drawer):
 	if event is InputEventMouseMotion:
-		var pos = get_local_mouse_position()
-		if drawer.can_draw(pos) and project.current_cel is PixelCel:
-			if is_pressed:
-				match dynamics:
+		if is_pressed:
+			var pos = get_local_mouse_position()
+			if drawer.can_draw(pos) and project.current_cel is PixelCel:
+				match dynamics_stroke_width:
 					Dynamics.PRESSURE:
-						var pressure = prepare_pressure(event.pressure)
-						drawer.set_stroke_dynamics(pressure)
-						drawer.set_alpha_dynamics(pressure)
+						drawer.set_stroke_width_dynamics(
+							prepare_pressure(event.pressure))
 					Dynamics.VELOCITY:
-						var velocity = prepare_velocity(event.velocity)
-						drawer.set_stroke_dynamics(velocity)
-						drawer.set_alpha_dynamics(velocity)
+						drawer.set_stroke_width_dynamics(
+							prepare_velocity(event.velocity))
 					_:
-						drawer.set_stroke_dynamics()
-						drawer.set_alpha_dynamics()
+						drawer.set_stroke_width_dynamics() # back to default
+				match dynamics_stroke_alpha:
+					Dynamics.PRESSURE:
+						drawer.set_stroke_alpha_dynamics(
+							prepare_pressure(event.pressure))
+					Dynamics.VELOCITY:
+						drawer.set_stroke_alpha_dynamics(
+							prepare_velocity(event.velocity))
+					_:
+						drawer.set_stroke_alpha_dynamics() # back to default
 				drawer.draw_move(pos)
-			elif drawer.is_drawing:
-				drawer.draw_end(pos)
+				project.current_cel.update_texture()
+				queue_redraw()
+		elif drawer.is_drawing:
+			var end_pos = get_local_mouse_position()
+			drawer.draw_end(end_pos)
 			project.current_cel.update_texture()
 			queue_redraw()
 

@@ -34,19 +34,21 @@ class BrushOp:
 	# Use a shadow image to backup previos color on the image is idea.
 	# but that will cause last drawing point cast unexcpet alpha.
 	# that's because still detected a weak pressure.
-	# maybe, blend should do after drawing, such as on layer options.
 	
 	func process(src: Color, dst: Color) -> Color:
 		src.a *= strength
 		if blending:
+			print(dst.blend(src), ' / ', src)
 			return dst.blend(src)
 		else:
 			return src
 
 
 func _init():
-	
+	allow_dynamics_stroke_alpha = true
+	allow_dynamics_stroke_width = true
 	color_op = BrushOp.new()
+	stroke_width = 12
 	
 
 func reset():
@@ -71,6 +73,7 @@ func draw_pixel(position: Vector2i):
 	for coord in coords_to_draw:
 		if can_draw(coord):
 			image.set_pixelv(coord, drawing_color)
+#			shadow_image.set_pixelv(coord, drawing_color)
 
 
 func draw_start(pos: Vector2i):

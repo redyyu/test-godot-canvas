@@ -1,6 +1,7 @@
 extends Control
 
 var current_color := Color.WHITE
+var current_drawer :BaseDrawer
 
 @onready var artboard :SubViewportContainer = $Artboard
 
@@ -11,7 +12,10 @@ var current_color := Color.WHITE
 @onready var btn_5 = $BtnBrush
 @onready var btn_6 = $BtnErase
 
-@onready var btn_dynamics = $OptBtn
+@onready var opt_stroke_dynamics = $OptStrokeBtn
+@onready var opt_alpha_dynamics = $OptAlphaBtn
+@onready var slider_stroke_width = $StrokeWidthSlider
+@onready var slider_stroke_space = $StrokeSpaceSlider
 
 
 func _ready():
@@ -26,7 +30,11 @@ func _ready():
 	btn_5.pressed.connect(_on_btn_pressed.bind(btn_5))
 	btn_6.pressed.connect(_on_btn_pressed.bind(btn_6))
 	
-	btn_dynamics.item_selected.connect(_on_dynamics_btn)
+	opt_stroke_dynamics.item_selected.connect(_on_stroke_dynamics)
+	opt_alpha_dynamics.item_selected.connect(_on_alpha_dynamics)
+	
+	slider_stroke_width.value_changed.connect(_on_stroke_width_changed)
+	slider_stroke_space.value_changed.connect(_on_stroke_space_changed)
 	
 #	var color_1 = Color.RED
 #	var color_2 = Color.GREEN
@@ -40,20 +48,24 @@ func _on_btn_pressed(btn):
 	match btn.name:
 		'BtnNone':
 			artboard.activate_state(ArtboardState.NONE)
+			current_drawer = null
 		'BtnPan':
 			artboard.activate_state(ArtboardState.DRAG)
+			current_drawer = null
 		'BtnZoom':
 			artboard.activate_state(ArtboardState.ZOOM)
+			current_drawer = null
+			
 		'BtnPencil':
 			artboard.activate_state(ArtboardState.PENCIL)
 			if current_color == Color.RED:
 				current_color = Color.GREEN
 			else:
 				current_color = Color.RED
-			var tmp_color = Color.GREEN.blend(Color.RED)
-			tmp_color.a *= 0.6
-			artboard.canvas.set_pencil(30, tmp_color, null)
+			current_drawer = artboard.canvas.pencil
+			current_drawer.stroke_color = current_color
 			btn.modulate = current_color
+			
 		'BtnBrush':
 			artboard.activate_state(ArtboardState.BRUSH)
 			if current_color == Color.RED:
@@ -61,16 +73,44 @@ func _on_btn_pressed(btn):
 			else:
 				current_color = Color.RED
 			var tmp_color = Color(current_color)
-			tmp_color.a *= 0.6
-			artboard.canvas.set_brush(30, tmp_color, null)
+			tmp_color.a *= 0.5
+			current_drawer = artboard.canvas.brush
+			current_drawer.stroke_color = tmp_color
 			btn.modulate = current_color
+			
 		'BtnErase':
 			artboard.activate_state(ArtboardState.ERASE)
-			artboard.canvas.set_eraser(20)
+			current_drawer = artboard.canvas.eraser
+		
+	if current_drawer:
+		opt_stroke_dynamics.disabled = current_drawer.allow_dynamics_stroke_width
+		if not current_drawer.allow_dynamics_stroke_alpha:
+			opt_alpha_dynamics.disabled = true
+		slider_stroke_width.value = current_drawer.stroke_width
+		slider_stroke_space.value = current_drawer.stroke_spacing.x
 
 
-func _on_dynamics_btn(index):
+func _on_stroke_dynamics(index):
 	match index:
-		0 : artboard.canvas.dynamics = Dynamics.NONE
-		1 : artboard.canvas.dynamics = Dynamics.PRESSURE
-		2 : artboard.canvas.dynamics = Dynamics.VELOCITY
+		0 : artboard.canvas.dynamics_stroke_width = Dynamics.NONE
+		1 : artboard.canvas.dynamics_stroke_width = Dynamics.PRESSURE
+		2 : artboard.canvas.dynamics_stroke_width = Dynamics.VELOCITY
+
+
+func _on_alpha_dynamics(index):
+	match index:
+		0 : artboard.canvas.dynamics_stroke_alpha = Dynamics.NONE
+		1 : artboard.canvas.dynamics_stroke_alpha = Dynamics.PRESSURE
+		2 : artboard.canvas.dynamics_stroke_alpha = Dynamics.VELOCITY
+
+
+func _on_stroke_width_changed(val):
+	print('Stroke Width: ', val)
+	if current_drawer:
+		current_drawer.stroke_width = val
+
+
+func _on_stroke_space_changed(val):
+	print('Stroke Space: ', val)
+	if current_drawer:
+		current_drawer.stroke_spacing = Vector2i(val, val)

@@ -11,15 +11,14 @@ class EraseOp:
 	
 	func process(dst: Color) -> Color:
 		if dst:
-			dst.a *= (1 - strength)
-			return dst.blend(ERASE_COLOR)
-		return dst
+			return dst.lerp(ERASE_COLOR, strength)
+		return ERASE_COLOR
 
 
 func _init():
 	color_op = EraseOp.new()
-	allow_dynamics_stroke = true
-	allow_dynamics_alpha = true
+	allow_dynamics_stroke_width = true
+	allow_dynamics_stroke_alpha = true
 
 
 func reset():

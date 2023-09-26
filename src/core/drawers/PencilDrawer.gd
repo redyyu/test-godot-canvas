@@ -16,12 +16,6 @@ const CORNERS: Array[Vector2i] = [
 	Vector2i(1, -1)
 ]
 
-# shadow_image use for pickup old color while draw, 
-# copy from image every time when draw_start.
-# to prevent old color pickup from just drawn pixel.
-# this is for make color blending work.
-var shadow_image := Image.new()
-
 var last_pixels := [null, null]
 var pixel_perfect := true
 
@@ -40,7 +34,6 @@ class PencilOp:
 
 func _init():
 	color_op = PencilOp.new()
-	allow_dynamics_stroke = true
 	
 
 func reset():
@@ -51,7 +44,7 @@ func reset():
 func draw_pixel(position: Vector2i):
 	if not can_draw(position):
 		return
-	var old_color = image.get_pixelv(position) if pixel_perfect else null
+	var old_color = image.get_pixelv(position)
 	var drawing_color :Color = color_op.process(stroke_color)
 
 	# for different stroke weight, draw pixel is one by one, 
@@ -67,7 +60,7 @@ func draw_pixel(position: Vector2i):
 		if can_draw(coord):
 			image.set_pixelv(coord, drawing_color)
 
-	if pixel_perfect:
+	if pixel_perfect and stroke_width_dynamics == 1:
 		last_pixels.push_back([position, old_color])
 		var corner = last_pixels.pop_front()
 		var neighbour = last_pixels[0]
