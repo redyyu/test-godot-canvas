@@ -36,6 +36,11 @@ func _ready():
 	slider_stroke_width.value_changed.connect(_on_stroke_width_changed)
 	slider_stroke_space.value_changed.connect(_on_stroke_space_changed)
 	
+	artboard.grid.show_isometric_grid = true
+	artboard.grid.show_cartesian_grid = true
+	artboard.grid.show_pixel_grid = true
+	artboard.canvas.snapping_to(true, true, true)
+	
 #	var image = Image.new()
 #	if image.load('res://test.png') == OK:
 #		artboard.canvas.reference_image.set_image(image)
@@ -53,17 +58,17 @@ func _ready():
 func _on_btn_pressed(btn):
 	match btn.name:
 		'BtnNone':
-			artboard.activate_state(ArtboardState.NONE)
+			artboard.state = ArtboardState.NONE
 			current_drawer = null
 		'BtnPan':
-			artboard.activate_state(ArtboardState.DRAG)
+			artboard.state = ArtboardState.DRAG
 			current_drawer = null
 		'BtnZoom':
-			artboard.activate_state(ArtboardState.ZOOM)
+			artboard.state = ArtboardState.ZOOM
 			current_drawer = null
 			
 		'BtnPencil':
-			artboard.activate_state(ArtboardState.PENCIL)
+			artboard.state = ArtboardState.PENCIL
 			if current_color == Color.RED:
 				current_color = Color.GREEN
 			else:
@@ -73,7 +78,7 @@ func _on_btn_pressed(btn):
 			btn.modulate = current_color
 			
 		'BtnBrush':
-			artboard.activate_state(ArtboardState.BRUSH)
+			artboard.state = ArtboardState.BRUSH
 			if current_color == Color.RED:
 				current_color = Color.GREEN
 			else:
@@ -85,7 +90,7 @@ func _on_btn_pressed(btn):
 			btn.modulate = current_color
 			
 		'BtnErase':
-			artboard.activate_state(ArtboardState.ERASE)
+			artboard.state = ArtboardState.ERASE
 			current_drawer = artboard.canvas.eraser
 		
 	if current_drawer:

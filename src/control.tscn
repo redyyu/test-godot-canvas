@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://cwp7c3v50tmil"]
 
 [ext_resource type="Script" path="res://src/control.gd" id="1_tve2u"]
-[ext_resource type="PackedScene" uid="uid://c08qtjj7x8pnk" path="res://src/canvas/draw_container.tscn" id="1_wuu8o"]
+[ext_resource type="PackedScene" uid="uid://c08qtjj7x8pnk" path="res://src/canvas/artboard.tscn" id="1_wuu8o"]
 [ext_resource type="Script" path="res://src/widgets/ValSlider.gd" id="3_orn6h"]
 
 [node name="Control" type="Control"]

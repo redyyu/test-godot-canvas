@@ -4,11 +4,14 @@ class_name Artboard
 
 
 var state := ArtboardState.NONE :
-	set = activate_state
+	set = set_state
 
 var project :Project
 
+var reference_image := ReferenceImage.new()
+
 var guides :Array[Guide] = []
+var grid := Grid.new()
 
 var symmetry_guide_h := SymmetryGuide.new()
 var symmetry_guide_v := SymmetryGuide.new()
@@ -25,7 +28,7 @@ var symmetry_visible := false :
 @onready var viewport :SubViewport = $Viewport
 @onready var camera :Camera2D = $Viewport/Camera
 @onready var canvas :Node2D = $Viewport/Canvas
-@onready var transChecker :ColorRect = $Viewport/TransChecker
+@onready var trans_checker :ColorRect = $Viewport/TransChecker
 
 @onready var h_ruler :Button = $HRuler
 @onready var v_ruler :Button = $VRuler
@@ -46,11 +49,17 @@ func _ready():
 	
 	resized.connect(_on_resized)
 	camera.changed.connect(_on_resized)
+	
+	trans_checker.add_sibling(reference_image)
+	viewport.add_child(grid)
 
 
 func load_project(proj :Project):
 	project = proj
-
+	
+	reference_image.size = project.size
+	grid.size = project.size
+	
 #	material = CanvasItemMaterial.new()
 #	material.blend_mode = CanvasItemMaterial.BLEND_MODE_PREMULT_ALPHA
 	camera.canvas_size = project.size
@@ -58,23 +67,31 @@ func load_project(proj :Project):
 	camera.zoom_100()
 	
 #	camera.camera_offset_changed.connect(_on_camera_offset_changed)
-	canvas.set_project(project)
-	transChecker.update_bounds(project.size)
+	canvas.attach_project(project)
+	canvas.activate_snap(guides, grid)
+	trans_checker.update_bounds(project.size)
 
 
-func activate_state(op_state):
+func set_state(op_state):
 	state = op_state
 	canvas.state = state
 	camera.state = state
 
 
-func update_canvas():
+func refresh_snapping():
+	canvas.activate_snap(guides, grid)
+
+
+func refresh_canvas():
 	canvas.queue_redraw()
 
 
 #func save_to_project():
 #	g.current_project.cameras_zoom = camera.zoom
 #	g.current_project.cameras_offset = camera.offset
+
+func place_grid():
+	grid.zoom_at = camera.zoom.x
 
 
 func place_symmetry_guide():
@@ -113,6 +130,7 @@ func _on_resized():
 	place_rulers()
 	place_guides()
 	place_symmetry_guide()
+	place_grid()
 
 
 func _on_mouse_entered():

@@ -22,8 +22,7 @@ var state := ArtboardState.NONE
 var dynamics_stroke_width := Dynamics.NONE
 var dynamics_stroke_alpha := Dynamics.NONE
 
-var reference_image := ReferenceImage.new()
-
+var snapper := Snapper.new()
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
 #var grid_draw_over_tile_mode :bool = false
@@ -46,7 +45,7 @@ var reference_image := ReferenceImage.new()
 
 
 func _ready():
-	add_child(reference_image)
+	pass
 #	onion_past.type = onion_past.PAST
 #	onion_past.blue_red_color = Color.RED
 #	onion_future.type = onion_future.FUTURE
@@ -57,14 +56,26 @@ func _ready():
 #	selection.selection_map_changed.connect(_on_selection_map_changed)
 
 
-func set_project(proj):
+func attach_project(proj):
 	project = proj
-	reference_image.size = project.size
 	
 	if project.current_cel is PixelCel:
 		pencil.image = project.current_cel.image
 		brush.image = project.current_cel.image
 		eraser.image = project.current_cel.image
+
+
+func activate_snap(guides:Array, grid:Grid):
+	snapper.guides = guides
+	snapper.grid_size = grid.grid_size
+
+
+func snapping_to(to_guide := false, 
+				 to_grid_center := false,
+				 to_grid_boundary := false):
+	snapper.snap_to_rectangular_grid_boundary = to_grid_boundary
+	snapper.snap_to_rectangular_grid_center = to_grid_center
+	snapper.snap_to_guides = to_guide
 
 
 func prepare_pressure(pressure:float) -> float:
@@ -90,6 +101,7 @@ func process_drawing_or_erasing(event, drawer):
 	if event is InputEventMouseMotion:
 		if is_pressed:
 			var pos = get_local_mouse_position()
+			pos = snapper.snap_position(pos)
 			if drawer.can_draw(pos) and project.current_cel is PixelCel:
 				match dynamics_stroke_width:
 					Dynamics.PRESSURE:
