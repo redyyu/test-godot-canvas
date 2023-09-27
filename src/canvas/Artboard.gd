@@ -10,6 +10,7 @@ var project :Project
 
 var reference_image := ReferenceImage.new()
 
+var guides_locked := false
 var guides :Array[Guide] = []
 var grid := Grid.new()
 
@@ -78,11 +79,6 @@ func set_state(op_state):
 	camera.state = state
 
 
-func set_guides_locked(val:bool):
-	for guide in guides:
-		guide.locked = bool(val)
-	
-
 func refresh_canvas():
 	canvas.queue_redraw()
 
@@ -144,8 +140,15 @@ func _on_mouse_exited():
 
 # guides
 
+func lock_guides(val:bool):
+	guides_locked = bool(val)
+	for guide in guides:
+		guide.is_locked = guides_locked
+
+
 func _on_guide_created(type):
 	var guide = Guide.new()
+	guide.is_locked = guides_locked
 	guide.set_guide(type, size)
 	guides.append(guide)
 	add_child(guide)

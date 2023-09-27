@@ -24,6 +24,15 @@ offset_right = 1103.0
 offset_bottom = 229.0
 text = "None"
 
+[node name="BtnLockGuide" type="CheckButton" parent="."]
+layout_mode = 0
+offset_left = 893.0
+offset_top = 198.0
+offset_right = 1027.0
+offset_bottom = 229.0
+text = "Lock Guide"
+alignment = 2
+
 [node name="BtnPan" type="Button" parent="."]
 layout_mode = 0
 offset_left = 1055.0

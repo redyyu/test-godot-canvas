@@ -6,6 +6,7 @@ signal released(guide)
 signal pressed(guide)
 signal hovered(guide)
 signal leaved(guide)
+signal locked(guide)
 
 const DEFAULT_WIDTH := 2
 const LINE_COLOR := Color.REBECCA_PURPLE
@@ -17,11 +18,12 @@ var relative_position := Vector2.ZERO
 var orientation := HORIZONTAL
 var is_pressed := false
 var is_hovered := false
-var locked := false :
+var is_locked := false :
 	set (val):
-		locked = bool(val)
+		is_locked = bool(val)
 		is_pressed = false
 		is_hovered = false
+		locked.emit(self)
 
 
 func _ready():
@@ -32,7 +34,7 @@ func _ready():
 
 
 func _input(event: InputEvent):
-	if locked:
+	if is_locked:
 		return
 		
 	# grab a guide

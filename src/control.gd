@@ -12,6 +12,8 @@ var current_drawer :BaseDrawer
 @onready var btn_5 = $BtnBrush
 @onready var btn_6 = $BtnErase
 
+@onready var btn_lock_guide = $BtnLockGuide
+
 @onready var opt_stroke_dynamics = $OptStrokeBtn
 @onready var opt_alpha_dynamics = $OptAlphaBtn
 @onready var slider_stroke_width = $StrokeWidthSlider
@@ -30,6 +32,8 @@ func _ready():
 	btn_5.pressed.connect(_on_btn_pressed.bind(btn_5))
 	btn_6.pressed.connect(_on_btn_pressed.bind(btn_6))
 	
+	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
+	
 	opt_stroke_dynamics.item_selected.connect(_on_stroke_dynamics)
 	opt_alpha_dynamics.item_selected.connect(_on_alpha_dynamics)
 	
@@ -40,7 +44,6 @@ func _ready():
 	artboard.grid.show_cartesian_grid = true
 	artboard.grid.show_pixel_grid = true
 	artboard.canvas.snapping_to(true, false, false)
-	artboard.set_guides_locked(true)
 	
 #	var image = Image.new()
 #	if image.load('res://test.png') == OK:
@@ -93,6 +96,9 @@ func _on_btn_pressed(btn):
 		'BtnErase':
 			artboard.state = ArtboardState.ERASE
 			current_drawer = artboard.canvas.eraser
+		
+		'BtnLockGuide':
+			artboard.lock_guides(btn.button_pressed)
 		
 	if current_drawer:
 		opt_stroke_dynamics.disabled = not current_drawer.allow_dyn_stroke_width

@@ -111,8 +111,16 @@ func process_snap_to_guide(pos :Vector2,
 						   distance :float) -> Vector2:
 	var snap_to := Vector2.INF
 	for guide in to_guides:
-		var s1: Vector2 = guide.points[0]
-		var s2: Vector2 = guide.points[1]
+		var s1 := Vector2.ZERO
+		var s2 := Vector2.ZERO
+		match guide.orientation:
+			HORIZONTAL:
+				s1 = Vector2(guide.position.y, 0)
+				s2 = Vector2(guide.position.y, size.x)
+			VERTICAL:
+				s1 = Vector2(0, guide.position.x)
+				s2 = Vector2(size.y, guide.position.x)
+		
 		print(s1, s2)
 		var snap := _snap_to_guide(snap_to, pos, distance, s1, s2)
 		if snap != Vector2.INF:
