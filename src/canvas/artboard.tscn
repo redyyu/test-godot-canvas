@@ -5,7 +5,7 @@
 [ext_resource type="Shader" path="res://src/shaders/Greyscale.gdshader" id="2_s2kkr"]
 [ext_resource type="Script" path="res://src/canvas/TransChecker.gd" id="3_dvs3t"]
 [ext_resource type="Script" path="res://src/canvas/Canvas.gd" id="4_1y3pt"]
-[ext_resource type="Script" path="res://src/canvas/Camera.gd" id="5_ghk1k"]
+[ext_resource type="Script" path="res://src/canvas/CanvasCamera.gd" id="5_ghk1k"]
 [ext_resource type="Script" path="res://src/canvas/Indicators.gd" id="6_2ns7n"]
 [ext_resource type="Texture2D" uid="uid://bk6ocb3o8wtj6" path="res://assets/graphics/dotted_line.png" id="8_bu2cv"]
 [ext_resource type="Script" path="res://src/canvas/MouseGuide.gd" id="9_a670k"]

@@ -58,8 +58,8 @@ func _ready():
 func load_project(proj :Project):
 	project = proj
 	
-	reference_image.size = project.size
-	grid.size = project.size
+	reference_image.canvas_size = project.size
+	grid.canvas_size = project.size
 	
 #	material = CanvasItemMaterial.new()
 #	material.blend_mode = CanvasItemMaterial.BLEND_MODE_PREMULT_ALPHA

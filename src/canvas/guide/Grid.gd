@@ -35,13 +35,13 @@ var zoom_at := 1.0 :
 		queue_redraw()
 
 
-var size := Vector2i.ZERO :
+var canvas_size := Vector2i.ZERO :
 	set(val):
-		size = val
-		rect = Rect2i(Vector2.ZERO, size)
+		canvas_size = val
+		rect = Rect2i(Vector2.ZERO, canvas_size)
 		queue_redraw()
 		
-var rect := Rect2i(Vector2.ZERO, size)
+var rect := Rect2i(Vector2.ZERO, canvas_size)
 
 
 func _draw():

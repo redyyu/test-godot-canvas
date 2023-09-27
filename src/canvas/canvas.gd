@@ -68,7 +68,7 @@ func attach_project(proj):
 func attach_snap_to(size:Vector2, guides:Array, grid:Grid):
 	snapper.guides = guides
 	snapper.grid = grid
-	snapper.size = size
+	snapper.canvas_size = size
 
 
 func snapping_to(to_guide := false, 

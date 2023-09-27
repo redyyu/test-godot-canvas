@@ -10,7 +10,10 @@ var alpha := 0.6:
 		alpha = clamp(val, 0.2, 0.8)
 		modulate = Color(1, 1, 1, alpha)		
 
-var size := Vector2i.ZERO
+var canvas_size := Vector2i.ZERO:
+	set(val):
+		canvas_size = val
+		position_reset()
 
 
 func _ready():
@@ -20,13 +23,13 @@ func _ready():
 
 ## Resets the position and scale of the reference image.
 func position_reset():
-	position = size * 0.5
+	position = canvas_size * 0.5
 	if texture:
 		scale = (
 			Vector2.ONE
 			* minf(
-				float(size.x) / texture.get_width(),
-				float(size.y) / texture.get_height()
+				float(canvas_size.x) / texture.get_width(),
+				float(canvas_size.y) / texture.get_height()
 			)
 		)
 	else:

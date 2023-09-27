@@ -2,7 +2,7 @@ extends RefCounted
 
 class_name Snapper
 
-var size := Vector2.ZERO
+var canvas_size := Vector2.ZERO
 
 var snap_to_grid_boundary := false
 var snap_to_grid_center := false
@@ -116,10 +116,10 @@ func process_snap_to_guide(pos :Vector2,
 		match guide.orientation:
 			HORIZONTAL:
 				s1 = Vector2(0, guide.relative_offset.y)
-				s2 = Vector2(size.x, guide.relative_offset.y)
+				s2 = Vector2(canvas_size.x, guide.relative_offset.y)
 			VERTICAL:
 				s1 = Vector2(guide.relative_offset.x, 0)
-				s2 = Vector2(guide.relative_offset.x, size.y)
+				s2 = Vector2(guide.relative_offset.x, canvas_size.y)
 		var snap := _snap_to_guide(snap_to, pos, distance, s1, s2)
 		if snap != Vector2.INF:
 			snap_to = snap
@@ -167,13 +167,13 @@ func _get_closest_point_to_grid(pos: Vector2,
 	# If the cursor is far from the grid cell origin but still close to a grid
 	# Look for a point close to a horizontal grid line
 	var grid_start_hor := Vector2(0, grid_pos.y)
-	var grid_end_hor := Vector2(size.x, grid_pos.y)
+	var grid_end_hor := Vector2(canvas_size.x, grid_pos.y)
 	var closest_point_hor := _get_closest_point_to_segment(
 		pos, distance, grid_start_hor, grid_end_hor
 	)
 	# Look for a point close to a vertical grid line
 	var grid_start_ver := Vector2(grid_pos.x, 0)
-	var grid_end_ver := Vector2(grid_pos.x, size.y)
+	var grid_end_ver := Vector2(grid_pos.x, canvas_size.y)
 	var closest_point_ver := _get_closest_point_to_segment(
 		pos, distance, grid_start_ver, grid_end_ver
 	)
