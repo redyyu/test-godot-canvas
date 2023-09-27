@@ -116,11 +116,11 @@ func place_guides():
 	for guide in guides:
 		match guide.orientation:
 			HORIZONTAL:
-				var _y = guide.relative_position.y * _zoom.y
-				guide.position.y = _origin.y - _y
+				var _y = guide.relative_offset.y * _zoom.y
+				guide.position.y = _origin.y + _y
 			VERTICAL:
-				var _x = guide.relative_position.x * _zoom.x
-				guide.position.x = _origin.x - _x
+				var _x = guide.relative_offset.x * _zoom.x
+				guide.position.x = _origin.x + _x 
 
 
 func _on_resized(): 
@@ -144,7 +144,6 @@ func lock_guides(val:bool):
 	guides_locked = bool(val)
 	for guide in guides:
 		guide.is_locked = guides_locked
-
 
 func _on_guide_created(type):
 	var guide = Guide.new()
@@ -185,7 +184,7 @@ func _on_guide_released(guide):
 	var _zoom = camera.zoom
 	var _origin = Vector2(size * 0.5 - _offset * _zoom) # to get origin
 	
-	guide.relative_position = (_origin - guide.position) / _zoom
+	guide.relative_offset = (guide.position - _origin) / _zoom
 	# calculate to the right position when zoom is 1.0.
 	# otherwise position might mess-up place guide while is zoomed.
 	

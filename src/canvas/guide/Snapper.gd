@@ -12,7 +12,7 @@ var snap_to_guides := false
 var snapping_distance := 12.0
 
 var grid :Grid
-var guides :Array
+var guides :Array[Guide]
 
 
 func snap_position(pos: Vector2) -> Vector2:
@@ -115,13 +115,11 @@ func process_snap_to_guide(pos :Vector2,
 		var s2 := Vector2.ZERO
 		match guide.orientation:
 			HORIZONTAL:
-				s1 = Vector2(guide.position.y, 0)
-				s2 = Vector2(guide.position.y, size.x)
+				s1 = Vector2(0, guide.relative_offset.y)
+				s2 = Vector2(size.x, guide.relative_offset.y)
 			VERTICAL:
-				s1 = Vector2(0, guide.position.x)
-				s2 = Vector2(size.y, guide.position.x)
-		
-		print(s1, s2)
+				s1 = Vector2(guide.relative_offset.x, 0)
+				s2 = Vector2(guide.relative_offset.x, size.y)
 		var snap := _snap_to_guide(snap_to, pos, distance, s1, s2)
 		if snap != Vector2.INF:
 			snap_to = snap

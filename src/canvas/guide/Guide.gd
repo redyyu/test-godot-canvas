@@ -11,7 +11,7 @@ signal locked(guide)
 const DEFAULT_WIDTH := 2
 const LINE_COLOR := Color.REBECCA_PURPLE
 
-var relative_position := Vector2.ZERO 
+var relative_offset := Vector2.ZERO 
 # it is calculated position to parent scene when zoom is 1.0
 # use to keep the right position when place guide while is zoomed.
 

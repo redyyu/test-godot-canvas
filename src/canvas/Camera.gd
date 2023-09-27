@@ -1,6 +1,6 @@
 extends Camera2D
 
-class_name CameraMovement
+class_name CanvasCamera
 
 signal changed()
 
