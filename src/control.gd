@@ -45,6 +45,8 @@ func _ready():
 	artboard.grid.show_pixel_grid = true
 	artboard.canvas.snapping_to(true, false, false)
 	
+#	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
+	
 #	var image = Image.new()
 #	if image.load('res://test.png') == OK:
 #		artboard.canvas.reference_image.set_image(image)

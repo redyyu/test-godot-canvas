@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://c08qtjj7x8pnk"]
+[gd_scene load_steps=15 format=3 uid="uid://c08qtjj7x8pnk"]
 
 [ext_resource type="Shader" path="res://src/shaders/TransparentChecker.gdshader" id="1_d8lm1"]
 [ext_resource type="Script" path="res://src/canvas/Artboard.gd" id="1_fg2jv"]
@@ -7,8 +7,9 @@
 [ext_resource type="Script" path="res://src/canvas/Canvas.gd" id="4_1y3pt"]
 [ext_resource type="Script" path="res://src/canvas/CanvasCamera.gd" id="5_ghk1k"]
 [ext_resource type="Script" path="res://src/canvas/Indicators.gd" id="6_2ns7n"]
-[ext_resource type="Texture2D" uid="uid://bk6ocb3o8wtj6" path="res://assets/graphics/dotted_line.png" id="8_bu2cv"]
 [ext_resource type="Script" path="res://src/canvas/MouseGuide.gd" id="9_a670k"]
+[ext_resource type="Shader" path="res://src/shaders/MarchingAntsOutline.gdshader" id="9_y3e15"]
+[ext_resource type="Texture2D" uid="uid://tw68ya0dsiiv" path="res://test.png" id="10_cb350"]
 [ext_resource type="Script" path="res://src/canvas/guide/Ruler.gd" id="12_o861q"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_u122j"]
@@ -23,8 +24,14 @@ shader_parameter/rect_size = Vector2(0, 0)
 shader_parameter/follow_movement = false
 shader_parameter/follow_scale = false
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_gavu7"]
-atlas = ExtResource("8_bu2cv")
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7shi3"]
+shader = ExtResource("9_y3e15")
+shader_parameter/first_color = Color(1, 1, 1, 1)
+shader_parameter/second_color = Color(0, 0, 0, 1)
+shader_parameter/animated = true
+shader_parameter/width = 0.05
+shader_parameter/frequency = 50.0
+shader_parameter/stripe_direction = 0.5
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ib7er"]
 shader = ExtResource("2_s2kkr")
@@ -56,19 +63,12 @@ script = ExtResource("4_1y3pt")
 [node name="Indicator" type="Node2D" parent="Viewport/Canvas"]
 script = ExtResource("6_2ns7n")
 
-[node name="MouseGuide" type="Node2D" parent="Viewport/Canvas"]
-
-[node name="Vertical" type="Line2D" parent="Viewport/Canvas/MouseGuide"]
-points = PackedVector2Array(0, 19999, 0, -19999)
-texture = SubResource("AtlasTexture_gavu7")
-texture_mode = 1
-script = ExtResource("9_a670k")
-
-[node name="Horizontal" type="Line2D" parent="Viewport/Canvas/MouseGuide"]
-points = PackedVector2Array(0, 19999, 0, -19999)
-texture = SubResource("AtlasTexture_gavu7")
-texture_mode = 1
-script = ExtResource("9_a670k")
+[node name="Selection" type="TextureRect" parent="Viewport/Canvas"]
+material = SubResource("ShaderMaterial_7shi3")
+custom_minimum_size = Vector2(50, 50)
+offset_right = 962.0
+offset_bottom = 908.0
+texture = ExtResource("10_cb350")
 
 [node name="Camera" type="Camera2D" parent="Viewport"]
 script = ExtResource("5_ghk1k")
@@ -99,3 +99,6 @@ focus_mode = 0
 mouse_default_cursor_shape = 15
 script = ExtResource("12_o861q")
 orientation = 1
+
+[node name="MouseGuide" type="Node2D" parent="."]
+script = ExtResource("9_a670k")

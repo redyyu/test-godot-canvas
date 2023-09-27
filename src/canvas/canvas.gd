@@ -41,7 +41,6 @@ var snapper := Snapper.new()
 #@onready var onion_future :Node2D = $OnionFuture
 #@onready var crop_rect :CropRect = $CropRect
 @onready var indicator :Node2D = $Indicator
-@onready var mouse_guide_container :Node2D = $MouseGuide
 
 
 func _ready():

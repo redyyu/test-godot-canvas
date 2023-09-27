@@ -16,15 +16,8 @@ var grid := Grid.new()
 
 var symmetry_guide_h := SymmetryGuide.new()
 var symmetry_guide_v := SymmetryGuide.new()
-var symmetry_visible := false :
-	set(val):
-		symmetry_visible = val
-		if symmetry_visible:
-			symmetry_guide_h.show()
-			symmetry_guide_v.show()
-		else:
-			symmetry_guide_h.hide()
-			symmetry_guide_v.hide()
+var symmetry_guide_state := SymmetryGuide.NONE :
+	set = set_symmetry_guides
 
 @onready var viewport :SubViewport = $Viewport
 @onready var camera :Camera2D = $Viewport/Camera
@@ -33,12 +26,12 @@ var symmetry_visible := false :
 
 @onready var h_ruler :Button = $HRuler
 @onready var v_ruler :Button = $VRuler
+@onready var mouse_guide :Node2D = $MouseGuide
 
 
 func _ready():
 	add_child(symmetry_guide_h)
 	add_child(symmetry_guide_v)
-	symmetry_visible = true
 	
 	h_ruler.guide_created.connect(_on_guide_created)
 	v_ruler.guide_created.connect(_on_guide_created)
@@ -75,7 +68,9 @@ func load_project(proj :Project):
 	canvas.attach_project(project)
 	canvas.attach_snap_to(project.size, guides, grid)
 	trans_checker.update_bounds(project.size)
-
+	
+	mouse_guide.set_mouse_guide(size)
+	
 
 func save_to_project():
 	pass
@@ -118,17 +113,51 @@ func place_grid():
 	grid.zoom_at = camera.zoom.x
 
 
+func set_symmetry_guides(val):
+	symmetry_guide_state = val
+	match symmetry_guide_state:
+		SymmetryGuide.CROSS_AXIS:
+			symmetry_guide_h.show()
+			symmetry_guide_v.show()
+		SymmetryGuide.HORIZONTAL_AXIS:
+			symmetry_guide_h.show()
+			symmetry_guide_v.hide()
+		SymmetryGuide.VERTICAL_AXIS:
+			symmetry_guide_h.hide()
+			symmetry_guide_v.show()
+		_:
+			symmetry_guide_h.hide()
+			symmetry_guide_v.hide()
+	place_symmetry_guide()
+
+
 func place_symmetry_guide():
-	if symmetry_visible and project:
+	if project:
 		var _offset = camera.offset
 		var _zoom = camera.zoom
 		var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
-#		var _origin = camera.canvas_origin 
-		# the origin in side the canvas is useless while on reised.
-		var _x = _origin.x + project.size.x * 0.5 * _zoom.x
-		var _y = _origin.y + project.size.y * 0.5 * _zoom.y
-		symmetry_guide_h.set_guide(Vector2(-size.x, _y), Vector2(size.x, _y))
-		symmetry_guide_v.set_guide(Vector2(_x, -size.y), Vector2(_x, size.y))
+			
+		match symmetry_guide_state:
+			SymmetryGuide.HORIZONTAL_AXIS:
+				_set_horizontal_symmetry_guide(_origin, project.size, _zoom)
+			SymmetryGuide.VERTICAL_AXIS:
+				_set_vertical_symmetry_guide(_origin, project.size, _zoom)
+			SymmetryGuide.CROSS_AXIS:
+				_set_horizontal_symmetry_guide(_origin, project.size, _zoom)
+				_set_vertical_symmetry_guide(_origin, project.size, _zoom)
+			_:
+				symmetry_guide_h.hide()
+				symmetry_guide_v.hide()
+
+
+func _set_horizontal_symmetry_guide(origin, canvas_size, zoom):
+	var _y = origin.y + canvas_size.y * 0.5 * zoom.y
+	symmetry_guide_h.set_guide(Vector2(-size.x, _y), Vector2(size.x, _y))
+
+
+func _set_vertical_symmetry_guide(origin, canvas_size, zoom):
+	var _x = origin.x + canvas_size.x * 0.5 * zoom.x
+	symmetry_guide_v.set_guide(Vector2(_x, -size.y), Vector2(_x, size.y))
 
 
 func place_rulers():
