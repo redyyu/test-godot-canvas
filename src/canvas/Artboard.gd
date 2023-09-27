@@ -48,8 +48,10 @@ func _ready():
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 	
-	resized.connect(_on_resized)
-	camera.changed.connect(_on_resized)
+	resized.connect(_on_viewport_changed)
+	camera.dragged.connect(_on_viewport_changed)
+	camera.zoomed.connect(_on_viewport_changed)
+	camera.change_pressed.connect(_on_camera_pressing)
 	
 	trans_checker.add_sibling(reference_image)
 	viewport.add_child(grid)
@@ -75,6 +77,10 @@ func load_project(proj :Project):
 	trans_checker.update_bounds(project.size)
 
 
+func save_to_project():
+	pass
+
+
 func set_state(op_state):
 	state = op_state
 	canvas.state = state
@@ -85,14 +91,28 @@ func set_state(op_state):
 	else:
 		_lock_guides(true)
 		
+	change_cursor(state)
+		
 
 func refresh_canvas():
 	canvas.queue_redraw()
 
 
-#func save_to_project():
-#	g.current_project.cameras_zoom = camera.zoom
-#	g.current_project.cameras_offset = camera.offset
+func change_cursor(curr_state):
+	match curr_state:
+		ArtboardState.MOVE:
+			mouse_default_cursor_shape = Control.CURSOR_MOVE
+		ArtboardState.DRAG:
+			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		ArtboardState.BRUSH:
+			mouse_default_cursor_shape = Control.CURSOR_CROSS
+		ArtboardState.PENCIL:
+			mouse_default_cursor_shape = Control.CURSOR_CROSS
+		ArtboardState.ERASE:
+			mouse_default_cursor_shape = Control.CURSOR_CROSS
+		_:
+			mouse_default_cursor_shape = Control.CURSOR_ARROW
+
 
 func place_grid():
 	grid.zoom_at = camera.zoom.x
@@ -130,11 +150,20 @@ func place_guides():
 				guide.position.x = _origin.x + _x 
 
 
-func _on_resized(): 
+func _on_viewport_changed():
 	place_rulers()
 	place_guides()
 	place_symmetry_guide()
 	place_grid()
+	
+
+func _on_camera_pressing(is_pressed):
+	if state == ArtboardState.DRAG:
+		if is_pressed:
+			mouse_default_cursor_shape = Control.CURSOR_DRAG
+		else:
+			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		
 
 
 func _on_mouse_entered():

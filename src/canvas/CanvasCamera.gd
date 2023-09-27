@@ -2,7 +2,9 @@ extends Camera2D
 
 class_name CanvasCamera
 
-signal changed()
+signal zoomed
+signal dragged
+signal change_pressed
 
 const CAMERA_SPEED_RATE = 12.0
 
@@ -36,7 +38,6 @@ var state := ArtboardState.NONE
 
 func _ready():
 	set_process_input(false)
-	send_camera_changed()
 
 
 func _input(event: InputEvent):
@@ -45,34 +46,39 @@ func _input(event: InputEvent):
 			zoom_camera(1)
 		else:
 			zoom_camera(-1)
+		send_camera_zoomed()
 	elif event is InputEventPanGesture and OS.get_name() != "Android":
 		# Pan Gesture on a laptop touchpad
 		offset = offset + event.delta * 7.0 / zoom
-		send_camera_changed()
+		send_camera_dragged()
 	
 	# hit the hot key directly.
 	elif event.is_action_pressed("zoom_in"):
 		zoom_center_point = canvas_size * 0.5 
 		zoom_camera(1)
+		send_camera_zoomed()
 	elif event.is_action_released("zoom_out"):
 		zoom_center_point = canvas_size * 0.5
 		zoom_camera(-1)
+		send_camera_zoomed()
 	
 	if event is InputEventMouseButton:
 		btn_pressed = event.pressed
+		change_pressed.emit(btn_pressed)
 		
 	match state:
 		ArtboardState.DRAG:
 			process_dragging(event)
+			send_camera_dragged()
 		ArtboardState.ZOOM:
 			process_zooming(event)
+			send_camera_zoomed()
 
 
 func process_dragging(event):
 	# activated by pan tool.
 	if event is InputEventMouseMotion and btn_pressed:
 		offset = offset - event.relative / zoom
-		send_camera_changed()
 
 
 func process_zooming(event):
@@ -95,7 +101,7 @@ func zoom_camera(direction: int):
 	if new_zoom < zoom_in_max && new_zoom > zoom_out_max:
 		zoom = new_zoom
 		offset = zoom_center_point
-		send_camera_changed()
+		send_camera_zoomed()
 		
 		# use Tween to smooth the zoom effect. DO NEED for now.
 #		var tween = create_tween().set_parallel()
@@ -109,7 +115,7 @@ func zoom_100():
 	zoom = Vector2.ONE
 	zoom_center_point = canvas_size * 0.5
 	offset = zoom_center_point
-	send_camera_changed()
+	send_camera_zoomed()
 	
 
 func fit_to_frame() -> void:
@@ -122,10 +128,16 @@ func fit_to_frame() -> void:
 
 	ratio = clampf(ratio, 0.1, ratio)
 	zoom = Vector2(ratio, ratio)
-	send_camera_changed()
+	send_camera_zoomed()
 
 
-func send_camera_changed():
+func send_camera_zoomed():
 	canvas_origin = get_global_transform_with_canvas().get_origin()
 	canvas_scale = get_global_transform_with_canvas().get_scale()
-	changed.emit()
+	zoomed.emit()
+
+
+func send_camera_dragged():
+	canvas_origin = get_global_transform_with_canvas().get_origin()
+	canvas_scale = get_global_transform_with_canvas().get_scale()
+	dragged.emit()

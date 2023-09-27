@@ -53,19 +53,18 @@ script = ExtResource("3_dvs3t")
 [node name="Canvas" type="Node2D" parent="Viewport"]
 script = ExtResource("4_1y3pt")
 
-[node name="Indicators" type="Node2D" parent="Viewport/Canvas"]
+[node name="Indicator" type="Node2D" parent="Viewport/Canvas"]
 script = ExtResource("6_2ns7n")
 
-[node name="MouseGuideContainer" type="Node2D" parent="Viewport/Canvas"]
-visible = false
+[node name="MouseGuide" type="Node2D" parent="Viewport/Canvas"]
 
-[node name="Vertical" type="Line2D" parent="Viewport/Canvas/MouseGuideContainer"]
+[node name="Vertical" type="Line2D" parent="Viewport/Canvas/MouseGuide"]
 points = PackedVector2Array(0, 19999, 0, -19999)
 texture = SubResource("AtlasTexture_gavu7")
 texture_mode = 1
 script = ExtResource("9_a670k")
 
-[node name="Horizontal" type="Line2D" parent="Viewport/Canvas/MouseGuideContainer"]
+[node name="Horizontal" type="Line2D" parent="Viewport/Canvas/MouseGuide"]
 points = PackedVector2Array(0, 19999, 0, -19999)
 texture = SubResource("AtlasTexture_gavu7")
 texture_mode = 1
