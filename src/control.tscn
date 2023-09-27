@@ -16,13 +16,13 @@ script = ExtResource("1_tve2u")
 [node name="Artboard" parent="." instance=ExtResource("1_wuu8o")]
 layout_mode = 1
 
-[node name="BtnNone" type="Button" parent="."]
+[node name="BtnMove" type="Button" parent="."]
 layout_mode = 0
 offset_left = 1050.0
 offset_top = 198.0
 offset_right = 1103.0
 offset_bottom = 229.0
-text = "None"
+text = "Move"
 
 [node name="BtnLockGuide" type="CheckButton" parent="."]
 layout_mode = 0

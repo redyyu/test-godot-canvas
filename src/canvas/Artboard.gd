@@ -53,6 +53,8 @@ func _ready():
 	
 	trans_checker.add_sibling(reference_image)
 	viewport.add_child(grid)
+	
+	set_state(ArtboardState.NONE)
 
 
 func load_project(proj :Project):
@@ -77,7 +79,12 @@ func set_state(op_state):
 	state = op_state
 	canvas.state = state
 	camera.state = state
-
+	
+	if state == ArtboardState.MOVE:
+		_lock_guides(guides_locked)
+	else:
+		_lock_guides(true)
+		
 
 func refresh_canvas():
 	canvas.queue_redraw()
@@ -140,21 +147,30 @@ func _on_mouse_exited():
 
 # guides
 
-func lock_guides(val:bool):
+func lock_guides(val :bool):
 	guides_locked = bool(val)
+	_lock_guides(guides_locked or state != ArtboardState.MOVE)
+	
+
+func _lock_guides(val :bool):
+	# for internal use, temporary lock guides while state switched.
 	for guide in guides:
-		guide.is_locked = guides_locked
+		guide.is_locked = val
+		
+	v_ruler.set_activate(not val)
+	h_ruler.set_activate(not val)
+
 
 func _on_guide_created(type):
-	var guide = Guide.new()
-	guide.is_locked = guides_locked
-	guide.set_guide(type, size)
-	guides.append(guide)
-	add_child(guide)
-	guide.pressed.connect(_on_guide_pressed)
-	guide.released.connect(_on_guide_released)
-	guide.hovered.connect(_on_guide_hovered)
-	guide.leaved.connect(_on_guide_leaved)
+	if (not guides_locked and state == ArtboardState.MOVE):
+		var guide = Guide.new()
+		guide.set_guide(type, size)
+		guides.append(guide)
+		add_child(guide)
+		guide.pressed.connect(_on_guide_pressed)
+		guide.released.connect(_on_guide_released)
+		guide.hovered.connect(_on_guide_hovered)
+		guide.leaved.connect(_on_guide_leaved)
 	
 
 func _on_guide_hovered(guide):

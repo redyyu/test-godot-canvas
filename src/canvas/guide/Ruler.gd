@@ -6,6 +6,8 @@ signal guide_created(orientation)
 
 const RULER_WIDTH := 16
 
+@export var orientation :Orientation = HORIZONTAL
+
 var major_subdivision := 2
 var minor_subdivision := 4
 
@@ -21,26 +23,10 @@ var btn_pressed := false
 var mouse_position := Vector2.ZERO
 var create_guide_gate := false
 
-enum {
-	HORIZONTAL,
-	VERTICAL
-}
-
-var orientation := HORIZONTAL
-
 
 func _ready():
-	focus_mode = Control.FOCUS_NONE
-	
-	if name.begins_with('H'):
-		orientation = HORIZONTAL
-	elif name.begins_with('V'):
-		orientation = VERTICAL
-		
-	if orientation == HORIZONTAL:
-		mouse_default_cursor_shape = Control.CURSOR_VSPLIT
-	else:
-		mouse_default_cursor_shape = Control.CURSOR_HSPLIT
+	focus_mode = Control.FOCUS_NONE		
+	_set_default_cursor()
 
 
 func set_ruler(_size :Vector2i, _canvas_size :Vector2i,
@@ -58,6 +44,23 @@ func set_ruler(_size :Vector2i, _canvas_size :Vector2i,
 		size.y = viewport_size.y
 		
 	queue_redraw()
+
+
+func set_activate(activate :bool):
+	if activate:
+		disabled = false
+		_set_default_cursor()
+	else:
+		disabled = true
+		print('fuck')
+		mouse_default_cursor_shape = Control.CURSOR_FORBIDDEN
+		
+
+func _set_default_cursor():
+	if orientation == HORIZONTAL:
+		mouse_default_cursor_shape = Control.CURSOR_VSPLIT
+	else:
+		mouse_default_cursor_shape = Control.CURSOR_HSPLIT
 
 
 # Code taken and modified from Godot's source code

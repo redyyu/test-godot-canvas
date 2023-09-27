@@ -13,6 +13,7 @@ var snapping_distance := 12.0
 
 var grid :Grid
 var guides :Array[Guide]
+var guide_orientation = null
 
 
 func snap_position(pos: Vector2) -> Vector2:
@@ -111,9 +112,19 @@ func process_snap_to_guide(pos :Vector2,
 						   distance :float) -> Vector2:
 	var snap_to := Vector2.INF
 	for guide in to_guides:
+		# there is no need check guide is cross over.
+		# cross over might cause unexcpet pixel drawing.
+		# but, why need they don't snap when drwaing?
+		# I checked other photo edtior software, 
+		# they don't snap while drating either.
 		var s1 := Vector2.ZERO
 		var s2 := Vector2.ZERO
 		match guide.orientation:
+			# the guide is place on outside the viewport, 
+			# so use `relative_offset`, this croodinate is calculated 
+			# when place the guide.
+			# guide is cross the canvas, so one of croodinate is uesless.
+			# for horizontal is y, vertical is x,
 			HORIZONTAL:
 				s1 = Vector2(0, guide.relative_offset.y)
 				s2 = Vector2(canvas_size.x, guide.relative_offset.y)

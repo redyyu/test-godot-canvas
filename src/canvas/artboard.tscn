@@ -89,9 +89,14 @@ mouse_filter = 2
 [node name="HRuler" type="Button" parent="."]
 visible = false
 layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 14
 script = ExtResource("12_o861q")
 
 [node name="VRuler" type="Button" parent="."]
 visible = false
 layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 15
 script = ExtResource("12_o861q")
+orientation = 1

@@ -5,7 +5,7 @@ var current_drawer :BaseDrawer
 
 @onready var artboard :SubViewportContainer = $Artboard
 
-@onready var btn_1 = $BtnNone
+@onready var btn_1 = $BtnMove
 @onready var btn_2 = $BtnPan
 @onready var btn_3 = $BtnZoom
 @onready var btn_4 = $BtnPencil
@@ -61,8 +61,8 @@ func _ready():
 
 func _on_btn_pressed(btn):
 	match btn.name:
-		'BtnNone':
-			artboard.state = ArtboardState.NONE
+		'BtnMove':
+			artboard.state = ArtboardState.MOVE
 			current_drawer = null
 		'BtnPan':
 			artboard.state = ArtboardState.DRAG

@@ -20,7 +20,7 @@ var is_pressed := false
 var is_hovered := false
 var is_locked := false :
 	set (val):
-		is_locked = bool(val)
+		is_locked = val
 		is_pressed = false
 		is_hovered = false
 		locked.emit(self)
