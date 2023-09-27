@@ -100,8 +100,10 @@ func prepare_velocity(mouse_velocity:Vector2i) -> float:
 
 func process_drawing_or_erasing(event, drawer):
 	if event is InputEventMouseMotion:
+		var pos = snapper.snap_position(get_local_mouse_position())
+		indicator.update_indicator(pos, drawer.stroke_dimensions)
+		
 		if is_pressed:
-			var pos = snapper.snap_position(get_local_mouse_position())
 			if drawer.can_draw(pos) and project.current_cel is PixelCel:
 				match dynamics_stroke_width:
 					Dynamics.PRESSURE:
@@ -124,9 +126,9 @@ func process_drawing_or_erasing(event, drawer):
 				drawer.draw_move(pos)
 				project.current_cel.update_texture()
 				queue_redraw()
+				
 		elif drawer.is_drawing:
-			var end_pos = snapper.snap_position(get_local_mouse_position())
-			drawer.draw_end(end_pos)
+			drawer.draw_end(pos)
 			project.current_cel.update_texture()
 			queue_redraw()
 
@@ -169,13 +171,6 @@ func _draw():
 		if project.layers[i].is_visible_in_hierarchy():
 			var tex = cels[i].image_texture
 			draw_texture(tex, Vector2.ZERO, modulate_color)
-
-
-#	current_drawer.queue_redraw()
-#	if Global.current_project.tiles.mode != Tiles.MODE.NONE:
-#		tile_mode.queue_redraw()
-#	draw_set_transform(position, 0.0, Vector2.ONE)
-	
 
 
 #func _on_stop_draw():

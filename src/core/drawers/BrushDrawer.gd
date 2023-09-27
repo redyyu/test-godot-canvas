@@ -38,7 +38,6 @@ class BrushOp:
 	func process(src: Color, dst: Color) -> Color:
 		src.a *= strength
 		if blending:
-			print(dst.blend(src), ' / ', src)
 			return dst.blend(src)
 		else:
 			return src
@@ -81,12 +80,3 @@ func draw_start(pos: Vector2i):
 #	pos = snap_position(pos)
 	super.draw_start(pos)
 
-
-func draw_move(pos: Vector2i):
-#	pos = snap_position(pos)
-	super.draw_move(pos)
-
-
-func draw_end(pos: Vector2i):
-#	pos = snap_position(pos)
-	super.draw_end(pos)

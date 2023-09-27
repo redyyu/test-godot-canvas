@@ -52,7 +52,6 @@ func set_activate(activate :bool):
 		_set_default_cursor()
 	else:
 		disabled = true
-		print('fuck')
 		mouse_default_cursor_shape = Control.CURSOR_FORBIDDEN
 		
 

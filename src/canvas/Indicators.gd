@@ -1,9 +1,29 @@
 extends Node2D
 
+const DEFAULT_COLOR := Color(0.6, 0.33, 0.26, 0.66)
+const DEFAULT_OFFSET := Vector2i.ZERO
+
 var indicator_position := Vector2i.ZERO
 var indicator_size := Vector2i.ONE
-var indicator_offset := Vector2i.ZERO
-var indicator_color :=  Color(0.6, 0.33, 0.26, 0.66)
+var indicator_offset := DEFAULT_OFFSET
+var indicator_color :=  DEFAULT_COLOR
+
+
+func update_indicator(pos, size :=Vector2i.ONE, offset=null, color=null):
+	indicator_position = pos
+	indicator_size = size
+	
+	if offset:
+		indicator_offset = offset
+	else:
+		indicator_offset = DEFAULT_OFFSET
+	
+	if color is Color:
+		indicator_color = color
+	else:
+		indicator_color = DEFAULT_COLOR
+	
+	queue_redraw()
 
 
 func _draw():
@@ -12,7 +32,7 @@ func _draw():
 
 
 func draw_indicator():
-	var pos = indicator_position - indicator_offset
+	var pos = indicator_position - indicator_size / 2 + indicator_offset
 	var rect = Rect2i(pos, indicator_size)
 	draw_rect(rect, indicator_color, false)
 
