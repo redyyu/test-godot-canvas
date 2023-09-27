@@ -65,16 +65,17 @@ func attach_project(proj):
 		eraser.image = project.current_cel.image
 
 
-func activate_snap(guides:Array, grid:Grid):
+func attach_snap_to(size:Vector2, guides:Array, grid:Grid):
 	snapper.guides = guides
-	snapper.grid_size = grid.grid_size
+	snapper.grid = grid
+	snapper.size = size
 
 
 func snapping_to(to_guide := false, 
 				 to_grid_center := false,
 				 to_grid_boundary := false):
-	snapper.snap_to_rectangular_grid_boundary = to_grid_boundary
-	snapper.snap_to_rectangular_grid_center = to_grid_center
+	snapper.snap_to_grid_boundary = to_grid_boundary
+	snapper.snap_to_grid_center = to_grid_center
 	snapper.snap_to_guides = to_guide
 
 
@@ -100,8 +101,7 @@ func prepare_velocity(mouse_velocity:Vector2i) -> float:
 func process_drawing_or_erasing(event, drawer):
 	if event is InputEventMouseMotion:
 		if is_pressed:
-			var pos = get_local_mouse_position()
-			pos = snapper.snap_position(pos)
+			var pos = snapper.snap_position(get_local_mouse_position())
 			if drawer.can_draw(pos) and project.current_cel is PixelCel:
 				match dynamics_stroke_width:
 					Dynamics.PRESSURE:
@@ -125,7 +125,7 @@ func process_drawing_or_erasing(event, drawer):
 				project.current_cel.update_texture()
 				queue_redraw()
 		elif drawer.is_drawing:
-			var end_pos = get_local_mouse_position()
+			var end_pos = snapper.snap_position(get_local_mouse_position())
 			drawer.draw_end(end_pos)
 			project.current_cel.update_texture()
 			queue_redraw()

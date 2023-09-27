@@ -4,8 +4,13 @@ class_name Grid
 
 var isometric_grid_size := Vector2i(96, 48)
 var grid_size := Vector2i(48, 48)
-var grid_color := Color.CORNFLOWER_BLUE
-var pixel_grid_color := Color.LIGHT_SKY_BLUE
+var grid_color := Color.DEEP_SKY_BLUE:
+	set(val):
+		grid_color = val
+		isometric_grid_color = Color(val)
+		isometric_grid_color.a *= 0.66
+var isometric_grid_color := Color(0, 0.74902, 0.66)
+var pixel_grid_color := Color.LIGHT_BLUE
 
 
 var show_isometric_grid := false :
@@ -137,7 +142,7 @@ func draw_isometric_grid():
 		x += cell_size.x
 
 	if not grid_multiline_points.is_empty():
-		draw_multiline(grid_multiline_points, grid_color)
+		draw_multiline(grid_multiline_points, isometric_grid_color)
 
 
 func draw_pixel_grid():

@@ -68,7 +68,7 @@ func load_project(proj :Project):
 	
 #	camera.camera_offset_changed.connect(_on_camera_offset_changed)
 	canvas.attach_project(project)
-	canvas.activate_snap(guides, grid)
+	canvas.attach_snap_to(project.size, guides, grid)
 	trans_checker.update_bounds(project.size)
 
 
@@ -78,9 +78,10 @@ func set_state(op_state):
 	camera.state = state
 
 
-func refresh_snapping():
-	canvas.activate_snap(guides, grid)
-
+func set_guides_locked(val:bool):
+	for guide in guides:
+		guide.locked = bool(val)
+	
 
 func refresh_canvas():
 	canvas.queue_redraw()

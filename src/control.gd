@@ -39,7 +39,8 @@ func _ready():
 	artboard.grid.show_isometric_grid = true
 	artboard.grid.show_cartesian_grid = true
 	artboard.grid.show_pixel_grid = true
-	artboard.canvas.snapping_to(true, true, true)
+	artboard.canvas.snapping_to(true, false, false)
+	artboard.set_guides_locked(true)
 	
 #	var image = Image.new()
 #	if image.load('res://test.png') == OK:
