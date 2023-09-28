@@ -11,6 +11,10 @@ enum {
 var state := NONE :
 	set(val):
 		state = val
+		if state == NONE:
+			hide()
+		else:
+			show()
 		queue_redraw()
 
 var isometric_grid_size := Vector2i(96, 48)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://c08qtjj7x8pnk"]
+[gd_scene load_steps=18 format=3 uid="uid://c08qtjj7x8pnk"]
 
 [ext_resource type="Shader" path="res://src/shaders/TransparentChecker.gdshader" id="1_d8lm1"]
 [ext_resource type="Script" path="res://src/canvas/Artboard.gd" id="1_fg2jv"]
@@ -7,10 +7,12 @@
 [ext_resource type="Script" path="res://src/canvas/Canvas.gd" id="4_1y3pt"]
 [ext_resource type="Script" path="res://src/canvas/CanvasCamera.gd" id="5_ghk1k"]
 [ext_resource type="Script" path="res://src/canvas/Indicators.gd" id="6_2ns7n"]
+[ext_resource type="Script" path="res://src/canvas/guide/Grid.gd" id="6_qakk7"]
 [ext_resource type="Texture2D" uid="uid://c301hklwgs2q1" path="res://icon.svg" id="7_n4twu"]
 [ext_resource type="Script" path="res://src/canvas/Selection.gd" id="8_08sqa"]
 [ext_resource type="Script" path="res://src/canvas/MouseGuide.gd" id="9_a670k"]
 [ext_resource type="Shader" path="res://src/shaders/MarchingAntsOutline.gdshader" id="9_y3e15"]
+[ext_resource type="Script" path="res://src/canvas/guide/SymmetryGuide.gd" id="10_xpo1w"]
 [ext_resource type="Script" path="res://src/canvas/guide/Ruler.gd" id="12_o861q"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_u122j"]
@@ -65,6 +67,7 @@ script = ExtResource("4_1y3pt")
 script = ExtResource("6_2ns7n")
 
 [node name="Grid" type="Node2D" parent="Viewport"]
+script = ExtResource("6_qakk7")
 
 [node name="Camera" type="Camera2D" parent="Viewport"]
 script = ExtResource("5_ghk1k")
@@ -95,6 +98,9 @@ focus_mode = 0
 mouse_default_cursor_shape = 15
 script = ExtResource("12_o861q")
 orientation = 1
+
+[node name="SymmetryGuide" type="Node2D" parent="."]
+script = ExtResource("10_xpo1w")
 
 [node name="MouseGuide" type="Node2D" parent="."]
 script = ExtResource("9_a670k")

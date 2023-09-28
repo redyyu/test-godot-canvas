@@ -8,6 +8,15 @@ var state := ArtboardState.NONE :
 
 var project :Project
 
+var camera_offset :Vector2 :
+	get: return camera.offset
+	
+var camera_zoom :Vector2 :
+	get: return camera.zoom
+	
+var camera_origin :Vector2 :
+	get: return Vector2(size * 0.5 - camera_offset * camera_zoom)
+
 var reference_image := ReferenceImage.new()
 
 var guides :Array[Guide] = []
@@ -29,31 +38,18 @@ var show_grid_state := Grid.NONE :
 		grid.state = show_grid_state
 		place_grid()
 
-var symmetry_guide_h := SymmetryGuide.new()
-var symmetry_guide_v := SymmetryGuide.new()
 var show_symmetry_guide_state := SymmetryGuide.NONE :
 	set(val):
 		show_symmetry_guide_state = val
-		match val:
-			SymmetryGuide.CROSS_AXIS:
-				symmetry_guide_h.show()
-				symmetry_guide_v.show()
-			SymmetryGuide.HORIZONTAL_AXIS:
-				symmetry_guide_h.show()
-				symmetry_guide_v.hide()
-			SymmetryGuide.VERTICAL_AXIS:
-				symmetry_guide_h.hide()
-				symmetry_guide_v.show()
-			_:
-				symmetry_guide_h.hide()
-				symmetry_guide_v.hide()
+		symmetry_guide.state = show_symmetry_guide_state
+		symmetry_guide.set_guide(size)
 		place_symmetry_guides()
 
 var show_mouse_guide := false:
 	set(val):
 		show_mouse_guide = val
 		mouse_guide.visible = val
-		place_mouse_guide()
+		mouse_guide.set_guide(size)
 
 var show_rulers := false:
 	set(val):
@@ -71,25 +67,27 @@ var show_rulers := false:
 
 @onready var h_ruler :Button = $HRuler
 @onready var v_ruler :Button = $VRuler
+
+@onready var symmetry_guide :Node2D = $SymmetryGuide
 @onready var mouse_guide :Node2D = $MouseGuide
 
 
 func _ready():
-	add_child(symmetry_guide_h)
-	add_child(symmetry_guide_v)
-	
 	h_ruler.guide_created.connect(_on_guide_created)
 	v_ruler.guide_created.connect(_on_guide_created)
 	
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 	
-	resized.connect(_on_viewport_changed)
-	camera.dragged.connect(_on_viewport_changed)
-	camera.zoomed.connect(_on_viewport_changed)
+	resized.connect(_on_artboard_resized)
+	camera.dragged.connect(_on_camera_changed)
+	camera.zoomed.connect(_on_camera_changed)
 	camera.change_pressed.connect(_on_camera_pressing)
 	
 	trans_checker.add_sibling(reference_image)
+	
+	mouse_guide.set_guide(size)
+	symmetry_guide.set_guide(size)
 
 
 func load_project(proj :Project):
@@ -108,14 +106,6 @@ func load_project(proj :Project):
 	canvas.attach_project(project)
 	canvas.attach_snap_to(project.size, guides, grid)
 	trans_checker.update_bounds(project.size)
-	
-	mouse_guide.set_guide(size)
-
-	show_mouse_guide = true
-	show_rulers = true
-	show_guides = true
-	show_grid = true
-	show_symmetry_guide_state = SymmetryGuide.NONE
 	
 
 func save_to_project():
@@ -162,61 +152,44 @@ func place_grid():
 
 func place_symmetry_guides():
 	if project and show_symmetry_guide_state != SymmetryGuide.NONE:
-		var _offset = camera.offset
-		var _zoom = camera.zoom
-		var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
-			
-		match show_symmetry_guide_state:
-			SymmetryGuide.HORIZONTAL_AXIS:
-				_set_horizontal_symmetry_guide(_origin, project.size, _zoom)
-			SymmetryGuide.VERTICAL_AXIS:
-				_set_vertical_symmetry_guide(_origin, project.size, _zoom)
-			SymmetryGuide.CROSS_AXIS:
-				_set_horizontal_symmetry_guide(_origin, project.size, _zoom)
-				_set_vertical_symmetry_guide(_origin, project.size, _zoom)
-
-
-func _set_horizontal_symmetry_guide(origin, canvas_size, zoom):
-	var _y = origin.y + canvas_size.y * 0.5 * zoom.y
-	symmetry_guide_h.set_guide(Vector2(-size.x, _y), Vector2(size.x, _y))
-
-
-func _set_vertical_symmetry_guide(origin, canvas_size, zoom):
-	var _x = origin.x + canvas_size.x * 0.5 * zoom.x
-	symmetry_guide_v.set_guide(Vector2(_x, -size.y), Vector2(_x, size.y))
+		symmetry_guide.move_guide(size,
+								  project.size, 
+								  camera_origin,
+								  camera_zoom)
 
 
 func place_rulers():
 	if project and show_rulers:
-		h_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
-		v_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
+		h_ruler.set_ruler(size, project.size, camera_offset, camera_zoom)
+		v_ruler.set_ruler(size, project.size, camera_offset, camera_zoom)
 
 
 func place_guides():
 	if project and show_guides:
-		var _zoom = camera.zoom
-		var _offset = camera.offset
-		var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
 		for guide in guides:
 			match guide.orientation:
 				HORIZONTAL:
-					var _y = guide.relative_offset.y * _zoom.y
-					guide.position.y = _origin.y + _y
+					var _y = guide.relative_offset.y * camera_zoom.y
+					guide.position.y = camera_origin.y + _y
 				VERTICAL:
-					var _x = guide.relative_offset.x * _zoom.x
-					guide.position.x = _origin.x + _x 
-
-func place_mouse_guide():
-	if show_mouse_guide:
-		mouse_guide.set_guide(size)
+					var _x = guide.relative_offset.x * camera_zoom.x
+					guide.position.x = camera_origin.x + _x 
 
 
-func _on_viewport_changed():
+func _on_artboard_resized():
+	_on_camera_changed() # do samething with camera changed.
+	
+	# no need to sheck show options, hiden will still be hidden,
+	# but keep the size correct, even it is not showing up.
+	mouse_guide.set_guide(size) 
+	symmetry_guide.set_guide(size)
+
+
+func _on_camera_changed():
 	place_rulers()
 	place_guides()
 	place_symmetry_guides()
 	place_grid()
-	place_mouse_guide()
 	
 
 func _on_camera_pressing(is_pressed):
@@ -279,12 +252,8 @@ func _on_guide_pressed(guide):
 			_guide.is_pressed = false
 
 
-func _on_guide_released(guide):
-	var _offset = camera.offset
-	var _zoom = camera.zoom
-	var _origin = Vector2(size * 0.5 - _offset * _zoom) # to get origin
-	
-	guide.relative_offset = (guide.position - _origin) / _zoom
+func _on_guide_released(guide):	
+	guide.relative_offset = (guide.position - camera_origin) / camera_zoom
 	# calculate to the right position when zoom is 1.0.
 	# otherwise position might mess-up place guide while is zoomed.
 	

@@ -40,10 +40,13 @@ func _ready():
 	slider_stroke_width.value_changed.connect(_on_stroke_width_changed)
 	slider_stroke_space.value_changed.connect(_on_stroke_space_changed)
 	
-	artboard.grid.show_isometric_grid = true
-	artboard.grid.show_cartesian_grid = true
-	artboard.grid.show_pixel_grid = true
 	artboard.canvas.snapping_to(true, false, false)
+	
+	artboard.show_mouse_guide = true
+	artboard.show_rulers = true
+	artboard.show_guides = true
+	artboard.show_grid_state = Grid.ALL
+	artboard.show_symmetry_guide_state = SymmetryGuide.CROSS_AXIS
 	
 #	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
 	
