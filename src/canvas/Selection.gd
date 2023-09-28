@@ -7,13 +7,10 @@ var size := Vector2i.ZERO:
 		offset = size / 2
 		
 var selection_map := SelectionMap.new()
-var zoom_percent := 1
-var max_length :int :
-	get:
-		if texture: 
-			return maxi(texture.get_width(), texture.get_height())
-		else:
-			return 1
+var zoom_ratio := 1.0:
+	set(val):
+		zoom_ratio = val
+		refresh_ants()
 
 var selecting := false
 var points :Array[Vector2] = []
@@ -23,19 +20,12 @@ var opt_from_center := false
 
 
 func _init():
-	material.set_shader_parameter("width", 1.0 / zoom_percent)
-#	material.set_shader_parameter(
-#		"frequency", zoom_percent * 10 * max_length / 64)
-
-
-#func _ready():
-#	selection_map.width = 100
-#	selection_map.height = 100
-#	selection_map.select_all()
-##	for _x in range(size.x):
-##		for _y in range(size.y):
-##			selection_map.select_pixel(Vector2i(_x, _y))
-#	texture = ImageTexture.create_from_image(selection_map)
+	refresh_ants()
+	
+	
+func refresh_ants():
+	material.set_shader_parameter("frequency", zoom_ratio * 50)
+	material.set_shader_parameter("width", 1.0 / zoom_ratio)
 
 
 func reset():
@@ -57,6 +47,7 @@ func select_move(pos):
 		points.pop_back()
 	points.append(pos)
 	var rect = get_select_rect(points[0], points[points.size()-1])
+	selection_map.clear()
 	selection_map.select_rect(rect)
 	texture = ImageTexture.create_from_image(selection_map)
 
@@ -93,29 +84,6 @@ func get_select_rect(start :Vector2i, end :Vector2i) -> Rect2i:
 	rect.size += Vector2i.ONE
 
 	return rect
-
-
-
-
-#func _update_on_zoom() -> void:
-#	var size := maxi(
-#		Global.current_project.selection_map.get_size().x,
-#		Global.current_project.selection_map.get_size().y
-#	)
-#	marching_ants_outline.material.set_shader_parameter("width", 1.0 / zoom)
-#	marching_ants_outline.material.set_shader_parameter("frequency", zoom * 10 * size / 64)
-#	for gizmo in gizmos:
-#		if gizmo.rect.size == Vector2.ZERO:
-#			return
-#	_update_gizmos()
-
-
-#func move_borders(move: Vector2i) -> void:
-#	if move == Vector2i.ZERO:
-#		return
-#	marching_ants_outline.offset += Vector2(move)
-#	big_bounding_rectangle.position += move
-#	queue_redraw()
 
 
 class SelectionMap extends Image:

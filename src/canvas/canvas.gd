@@ -21,6 +21,11 @@ var snapper := Snapper.new()
 
 var is_pressed := false
 
+var zoom := Vector2.ONE :
+	set(val):
+		zoom = val
+		selection.zoom_ratio = (zoom.x + zoom.y) / 2
+
 var state := Artboard.NONE:
 	set(val):
 		state = val
@@ -67,20 +72,6 @@ func attach_project(proj):
 		brush.image = project.current_cel.image
 		eraser.image = project.current_cel.image
 		selection.size = project.size
-
-
-func attach_snap_to(size:Vector2, guides:Array, grid:Grid):
-	snapper.guides = guides
-	snapper.grid = grid
-	snapper.canvas_size = size
-
-
-func snapping_to(to_guide := false, 
-				 to_grid_center := false,
-				 to_grid_boundary := false):
-	snapper.snap_to_grid_boundary = to_grid_boundary
-	snapper.snap_to_grid_center = to_grid_center
-	snapper.snap_to_guides = to_guide
 
 
 func prepare_pressure(pressure:float) -> float:
@@ -150,11 +141,6 @@ func process_selection(event):
 func _input(event :InputEvent):
 	if not project.current_cel:
 		return
-#	if event is InputEventMouse:
-#		var mouse_pos = get_local_mouse_position()
-#		var tmp_transform := get_canvas_transform().affine_inverse()
-#		var current_pixel = tmp_transform.basis_xform(mouse_pos) + tmp_transform.origin
-#		queue_redraw()
 	
 	if event is InputEventMouseButton:
 		is_pressed = event.pressed
@@ -309,3 +295,23 @@ func _draw():
 #	selection.camera_zoom = camera_zoom
 #	selection.shape_perfect = shape_perfect
 #	selection.shape_center = shape_center
+
+
+# snapping
+
+func attach_snap_to(size:Vector2, guides:Array, grid:Grid):
+	snapper.guides = guides
+	snapper.grid = grid
+	snapper.canvas_size = size
+
+
+func snap_to_guide(val := false):
+	snapper.snap_to_guides = val
+
+
+func snap_to_grid_center(val := false):
+	snapper.snap_to_grid_center = val
+
+
+func snap_to_grid_boundary(val := false):
+		snapper.snap_to_grid_boundary = val

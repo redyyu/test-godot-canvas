@@ -69,6 +69,20 @@ var show_rulers := false:
 		v_ruler.visible = val
 		place_rulers()
 
+var snap_to_guide := false:
+	set(val):
+		snap_to_guide = val
+		canvas.snap_to_guide(val)
+
+var snap_to_grid_center := false:
+	set(val):
+		snap_to_grid_center = val
+		canvas.snap_to_grid_center(val)
+
+var snap_to_grid_boundary := false:
+	set(val):
+		snap_to_grid_boundary = val
+		canvas.snap_to_grid_boundary(val)
 
 @onready var viewport :SubViewport = $Viewport
 @onready var camera :Camera2D = $Viewport/Camera
@@ -200,6 +214,8 @@ func _on_camera_changed():
 	place_guides()
 	place_symmetry_guides()
 	place_grid()
+	
+	canvas.zoom = camera_zoom
 	
 
 func _on_camera_pressing(is_pressed):

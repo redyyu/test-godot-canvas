@@ -41,7 +41,7 @@ func _ready():
 	slider_stroke_width.value_changed.connect(_on_stroke_width_changed)
 	slider_stroke_space.value_changed.connect(_on_stroke_space_changed)
 	
-	artboard.canvas.snapping_to(true, false, false)
+	artboard.snap_to_guide = true
 	
 	artboard.show_mouse_guide = false
 	artboard.show_rulers = false
