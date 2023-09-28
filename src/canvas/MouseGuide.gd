@@ -1,11 +1,18 @@
 extends Node2D
 
-var guide_color := Color.DARK_SALMON:
+var guide_color := Color.MINT_CREAM:
 	set(val):
 		guide_color = val
 		h_mouse_guide.default_color = guide_color
 		v_mouse_guide.default_color = guide_color
+
+var guide_alpha := 0.33:
+	set(val):
+		guide_alpha = clampf(val, 0.1, 1.0)
+		h_mouse_guide.modulate.a = guide_alpha
+		v_mouse_guide.modulate.a = guide_alpha
 		
+
 var h_mouse_guide := Line2D.new()
 var v_mouse_guide := Line2D.new()
 
@@ -15,8 +22,8 @@ func _ready():
 	v_mouse_guide.width = 1
 	h_mouse_guide.default_color = guide_color
 	v_mouse_guide.default_color = guide_color
-	h_mouse_guide.modulate.a = 0.6
-	v_mouse_guide.modulate.a = 0.6
+	h_mouse_guide.modulate.a = guide_alpha
+	v_mouse_guide.modulate.a = guide_alpha
 	add_child(h_mouse_guide)
 	add_child(v_mouse_guide)
 

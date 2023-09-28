@@ -23,7 +23,7 @@ var guides :Array[Guide] = []
 var guides_locked := false :
 	set(val):
 		guides_locked = val
-		_lock_guides(guides_locked or state != ArtboardState.MOVE)
+		lock_guides(guides_locked or state != ArtboardState.MOVE)
 		
 var show_guides := false :
 	set(val):
@@ -88,6 +88,8 @@ func _ready():
 	
 	mouse_guide.set_guide(size)
 	symmetry_guide.set_guide(size)
+	
+	state = ArtboardState.NONE  # trggier options when state changed.
 
 
 func load_project(proj :Project):
@@ -118,10 +120,10 @@ func set_state(op_state):
 	camera.state = state
 	
 	if state == ArtboardState.MOVE:
-		_lock_guides(guides_locked)
+		lock_guides(guides_locked)
 	else:
-		_lock_guides(true)
-		
+		lock_guides(true)
+
 	change_cursor(state)
 		
 
@@ -209,7 +211,7 @@ func _on_mouse_exited():
 
 
 # guides
-func _lock_guides(val :bool):
+func lock_guides(val :bool):
 	# for internal use, temporary lock guides while state switched.
 	for guide in guides:
 		guide.is_locked = val

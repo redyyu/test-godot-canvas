@@ -66,11 +66,9 @@ func move_guide(size :Vector2, canvas_size: Vector2,
 
 func _set_horizontal_symmetry_guide(size :Vector2, canvas_size: Vector2, 
 									origin :Vector2, zoom :Vector2):
-	var _y = origin.y + canvas_size.y * 0.5 * zoom.y
-	h_symmetry_guide.set_guide(Vector2(-size.x, _y), Vector2(size.x, _y))
+	h_symmetry_guide.position.y = origin.y + canvas_size.y * 0.5 * zoom.y
 
 
 func _set_vertical_symmetry_guide(size :Vector2, canvas_size: Vector2, 
 								  origin :Vector2, zoom :Vector2):
-	var _x = origin.x + canvas_size.x * 0.5 * zoom.x
-	v_symmetry_guide.set_guide(Vector2(_x, -size.y), Vector2(_x, size.y))
+	v_symmetry_guide.position.x = origin.x + canvas_size.x * 0.5 * zoom.x
