@@ -1,6 +1,4 @@
-extends Node2D
-
-class_name Canvas
+class_name Canvas extends Node2D
 
 var pencil := PencilDrawer.new()
 var brush := BrushDrawer.new()
@@ -41,6 +39,7 @@ var snapper := Snapper.new()
 #@onready var onion_future :Node2D = $OnionFuture
 #@onready var crop_rect :CropRect = $CropRect
 @onready var indicator :Node2D = $Indicator
+@onready var selection :Node2D = $Selection
 
 
 func _ready():

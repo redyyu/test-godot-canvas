@@ -1,4 +1,4 @@
-extends Node2D
+class_name Indicator extends Node2D
 
 const DEFAULT_COLOR := Color(0.6, 0.33, 0.26, 0.66)
 const DEFAULT_OFFSET := Vector2i.ZERO

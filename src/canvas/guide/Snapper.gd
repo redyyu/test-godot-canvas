@@ -1,6 +1,4 @@
-extends RefCounted
-
-class_name Snapper
+class_name Snapper extends RefCounted
 
 var canvas_size := Vector2.ZERO
 

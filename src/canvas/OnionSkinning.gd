@@ -1,4 +1,4 @@
-extends Node2D
+class_name OnionSkinning extends Node2D
 
 enum OnionType { 
 	PAST,

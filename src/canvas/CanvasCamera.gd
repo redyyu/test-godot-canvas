@@ -1,6 +1,4 @@
-extends Camera2D
-
-class_name CanvasCamera
+class_name CanvasCamera extends Camera2D
 
 signal zoomed
 signal dragged

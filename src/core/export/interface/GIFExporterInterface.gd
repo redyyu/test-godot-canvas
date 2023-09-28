@@ -1,6 +1,4 @@
-class_name GIFExporterInterface
-
-extends RefCounted
+class_name GIFExporterInterface extends RefCounted
 
 
 signal export_progressed

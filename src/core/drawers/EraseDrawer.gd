@@ -1,6 +1,4 @@
-extends BaseDrawer
-
-class_name EraseDrawer
+class_name EraseDrawer extends BaseDrawer
 
 var shadow_image := Image.new()
 

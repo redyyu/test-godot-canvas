@@ -1,7 +1,5 @@
 @tool
-extends ProgressBar
-
-class_name ValSlider
+class_name ValSlider extends ProgressBar
 
 enum {
 	NORMAL,

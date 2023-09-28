@@ -1,4 +1,4 @@
-class_name GroupCel
+class_name GroupCel extends BaseCel
 
-extends BaseCel
+
 

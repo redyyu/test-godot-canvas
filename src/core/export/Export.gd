@@ -1,6 +1,4 @@
-extends Node
-
-class_name Export
+class_name Export extends Node
 
 const SEPARATOR_CHARACTER := "_"
 const NUM_OF_DIGITS := 6

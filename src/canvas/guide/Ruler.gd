@@ -1,6 +1,4 @@
-extends Button
-
-class_name Ruler
+class_name Ruler extends Button
 
 signal guide_created(orientation)
 

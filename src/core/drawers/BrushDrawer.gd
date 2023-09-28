@@ -1,6 +1,4 @@
-extends BaseDrawer
-
-class_name BrushDrawer
+class_name BrushDrawer extends BaseDrawer
 
 const NEIGHBOURS: Array[Vector2i] = [
 		Vector2i.DOWN,

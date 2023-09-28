@@ -1,6 +1,4 @@
-extends Node2D
-
-class_name SymmetryGuide
+class_name SymmetryGuide extends Node2D
 
 enum {
 	NONE,

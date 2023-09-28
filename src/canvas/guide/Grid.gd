@@ -1,6 +1,4 @@
-extends Node2D
-
-class_name Grid
+class_name Grid extends Node2D
 
 enum {
 	NONE,

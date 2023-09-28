@@ -22,7 +22,6 @@ var current_drawer :BaseDrawer
 
 func _ready():
 	g.current_project = Project.new(Vector2i(400, 300))
-	
 	artboard.load_project(g.current_project)
 	
 	btn_1.pressed.connect(_on_btn_pressed.bind(btn_1))

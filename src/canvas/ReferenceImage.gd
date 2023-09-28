@@ -1,6 +1,4 @@
-extends Sprite2D
-
-class_name ReferenceImage
+class_name ReferenceImage extends Sprite2D
 # A class describing a reference image
 
 signal reference_updated

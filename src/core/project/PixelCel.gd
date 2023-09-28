@@ -1,6 +1,4 @@
-extends BaseCel
-
-class_name PixelCel
+class_name PixelCel extends BaseCel
 # A class for the properties of cels in PixelLayers.
 # The term "cel" comes from "celluloid" (https://en.wikipedia.org/wiki/Cel).
 

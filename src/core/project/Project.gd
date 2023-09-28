@@ -1,7 +1,4 @@
-extends Resource
-# A class for project properties.
-
-class_name Project
+class_name Project extends Resource
 
 const CEL_SIZE = 36
 

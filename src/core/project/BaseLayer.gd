@@ -1,6 +1,4 @@
-extends RefCounted
-
-class_name BaseLayer
+class_name BaseLayer extends RefCounted
 # Base class for layer properties. Different layer types extend from this class.
 
 enum LayerTypes {

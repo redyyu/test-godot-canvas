@@ -1,4 +1,4 @@
-extends Node2D
+class_name MouseGuide extends Node2D
 
 var guide_color := Color.MINT_CREAM:
 	set(val):

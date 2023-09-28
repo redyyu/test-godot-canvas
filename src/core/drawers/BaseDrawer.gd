@@ -1,7 +1,4 @@
-extends RefCounted
-
-class_name BaseDrawer
-
+class_name BaseDrawer extends RefCounted
 
 var horizontal_mirror := false
 var vertical_mirror := false

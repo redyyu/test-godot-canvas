@@ -1,6 +1,4 @@
-extends Line2D
-
-class_name Guide
+class_name Guide extends Line2D
 
 signal released(guide)
 signal pressed(guide)

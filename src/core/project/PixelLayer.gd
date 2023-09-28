@@ -1,8 +1,5 @@
-class_name PixelLayer
+class_name PixelLayer extends BaseLayer
 ## A class for standard pixel layer properties.
-
-extends BaseLayer
-
 
 var type := LayerTypes.PIXEL
 

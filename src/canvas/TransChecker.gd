@@ -1,4 +1,4 @@
-extends ColorRect
+class_name TransChecker extends ColorRect
 
 var checker_size := 10.0 :
 	set(val):

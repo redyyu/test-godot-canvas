@@ -1,14 +1,13 @@
-[gd_scene load_steps=18 format=3 uid="uid://c08qtjj7x8pnk"]
+[gd_scene load_steps=17 format=3 uid="uid://c08qtjj7x8pnk"]
 
 [ext_resource type="Shader" path="res://src/shaders/TransparentChecker.gdshader" id="1_d8lm1"]
 [ext_resource type="Script" path="res://src/canvas/Artboard.gd" id="1_fg2jv"]
 [ext_resource type="Shader" path="res://src/shaders/Greyscale.gdshader" id="2_s2kkr"]
 [ext_resource type="Script" path="res://src/canvas/TransChecker.gd" id="3_dvs3t"]
 [ext_resource type="Script" path="res://src/canvas/Canvas.gd" id="4_1y3pt"]
+[ext_resource type="Script" path="res://src/canvas/Indicator.gd" id="5_d6712"]
 [ext_resource type="Script" path="res://src/canvas/CanvasCamera.gd" id="5_ghk1k"]
-[ext_resource type="Script" path="res://src/canvas/Indicators.gd" id="6_2ns7n"]
 [ext_resource type="Script" path="res://src/canvas/guide/Grid.gd" id="6_qakk7"]
-[ext_resource type="Texture2D" uid="uid://c301hklwgs2q1" path="res://icon.svg" id="7_n4twu"]
 [ext_resource type="Script" path="res://src/canvas/Selection.gd" id="8_08sqa"]
 [ext_resource type="Script" path="res://src/canvas/MouseGuide.gd" id="9_a670k"]
 [ext_resource type="Shader" path="res://src/shaders/MarchingAntsOutline.gdshader" id="9_y3e15"]
@@ -27,9 +26,6 @@ shader_parameter/rect_size = Vector2(0, 0)
 shader_parameter/follow_movement = false
 shader_parameter/follow_scale = false
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ib7er"]
-shader = ExtResource("2_s2kkr")
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_7shi3"]
 shader = ExtResource("9_y3e15")
 shader_parameter/first_color = Color(1, 1, 1, 1)
@@ -38,6 +34,9 @@ shader_parameter/animated = true
 shader_parameter/width = 0.05
 shader_parameter/frequency = 50.0
 shader_parameter/stripe_direction = 0.5
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ib7er"]
+shader = ExtResource("2_s2kkr")
 
 [node name="Artboard" type="SubViewportContainer"]
 anchors_preset = 15
@@ -64,7 +63,12 @@ script = ExtResource("3_dvs3t")
 script = ExtResource("4_1y3pt")
 
 [node name="Indicator" type="Node2D" parent="Viewport/Canvas"]
-script = ExtResource("6_2ns7n")
+script = ExtResource("5_d6712")
+
+[node name="Selection" type="Sprite2D" parent="Viewport/Canvas"]
+material = SubResource("ShaderMaterial_7shi3")
+position = Vector2(477, 176)
+script = ExtResource("8_08sqa")
 
 [node name="Grid" type="Node2D" parent="Viewport"]
 script = ExtResource("6_qakk7")
@@ -104,9 +108,3 @@ script = ExtResource("10_xpo1w")
 
 [node name="MouseGuide" type="Node2D" parent="."]
 script = ExtResource("9_a670k")
-
-[node name="Selection" type="Sprite2D" parent="."]
-material = SubResource("ShaderMaterial_7shi3")
-position = Vector2(477, 176)
-texture = ExtResource("7_n4twu")
-script = ExtResource("8_08sqa")

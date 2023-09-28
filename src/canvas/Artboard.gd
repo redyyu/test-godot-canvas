@@ -1,6 +1,4 @@
-extends SubViewportContainer
-
-class_name Artboard
+class_name Artboard extends SubViewportContainer
 
 enum {
 	NONE,
@@ -71,7 +69,6 @@ var show_rulers := false:
 @onready var viewport :SubViewport = $Viewport
 @onready var camera :Camera2D = $Viewport/Camera
 @onready var canvas :Node2D = $Viewport/Canvas
-@onready var grid :Node2D = $Viewport/Grid
 @onready var trans_checker :ColorRect = $Viewport/TransChecker
 
 @onready var h_ruler :Button = $HRuler
@@ -79,6 +76,7 @@ var show_rulers := false:
 
 @onready var symmetry_guide :Node2D = $SymmetryGuide
 @onready var mouse_guide :Node2D = $MouseGuide
+@onready var grid :Node2D = $Viewport/Grid
 
 
 func _ready():

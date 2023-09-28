@@ -1,6 +1,4 @@
-class_name APNGExporterInterface
-
-extends RefCounted
+class_name APNGExporterInterface extends RefCounted
 
 signal export_progressed
 
