@@ -33,7 +33,7 @@ var canvas_scale := Vector2.ZERO
 var use_integer_zoom := false
 
 var btn_pressed := false
-var state := ArtboardState.NONE
+var state := Artboard.NONE
 
 
 func _ready():
@@ -67,10 +67,10 @@ func _input(event: InputEvent):
 		change_pressed.emit(btn_pressed)
 		
 	match state:
-		ArtboardState.DRAG:
+		Artboard.DRAG:
 			process_dragging(event)
 			send_camera_dragged()
-		ArtboardState.ZOOM:
+		Artboard.ZOOM:
 			process_zooming(event)
 			send_camera_zoomed()
 

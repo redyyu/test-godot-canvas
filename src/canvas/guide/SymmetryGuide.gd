@@ -49,26 +49,17 @@ func set_guide(size :Vector2i):
 	v_symmetry_guide.add_point(Vector2(0, size.y))
 
 
-func move_guide(size :Vector2, canvas_size: Vector2,
-				origin :Vector2, zoom :Vector2):
+func move_guide(canvas_size: Vector2, origin :Vector2, zoom :Vector2):
 	if not visible:
 		return
-
+	var _y = origin.y + canvas_size.y * 0.5 * zoom.y
+	var _x = origin.x + canvas_size.x * 0.5 * zoom.x
 	match state:
 		SymmetryGuide.HORIZONTAL_AXIS:
-			_set_horizontal_symmetry_guide(size, canvas_size, origin, zoom)
+			h_symmetry_guide.position.y = _y
 		SymmetryGuide.VERTICAL_AXIS:
-			_set_vertical_symmetry_guide(size, canvas_size, origin, zoom)
+			v_symmetry_guide.position.x = _x
 		SymmetryGuide.CROSS_AXIS:
-			_set_horizontal_symmetry_guide(size, canvas_size, origin, zoom)
-			_set_vertical_symmetry_guide(size, canvas_size, origin, zoom)
-
-
-func _set_horizontal_symmetry_guide(size :Vector2, canvas_size: Vector2, 
-									origin :Vector2, zoom :Vector2):
-	h_symmetry_guide.position.y = origin.y + canvas_size.y * 0.5 * zoom.y
-
-
-func _set_vertical_symmetry_guide(size :Vector2, canvas_size: Vector2, 
-								  origin :Vector2, zoom :Vector2):
-	v_symmetry_guide.position.x = origin.x + canvas_size.x * 0.5 * zoom.x
+			h_symmetry_guide.position.y = _y
+			v_symmetry_guide.position.x = _x
+ 

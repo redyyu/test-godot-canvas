@@ -2,8 +2,17 @@ extends SubViewportContainer
 
 class_name Artboard
 
+enum {
+	NONE,
+	MOVE,
+	DRAG,
+	ZOOM,
+	PENCIL,
+	BRUSH,
+	ERASE,
+}
 
-var state := ArtboardState.NONE :
+var state := Artboard.NONE :
 	set = set_state
 
 var project :Project
@@ -23,7 +32,7 @@ var guides :Array[Guide] = []
 var guides_locked := false :
 	set(val):
 		guides_locked = val
-		lock_guides(guides_locked or state != ArtboardState.MOVE)
+		lock_guides(guides_locked or state != Artboard.MOVE)
 		
 var show_guides := false :
 	set(val):
@@ -89,7 +98,7 @@ func _ready():
 	mouse_guide.set_guide(size)
 	symmetry_guide.set_guide(size)
 	
-	state = ArtboardState.NONE  # trggier options when state changed.
+	state = Artboard.NONE  # trggier options when state changed.
 
 
 func load_project(proj :Project):
@@ -119,7 +128,7 @@ func set_state(op_state):
 	canvas.state = state
 	camera.state = state
 	
-	if state == ArtboardState.MOVE:
+	if state == Artboard.MOVE:
 		lock_guides(guides_locked)
 	else:
 		lock_guides(true)
@@ -133,15 +142,15 @@ func refresh_canvas():
 
 func change_cursor(curr_state):
 	match curr_state:
-		ArtboardState.MOVE:
+		Artboard.MOVE:
 			mouse_default_cursor_shape = Control.CURSOR_MOVE
-		ArtboardState.DRAG:
+		Artboard.DRAG:
 			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		ArtboardState.BRUSH:
+		Artboard.BRUSH:
 			mouse_default_cursor_shape = Control.CURSOR_CROSS
-		ArtboardState.PENCIL:
+		Artboard.PENCIL:
 			mouse_default_cursor_shape = Control.CURSOR_CROSS
-		ArtboardState.ERASE:
+		Artboard.ERASE:
 			mouse_default_cursor_shape = Control.CURSOR_CROSS
 		_:
 			mouse_default_cursor_shape = Control.CURSOR_ARROW
@@ -154,10 +163,7 @@ func place_grid():
 
 func place_symmetry_guides():
 	if project and show_symmetry_guide_state != SymmetryGuide.NONE:
-		symmetry_guide.move_guide(size,
-								  project.size, 
-								  camera_origin,
-								  camera_zoom)
+		symmetry_guide.move_guide(project.size, camera_origin, camera_zoom)
 
 
 func place_rulers():
@@ -195,7 +201,7 @@ func _on_camera_changed():
 	
 
 func _on_camera_pressing(is_pressed):
-	if state == ArtboardState.DRAG:
+	if state == Artboard.DRAG:
 		if is_pressed:
 			mouse_default_cursor_shape = Control.CURSOR_DRAG
 		else:
@@ -221,7 +227,7 @@ func lock_guides(val :bool):
 
 
 func _on_guide_created(type):
-	if (not guides_locked and state == ArtboardState.MOVE):
+	if (not guides_locked and state == Artboard.MOVE):
 		var guide = Guide.new()
 		guide.set_guide(type, size)
 		guides.append(guide)

@@ -17,7 +17,7 @@ var velocity_min_thres := 0.0
 var velocity_max_thres := 1.0
 
 var is_pressed := false
-var state := ArtboardState.NONE
+var state := Artboard.NONE
 
 var dynamics_stroke_width := Dynamics.NONE
 var dynamics_stroke_alpha := Dynamics.NONE
@@ -144,11 +144,11 @@ func _input(event :InputEvent):
 		is_pressed = event.pressed
 
 	match state:
-		ArtboardState.PENCIL:
+		Artboard.PENCIL:
 			process_drawing_or_erasing(event, pencil)
-		ArtboardState.BRUSH:
+		Artboard.BRUSH:
 			process_drawing_or_erasing(event, brush)
-		ArtboardState.ERASE:
+		Artboard.ERASE:
 			process_drawing_or_erasing(event, eraser)
 
 

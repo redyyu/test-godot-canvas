@@ -67,17 +67,17 @@ func _ready():
 func _on_btn_pressed(btn):
 	match btn.name:
 		'BtnMove':
-			artboard.state = ArtboardState.MOVE
+			artboard.state = Artboard.MOVE
 			current_drawer = null
 		'BtnPan':
-			artboard.state = ArtboardState.DRAG
+			artboard.state = Artboard.DRAG
 			current_drawer = null
 		'BtnZoom':
-			artboard.state = ArtboardState.ZOOM
+			artboard.state = Artboard.ZOOM
 			current_drawer = null
 			
 		'BtnPencil':
-			artboard.state = ArtboardState.PENCIL
+			artboard.state = Artboard.PENCIL
 			if current_color == Color.RED:
 				current_color = Color.GREEN
 			else:
@@ -87,7 +87,7 @@ func _on_btn_pressed(btn):
 			btn.modulate = current_color
 			
 		'BtnBrush':
-			artboard.state = ArtboardState.BRUSH
+			artboard.state = Artboard.BRUSH
 			if current_color == Color.RED:
 				current_color = Color.GREEN
 			else:
@@ -99,7 +99,7 @@ func _on_btn_pressed(btn):
 			btn.modulate = current_color
 			
 		'BtnErase':
-			artboard.state = ArtboardState.ERASE
+			artboard.state = Artboard.ERASE
 			current_drawer = artboard.canvas.eraser
 		
 		'BtnLockGuide':
