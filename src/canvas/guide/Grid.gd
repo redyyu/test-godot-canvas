@@ -2,6 +2,17 @@ extends Node2D
 
 class_name Grid
 
+enum {
+	NONE,
+	ALL,
+	CARTESIAN,
+	ISOMETRIC,
+}
+var state := NONE :
+	set(val):
+		state = val
+		queue_redraw()
+
 var isometric_grid_size := Vector2i(96, 48)
 var grid_size := Vector2i(48, 48)
 var grid_color := Color.DEEP_SKY_BLUE:
@@ -12,23 +23,8 @@ var grid_color := Color.DEEP_SKY_BLUE:
 var isometric_grid_color := Color(0, 0.74902, 0.66)
 var pixel_grid_color := Color.LIGHT_BLUE
 
-
-var show_isometric_grid := false :
-	set(val):
-		show_isometric_grid = val
-		queue_redraw()
-		
-var show_cartesian_grid := false:
-	set(val):
-		show_cartesian_grid = val
-		queue_redraw()
-
-var show_pixel_grid := false:
-	set(val):
-		show_pixel_grid = val
-		queue_redraw()
-
 var show_pixel_grid_at_zoom := 16
+
 var zoom_at := 1.0 :
 	set(val):
 		zoom_at = val
@@ -45,16 +41,19 @@ var rect := Rect2i(Vector2.ZERO, canvas_size)
 
 
 func _draw():
-	if not rect.has_area():
+	if not rect.has_area() or state == NONE:
 		return
 	
-	if show_cartesian_grid:
-		draw_cartesian_grid()
-
-	if show_isometric_grid:
-		draw_isometric_grid()
+	match state:
+		ALL:
+			draw_cartesian_grid()
+			draw_isometric_grid()
+		CARTESIAN:
+			draw_cartesian_grid()
+		ISOMETRIC:
+			draw_isometric_grid()
 	
-	if show_pixel_grid and zoom_at >= show_pixel_grid_at_zoom:
+	if zoom_at >= show_pixel_grid_at_zoom:
 		draw_pixel_grid()
 
 

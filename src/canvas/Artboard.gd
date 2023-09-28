@@ -10,18 +10,63 @@ var project :Project
 
 var reference_image := ReferenceImage.new()
 
-var guides_locked := false
 var guides :Array[Guide] = []
-var grid := Grid.new()
+var guides_locked := false :
+	set(val):
+		guides_locked = val
+		_lock_guides(guides_locked or state != ArtboardState.MOVE)
+		
+var show_guides := false :
+	set(val):
+		show_guides = val
+		for guide in guides:
+			guide.visible = show_guides
+		place_guides()
+
+var show_grid_state := Grid.NONE :
+	set(val):
+		show_grid_state = val
+		grid.state = show_grid_state
+		place_grid()
 
 var symmetry_guide_h := SymmetryGuide.new()
 var symmetry_guide_v := SymmetryGuide.new()
-var symmetry_guide_state := SymmetryGuide.NONE :
-	set = set_symmetry_guides
+var show_symmetry_guide_state := SymmetryGuide.NONE :
+	set(val):
+		show_symmetry_guide_state = val
+		match val:
+			SymmetryGuide.CROSS_AXIS:
+				symmetry_guide_h.show()
+				symmetry_guide_v.show()
+			SymmetryGuide.HORIZONTAL_AXIS:
+				symmetry_guide_h.show()
+				symmetry_guide_v.hide()
+			SymmetryGuide.VERTICAL_AXIS:
+				symmetry_guide_h.hide()
+				symmetry_guide_v.show()
+			_:
+				symmetry_guide_h.hide()
+				symmetry_guide_v.hide()
+		place_symmetry_guides()
+
+var show_mouse_guide := false:
+	set(val):
+		show_mouse_guide = val
+		mouse_guide.visible = val
+		place_mouse_guide()
+
+var show_rulers := false:
+	set(val):
+		show_rulers = val
+		h_ruler.visible = val
+		v_ruler.visible = val
+		place_rulers()
+
 
 @onready var viewport :SubViewport = $Viewport
 @onready var camera :Camera2D = $Viewport/Camera
 @onready var canvas :Node2D = $Viewport/Canvas
+@onready var grid :Node2D = $Viewport/Grid
 @onready var trans_checker :ColorRect = $Viewport/TransChecker
 
 @onready var h_ruler :Button = $HRuler
@@ -35,8 +80,6 @@ func _ready():
 	
 	h_ruler.guide_created.connect(_on_guide_created)
 	v_ruler.guide_created.connect(_on_guide_created)
-	h_ruler.show()
-	v_ruler.show()
 	
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
@@ -47,9 +90,6 @@ func _ready():
 	camera.change_pressed.connect(_on_camera_pressing)
 	
 	trans_checker.add_sibling(reference_image)
-	viewport.add_child(grid)
-	
-	set_state(ArtboardState.NONE)
 
 
 func load_project(proj :Project):
@@ -69,7 +109,13 @@ func load_project(proj :Project):
 	canvas.attach_snap_to(project.size, guides, grid)
 	trans_checker.update_bounds(project.size)
 	
-	mouse_guide.set_mouse_guide(size)
+	mouse_guide.set_guide(size)
+
+	show_mouse_guide = true
+	show_rulers = true
+	show_guides = true
+	show_grid = true
+	show_symmetry_guide_state = SymmetryGuide.NONE
 	
 
 func save_to_project():
@@ -110,34 +156,17 @@ func change_cursor(curr_state):
 
 
 func place_grid():
-	grid.zoom_at = camera.zoom.x
+	if project and show_grid_state != Grid.NONE:
+		grid.zoom_at = camera.zoom.x
 
 
-func set_symmetry_guides(val):
-	symmetry_guide_state = val
-	match symmetry_guide_state:
-		SymmetryGuide.CROSS_AXIS:
-			symmetry_guide_h.show()
-			symmetry_guide_v.show()
-		SymmetryGuide.HORIZONTAL_AXIS:
-			symmetry_guide_h.show()
-			symmetry_guide_v.hide()
-		SymmetryGuide.VERTICAL_AXIS:
-			symmetry_guide_h.hide()
-			symmetry_guide_v.show()
-		_:
-			symmetry_guide_h.hide()
-			symmetry_guide_v.hide()
-	place_symmetry_guide()
-
-
-func place_symmetry_guide():
-	if project:
+func place_symmetry_guides():
+	if project and show_symmetry_guide_state != SymmetryGuide.NONE:
 		var _offset = camera.offset
 		var _zoom = camera.zoom
 		var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
 			
-		match symmetry_guide_state:
+		match show_symmetry_guide_state:
 			SymmetryGuide.HORIZONTAL_AXIS:
 				_set_horizontal_symmetry_guide(_origin, project.size, _zoom)
 			SymmetryGuide.VERTICAL_AXIS:
@@ -145,9 +174,6 @@ func place_symmetry_guide():
 			SymmetryGuide.CROSS_AXIS:
 				_set_horizontal_symmetry_guide(_origin, project.size, _zoom)
 				_set_vertical_symmetry_guide(_origin, project.size, _zoom)
-			_:
-				symmetry_guide_h.hide()
-				symmetry_guide_v.hide()
 
 
 func _set_horizontal_symmetry_guide(origin, canvas_size, zoom):
@@ -161,29 +187,36 @@ func _set_vertical_symmetry_guide(origin, canvas_size, zoom):
 
 
 func place_rulers():
-	h_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
-	v_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
+	if project and show_rulers:
+		h_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
+		v_ruler.set_ruler(size, project.size, camera.offset, camera.zoom)
 
 
 func place_guides():
-	var _zoom = camera.zoom
-	var _offset = camera.offset
-	var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
-	for guide in guides:
-		match guide.orientation:
-			HORIZONTAL:
-				var _y = guide.relative_offset.y * _zoom.y
-				guide.position.y = _origin.y + _y
-			VERTICAL:
-				var _x = guide.relative_offset.x * _zoom.x
-				guide.position.x = _origin.x + _x 
+	if project and show_guides:
+		var _zoom = camera.zoom
+		var _offset = camera.offset
+		var _origin = Vector2(size * 0.5 - _offset * _zoom)  # to get origin
+		for guide in guides:
+			match guide.orientation:
+				HORIZONTAL:
+					var _y = guide.relative_offset.y * _zoom.y
+					guide.position.y = _origin.y + _y
+				VERTICAL:
+					var _x = guide.relative_offset.x * _zoom.x
+					guide.position.x = _origin.x + _x 
+
+func place_mouse_guide():
+	if show_mouse_guide:
+		mouse_guide.set_guide(size)
 
 
 func _on_viewport_changed():
 	place_rulers()
 	place_guides()
-	place_symmetry_guide()
+	place_symmetry_guides()
 	place_grid()
+	place_mouse_guide()
 	
 
 func _on_camera_pressing(is_pressed):
@@ -192,7 +225,6 @@ func _on_camera_pressing(is_pressed):
 			mouse_default_cursor_shape = Control.CURSOR_DRAG
 		else:
 			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		
 
 
 func _on_mouse_entered():
@@ -204,12 +236,6 @@ func _on_mouse_exited():
 
 
 # guides
-
-func lock_guides(val :bool):
-	guides_locked = bool(val)
-	_lock_guides(guides_locked or state != ArtboardState.MOVE)
-	
-
 func _lock_guides(val :bool):
 	# for internal use, temporary lock guides while state switched.
 	for guide in guides:

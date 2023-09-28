@@ -1,13 +1,14 @@
-extends TextureRect
+extends Sprite2D
 
 class_name Selection
 
 
 
 func _ready():
-#	hide()
+	visible = false
 	material.set_shader_parameter("width", 10)
-
+#	material.set_shader_parameter("width", 1.0 / zoom)
+	material.set_shader_parameter("frequency", 100)
 
 
 

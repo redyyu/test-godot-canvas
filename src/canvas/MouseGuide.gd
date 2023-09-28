@@ -10,7 +10,7 @@ var h_guide := Line2D.new()
 var v_guide := Line2D.new()
 
 
-func _ready() -> void:
+func _ready():
 	h_guide.width = 1
 	v_guide.width = 1
 	h_guide.default_color = guide_color
@@ -19,7 +19,7 @@ func _ready() -> void:
 	add_child(v_guide)
 
 
-func set_mouse_guide(size :Vector2i, color = null):
+func set_guide(size :Vector2i, color = null):
 	h_guide.clear_points()
 	v_guide.clear_points()
 	
