@@ -3,8 +3,8 @@ class_name EraseDrawer extends BaseDrawer
 var shadow_image := Image.new()
 
 
-class EraseOp:
-	extends BaseDrawer.ColorOp
+class EraseOp extends BaseDrawer.ColorOp:
+	
 	const ERASE_COLOR := Color.TRANSPARENT
 	
 	func process(dst: Color) -> Color:

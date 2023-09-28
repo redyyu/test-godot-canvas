@@ -22,8 +22,7 @@ var fill_inside := false
 
 var i:= 0
 
-class PencilOp:
-	extends BaseDrawer.ColorOp
+class PencilOp extends BaseDrawer.ColorOp:
 	func process(src: Color) -> Color:
 		# take place to do something if need.
 		# already have a BrushDrawer for drawing with strength / alpha.

@@ -13,7 +13,7 @@ func _init(_width :int, _height :int):
 	width = _width
 	height = _height
 	
-	image = Image.create(width, height, false, Image.FORMAT_RGBA8)
+	image = Image.create(width, height, true, Image.FORMAT_RGBA8)
 	image_texture = ImageTexture.create_from_image(image)
 	
 

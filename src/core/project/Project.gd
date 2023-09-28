@@ -100,24 +100,24 @@ func is_empty() -> bool:
 	)
 
 
-func can_pixel_get_drawn(pixel: Vector2i, 
-						 image: SelectionMap, 
-						 selection_position: Vector2i) -> bool:
-	
-	if pixel.x < 0 or pixel.y < 0 or pixel.x >= size.x or pixel.y >= size.y:
-		return false
-
-#	if tiles.mode != Tiles.MODE.NONE and !tiles.has_point(pixel):
+#func can_pixel_get_drawn(pixel: Vector2i, 
+#						 image: SelectionMap, 
+#						 selection_position: Vector2i) -> bool:
+#
+#	if pixel.x < 0 or pixel.y < 0 or pixel.x >= size.x or pixel.y >= size.y:
 #		return false
-
-	if selection_position != Vector2i.ZERO:
-		if selection_position.x < 0:
-			pixel.x -= selection_position.x
-		if selection_position.y < 0:
-			pixel.y -= selection_position.y
-		return image.is_pixel_selected(pixel)
-	else:
-		return true
+#
+##	if tiles.mode != Tiles.MODE.NONE and !tiles.has_point(pixel):
+##		return false
+#
+#	if selection_position != Vector2i.ZERO:
+#		if selection_position.x < 0:
+#			pixel.x -= selection_position.x
+#		if selection_position.y < 0:
+#			pixel.y -= selection_position.y
+#		return image.is_pixel_selected(pixel)
+#	else:
+#		return true
 
 
 # Timeline modifications

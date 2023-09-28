@@ -8,6 +8,10 @@ enum {
 	PENCIL,
 	BRUSH,
 	ERASE,
+	SELECT_RECTANGLE,
+	SELECT_CIRCLE,
+	SELECT_POLYGON,
+	SELECT_LASSO,
 }
 
 var state := Artboard.NONE :
@@ -30,7 +34,7 @@ var guides :Array[Guide] = []
 var guides_locked := false :
 	set(val):
 		guides_locked = val
-		lock_guides(guides_locked or state != Artboard.MOVE)
+		_lock_guides(guides_locked or state != Artboard.MOVE)
 		
 var show_guides := false :
 	set(val):
@@ -127,9 +131,9 @@ func set_state(op_state):
 	camera.state = state
 	
 	if state == Artboard.MOVE:
-		lock_guides(guides_locked)
+		_lock_guides(guides_locked)
 	else:
-		lock_guides(true)
+		_lock_guides(true)
 
 	change_cursor(state)
 		
@@ -215,7 +219,7 @@ func _on_mouse_exited():
 
 
 # guides
-func lock_guides(val :bool):
+func _lock_guides(val :bool): # do not use it in other scopes.
 	# for internal use, temporary lock guides while state switched.
 	for guide in guides:
 		guide.is_locked = val

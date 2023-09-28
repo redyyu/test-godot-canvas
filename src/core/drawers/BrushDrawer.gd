@@ -23,8 +23,7 @@ var shadow_image := Image.new()
 var last_pixels := [null, null]
 var pixel_perfect := true
 
-class BrushOp:
-	extends BaseDrawer.ColorOp
+class BrushOp extends BaseDrawer.ColorOp:
 	var blending := true
 	# Drawing pixels might drawing same position many times.
 	# the dst color to blend might be the src color just drawn.

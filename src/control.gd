@@ -11,6 +11,7 @@ var current_drawer :BaseDrawer
 @onready var btn_4 = $BtnPencil
 @onready var btn_5 = $BtnBrush
 @onready var btn_6 = $BtnErase
+@onready var btn_7 = $BtnSelect
 
 @onready var btn_lock_guide = $BtnLockGuide
 
@@ -30,6 +31,7 @@ func _ready():
 	btn_4.pressed.connect(_on_btn_pressed.bind(btn_4))
 	btn_5.pressed.connect(_on_btn_pressed.bind(btn_5))
 	btn_6.pressed.connect(_on_btn_pressed.bind(btn_6))
+	btn_7.pressed.connect(_on_btn_pressed.bind(btn_7))
 	
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
 	
@@ -41,11 +43,11 @@ func _ready():
 	
 	artboard.canvas.snapping_to(true, false, false)
 	
-	artboard.show_mouse_guide = true
-	artboard.show_rulers = true
-	artboard.show_guides = true
-	artboard.show_grid_state = Grid.ALL
-	artboard.show_symmetry_guide_state = SymmetryGuide.CROSS_AXIS
+	artboard.show_mouse_guide = false
+	artboard.show_rulers = false
+	artboard.show_guides = false
+	artboard.show_grid_state = Grid.NONE
+	artboard.show_symmetry_guide_state = SymmetryGuide.NONE
 	
 #	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
 	
@@ -102,7 +104,10 @@ func _on_btn_pressed(btn):
 			current_drawer = artboard.canvas.eraser
 		
 		'BtnLockGuide':
-			artboard.lock_guides(btn.button_pressed)
+			artboard.guides_locked = btn.button_pressed
+			
+		'BtnSelect':
+			artboard.state = Artboard.SELECT_RECTANGLE
 		
 	if current_drawer:
 		opt_stroke_dynamics.disabled = not current_drawer.allow_dyn_stroke_width

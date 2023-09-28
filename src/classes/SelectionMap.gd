@@ -1,16 +1,13 @@
 extends Image
 
-class_name SelectionMap
+class_name SelectionMapx
 
 var invert_shader := preload("res://src/Shaders/Invert.gdshader")
 var flag_tilemode := false
 var size :Vector2i = Vector2i.ZERO  # project size
 
 
-func is_pixel_selected(pixel: Vector2i) -> bool:
-	if pixel.x < 0 or pixel.y < 0 or pixel.x >= get_width() or pixel.y >= get_height():
-		return false
-	return get_pixelv(pixel).a > 0
+
 
 
 func get_nearest_position(pixel: Vector2i) -> Vector2i:

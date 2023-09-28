@@ -9,7 +9,15 @@ var indicator_offset := DEFAULT_OFFSET
 var indicator_color :=  DEFAULT_COLOR
 
 
-func update_indicator(pos, size :=Vector2i.ONE, offset=null, color=null):
+func hide_indicator():
+	if visible:
+		hide()
+
+
+func show_indicator(pos, size :=Vector2i.ONE, offset=null, color=null):
+	if not visible:
+		show()
+		
 	indicator_position = pos
 	indicator_size = size
 	

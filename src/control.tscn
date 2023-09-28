@@ -74,6 +74,14 @@ offset_right = 1107.0
 offset_bottom = 357.0
 text = "Erase"
 
+[node name="BtnSelect" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1054.0
+offset_top = 445.0
+offset_right = 1105.0
+offset_bottom = 476.0
+text = "Select"
+
 [node name="OptStrokeBtn" type="OptionButton" parent="."]
 layout_mode = 0
 offset_left = 973.0

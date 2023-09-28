@@ -26,7 +26,7 @@ shader_parameter/rect_size = Vector2(0, 0)
 shader_parameter/follow_movement = false
 shader_parameter/follow_scale = false
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_7shi3"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_u7ha5"]
 shader = ExtResource("9_y3e15")
 shader_parameter/first_color = Color(1, 1, 1, 1)
 shader_parameter/second_color = Color(0, 0, 0, 1)
@@ -66,8 +66,7 @@ script = ExtResource("4_1y3pt")
 script = ExtResource("5_d6712")
 
 [node name="Selection" type="Sprite2D" parent="Viewport/Canvas"]
-material = SubResource("ShaderMaterial_7shi3")
-position = Vector2(477, 176)
+material = SubResource("ShaderMaterial_u7ha5")
 script = ExtResource("8_08sqa")
 
 [node name="Grid" type="Node2D" parent="Viewport"]

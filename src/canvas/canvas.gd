@@ -14,13 +14,18 @@ var pressure_max_thres := 1.0
 var velocity_min_thres := 0.0
 var velocity_max_thres := 1.0
 
-var is_pressed := false
-var state := Artboard.NONE
-
 var dynamics_stroke_width := Dynamics.NONE
 var dynamics_stroke_alpha := Dynamics.NONE
 
 var snapper := Snapper.new()
+
+var is_pressed := false
+
+var state := Artboard.NONE:
+	set(val):
+		state = val
+		indicator.hide_indicator()  # not all state need indicator
+
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
 #var grid_draw_over_tile_mode :bool = false
@@ -61,6 +66,7 @@ func attach_project(proj):
 		pencil.image = project.current_cel.image
 		brush.image = project.current_cel.image
 		eraser.image = project.current_cel.image
+		selection.size = project.size
 
 
 func attach_snap_to(size:Vector2, guides:Array, grid:Grid):
@@ -99,7 +105,7 @@ func prepare_velocity(mouse_velocity:Vector2i) -> float:
 func process_drawing_or_erasing(event, drawer):
 	if event is InputEventMouseMotion:
 		var pos = snapper.snap_position(get_local_mouse_position())
-		indicator.update_indicator(pos, drawer.stroke_dimensions)
+		indicator.show_indicator(pos, drawer.stroke_dimensions)
 		
 		if is_pressed:
 			if drawer.can_draw(pos) and project.current_cel is PixelCel:
@@ -131,6 +137,16 @@ func process_drawing_or_erasing(event, drawer):
 			queue_redraw()
 
 
+func process_selection(event):
+	if event is InputEventMouseMotion:
+		var pos = snapper.snap_position(get_local_mouse_position())
+		if is_pressed:
+			selection.select_move(pos)
+		elif selection.selecting:
+			selection.select_end(pos)
+		
+
+
 func _input(event :InputEvent):
 	if not project.current_cel:
 		return
@@ -139,6 +155,7 @@ func _input(event :InputEvent):
 #		var tmp_transform := get_canvas_transform().affine_inverse()
 #		var current_pixel = tmp_transform.basis_xform(mouse_pos) + tmp_transform.origin
 #		queue_redraw()
+	
 	if event is InputEventMouseButton:
 		is_pressed = event.pressed
 
@@ -149,6 +166,8 @@ func _input(event :InputEvent):
 			process_drawing_or_erasing(event, brush)
 		Artboard.ERASE:
 			process_drawing_or_erasing(event, eraser)
+		Artboard.SELECT_RECTANGLE:
+			process_selection(event)
 
 
 func _draw():
