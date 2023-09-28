@@ -132,9 +132,9 @@ func process_selection(event):
 	if event is InputEventMouseMotion:
 		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed:
-			selection.select_move(pos)
-		elif selection.selecting:
-			selection.select_end(pos)
+			selection.selecting(pos)
+#		elif selection.is_selecting:
+#			selection.unselect_end(pos)
 		
 
 

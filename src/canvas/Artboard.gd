@@ -168,8 +168,8 @@ func change_cursor(curr_state):
 			mouse_default_cursor_shape = Control.CURSOR_CROSS
 		Artboard.ERASE:
 			mouse_default_cursor_shape = Control.CURSOR_CROSS
-		_:
-			mouse_default_cursor_shape = Control.CURSOR_ARROW
+#		_:
+#			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
 
 func place_grid():
