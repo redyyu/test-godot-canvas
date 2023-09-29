@@ -2,6 +2,7 @@ extends Control
 
 var current_color := Color.WHITE
 var current_drawer :BaseDrawer
+var current_selector :BaseSelector
 
 @onready var artboard :SubViewportContainer = $Artboard
 
@@ -117,6 +118,9 @@ func _on_btn_pressed(btn):
 			
 		'BtnSelect':
 			artboard.state = Artboard.SELECT_RECTANGLE
+			current_selector = artboard.canvas.rect_selector
+			current_selector.opt_as_square = true
+			current_selector.opt_from_center = true
 		
 	if current_drawer:
 		opt_stroke_dynamics.disabled = not current_drawer.allow_dyn_stroke_width
@@ -152,4 +156,5 @@ func _on_stroke_space_changed(val):
 
 
 func _on_selection_mode(val):
-	artboard.canvas.selection.mode = val
+	if current_selector:
+		current_selector.mode = val

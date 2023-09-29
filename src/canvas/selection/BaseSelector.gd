@@ -10,6 +10,17 @@ var is_selecting := false
 var opt_as_square := false
 var opt_from_center := false
 
+var mode := Selection.Mode.REPLACE:
+	set(val):
+		last_mode = mode
+		mode = val
+		
+var last_mode := Selection.Mode.REPLACE
+
+
+func restore_mode():
+	mode = last_mode
+
 
 func reset():
 	points.clear()

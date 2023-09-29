@@ -12,19 +12,12 @@ enum SelectType {
 }
 var type := SelectType.NONE
 
-enum Mode {
+enum Mode {  # setting in Selector
 	REPLACE,
 	ADD,
 	SUBTRACT,
 	INTERSECTION,
 }
-
-var mode := Mode.REPLACE :
-	set(val):
-		last_mode = mode
-		mode = val
-
-var last_mode := Mode.REPLACE
 
 var size := Vector2i.ONE:
 	set(val):
@@ -53,10 +46,6 @@ func refresh_material():
 	queue_redraw()
 
 
-func rollback_mode():
-	mode = last_mode
-
-
 func deselect():
 	points.clear()
 	_clear_select()
@@ -71,8 +60,8 @@ func selecting(sel_points :Array, sel_type:SelectType):
 	queue_redraw()
 	
 
-func selected_rect(sel_points :Array):
-	_select_rect(get_rect_from_points(sel_points))
+func selected_rect(sel_points :Array, mode:Mode):
+	_select_rect(get_rect_from_points(sel_points), mode)
 	update_texture()
 	points.clear()
 
@@ -102,7 +91,11 @@ func is_selected(pos: Vector2i) -> bool:
 	return selection_map.get_pixelv(pos).a > 0
 
 
-func _select_rect(rect):
+func _select_rect(rect, mode):
+	if selection_map.is_empty() or selection_map.is_invisible():
+		selection_map.fill_rect(rect, SELECTED_COLOR)
+		return
+		
 	match mode:
 		Mode.REPLACE:
 			selection_map.fill(UNSELECTED_COLOR)
@@ -112,14 +105,11 @@ func _select_rect(rect):
 		Mode.SUBTRACT:
 			selection_map.fill_rect(rect, UNSELECTED_COLOR)
 		Mode.INTERSECTION:
-			if selection_map.is_empty() or selection_map.is_invisible():
-				selection_map.fill(UNSELECTED_COLOR)
-			else:
-				for x in selection_map.get_width():
-					for y in selection_map.get_height():
-						var pos := Vector2i(x, y)
-						if not rect.has_point(pos) and is_selected(pos):
-							_unselect_pixel(pos)
+			for x in selection_map.get_width():
+				for y in selection_map.get_height():
+					var pos := Vector2i(x, y)
+					if not rect.has_point(pos) and is_selected(pos):
+						_unselect_pixel(pos)
 
 
 func _select_pixel(pos :Vector2i):
