@@ -107,7 +107,9 @@ func _ready():
 	resized.connect(_on_artboard_resized)
 	camera.dragged.connect(_on_camera_changed)
 	camera.zoomed.connect(_on_camera_changed)
-	camera.change_pressed.connect(_on_camera_pressing)
+	camera.press_changed.connect(_on_camera_pressing)
+	
+	canvas.cursor_changed.connect(_on_canvas_change_cursor)
 	
 	trans_checker.add_sibling(reference_image)
 	
@@ -149,29 +151,22 @@ func set_state(op_state):
 	else:
 		_lock_guides(true)
 
-	change_cursor(state)
+	change_state_cursor(state)
 		
 
 func refresh_canvas():
 	canvas.queue_redraw()
 
 
-func change_cursor(curr_state):
-	match curr_state:
-		Artboard.MOVE:
-			mouse_default_cursor_shape = Control.CURSOR_MOVE
-		Artboard.DRAG:
-			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		Artboard.BRUSH:
-			mouse_default_cursor_shape = Control.CURSOR_CROSS
-		Artboard.PENCIL:
-			mouse_default_cursor_shape = Control.CURSOR_CROSS
-		Artboard.ERASE:
-			mouse_default_cursor_shape = Control.CURSOR_CROSS
-		Artboard.SELECT_RECTANGLE:
-			mouse_default_cursor_shape = Control.CURSOR_ARROW
-		_:
-			mouse_default_cursor_shape = Control.CURSOR_ARROW
+func change_state_cursor(curr_state):
+	if curr_state == Artboard.MOVE:
+		mouse_default_cursor_shape = Control.CURSOR_MOVE
+	elif curr_state == Artboard.DRAG: 
+		mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	elif curr_state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
+		mouse_default_cursor_shape = Control.CURSOR_CROSS
+	else:
+		mouse_default_cursor_shape = Control.CURSOR_ARROW
 
 
 func place_grid():
@@ -226,6 +221,14 @@ func _on_camera_pressing(is_pressed):
 			mouse_default_cursor_shape = Control.CURSOR_DRAG
 		else:
 			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+
+func _on_canvas_change_cursor(cursor):
+	if cursor:
+		mouse_default_cursor_shape = cursor
+	else:
+		mouse_default_cursor_shape = Control.CURSOR_ARROW
+
 
 
 func _on_mouse_entered():

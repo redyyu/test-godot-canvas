@@ -1,5 +1,7 @@
 class_name Canvas extends Node2D
 
+signal cursor_changed(cursor)
+
 var pencil := PencilDrawer.new()
 var brush := BrushDrawer.new()
 var eraser := EraseDrawer.new()
@@ -53,15 +55,13 @@ var state := Artboard.NONE:
 
 
 func _ready():
-	pass
 #	onion_past.type = onion_past.PAST
 #	onion_past.blue_red_color = Color.RED
 #	onion_future.type = onion_future.FUTURE
 #	onion_future.blue_red_color = Color.BLUE
 #
-#	selection.gizmo_selected.connect(_on_stop_draw)
-#	selection.gizmo_released.connect(_on_reset_draw)
-#	selection.selection_map_changed.connect(_on_selection_map_changed)
+	selection.gizmo_hovered.connect(_on_selection_gizmo_hovered)
+	selection.gizmo_unhovered.connect(_on_selection_gizmo_unhovered)
 
 
 func attach_project(proj):
@@ -158,12 +158,7 @@ func _input(event :InputEvent):
 func _draw():
 	if not project.current_cel:
 		return
-#	var position_tmp := position
-#	var scale_tmp := scale
-#	if Global.mirror_view:
-#		position_tmp.x = position_tmp.x + Global.current_project.size.x
-#		scale_tmp.x = -1
-#	draw_set_transform(position_tmp, 0.0, scale_tmp)
+
 	# Draw current frame layers
 	for i in project.layers.size():
 		var cels = project.current_frame.cels 
@@ -294,6 +289,15 @@ func _draw():
 #	selection.camera_zoom = camera_zoom
 #	selection.shape_perfect = shape_perfect
 #	selection.shape_center = shape_center
+
+
+# gizmo
+func _on_selection_gizmo_hovered(gizmo):
+	cursor_changed.emit(gizmo.cursor)
+
+
+func _on_selection_gizmo_unhovered(_gizmo):
+	cursor_changed.emit(null)
 
 
 # snapping
