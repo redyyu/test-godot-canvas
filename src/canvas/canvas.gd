@@ -133,9 +133,8 @@ func process_selection(event):
 		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed:
 			selection.selecting(pos)
-#		elif selection.is_selecting:
-#			selection.unselect_end(pos)
-		
+		elif selection.is_selecting:
+			selection.selected()
 
 
 func _input(event :InputEvent):

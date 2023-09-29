@@ -15,6 +15,8 @@ var zoom_ratio := 1.0:
 var points :Array[Vector2] = []
 var gizmos :Array[Gizmo]= []
 
+var selecting_color = Color.WHITE 
+
 var is_selecting := false
 
 var opt_as_square := false
@@ -32,6 +34,8 @@ func _ready():
 	gizmos.append(Gizmo.new(Gizmo.BOTTOM_LEFT))
 	gizmos.append(Gizmo.new(Gizmo.MIDDLE_LEFT))
 	for gizmo in gizmos:
+		gizmo.pressed.connect(_on_gizmo_pressed)
+		gizmo.unpressed.connect(_on_gizmo_unpressed)
 		add_child(gizmo)
 
 
@@ -59,14 +63,20 @@ func deselect():
 
 func selecting(pos):
 	is_selecting = true
-	if points.size() >= 2:
+	if points.size() > 1:
 		points.pop_back()
 	points.append(pos)
+	queue_redraw()
+	
+
+func selected():
+	is_selecting =false
 	var rect = get_select_rect(points[0], points[points.size()-1])
 	place_gizmos(rect)
 	selection_map.clear()
 	selection_map.select_rect(rect)
 	texture = ImageTexture.create_from_image(selection_map)
+	queue_redraw()
 
 
 func get_select_rect(start :Vector2i, end :Vector2i) -> Rect2i:
@@ -97,6 +107,20 @@ func get_select_rect(start :Vector2i, end :Vector2i) -> Rect2i:
 	rect.size += Vector2i.ONE
 
 	return rect
+
+
+func _draw():
+	if is_selecting and points.size() > 1:
+		var rect = get_select_rect(points[0], points[points.size()-1])
+		draw_rect(rect, selecting_color, false, 1.0)
+
+func _on_gizmo_pressed(gizmo):
+	print(gizmo)
+	
+
+func _on_gizmo_unpressed(gizmo):
+	print(gizmo)
+
 
 
 class SelectionMap extends Image:
@@ -152,6 +176,11 @@ class Gizmo:
 	
 	extends Node2D
 	
+	signal hovered(gizmo)
+	signal unhovered(gizmo)
+	signal pressed(gizmo)
+	signal unpressed(gizmo)
+
 	enum {
 		TOP_LEFT,
 		TOP_CENTER,
@@ -166,6 +195,7 @@ class Gizmo:
 	var direction := TOP_LEFT
 	var default_size := Vector2(10, 10)
 	var gizmo_color := Color(0.2, 0.2, 0.2, 1)
+	var gizmo_bgcolor := Color.WEB_GRAY
 	var gizmo_size :Vector2 :
 		get: return default_size / zoom_ratio
 	var gizmo_rect :Rect2 :
@@ -236,13 +266,14 @@ class Gizmo:
 				return Vector2.ZERO
 	
 	func _draw():
-		draw_rect(gizmo_rect, gizmo_color)
-		# DO NOT use ColorRect to replace draw_rect,
-		# because the position might be unexcept
+		draw_rect(gizmo_rect, gizmo_bgcolor)
+		draw_rect(gizmo_rect, gizmo_color, false, 1 / zoom_ratio)
+		# DO NOT use Control (such as ColorRect) to replace draw_rect,
+		# because the position might be unexcept.
 		# when zoom in to very much (maybe 0.15, 0.2).
 		# will see a tiny teeny position jumpping.
-		# actually that's the size is too small.
-		# it might happen on `Contrl`, have not test on others.
+		# actually that's the size and position is too small float.
+		# it might happen on any `Control`, have not test on others.
 		# ex., try give the toucher a color and zoom in.
 		# ```
 		# toucher = ColorRect.new()
@@ -257,16 +288,19 @@ class Gizmo:
 			var pos = get_local_mouse_position()
 			is_hover = gizmo_rect.has_point(pos)
 			if is_hover:
+				hovered.emit(self)
 				if event is InputEventMouseButton:
 					is_pressed = event.pressed
-				if is_pressed and event is InputEventMouseMotion:
-					_dragging(pos)
-			elif event is InputEventMouseButton:
-				# for release outside
-				is_pressed = false
-	
-	func _dragging(pos :Vector2):
-		position = pos
+					if is_pressed:
+						pressed.emit(self)
+					else:
+						unpressed.emit(self)
+			else:
+				unhovered.emit(self)
+				if event is InputEventMouseButton:
+					# for release outside
+					is_pressed = false
+					unpressed.emit(self)
 	
 	func _init(_direction):
 		visible = false
