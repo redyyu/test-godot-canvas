@@ -128,7 +128,7 @@ func _on_btn_pressed(btn):
 			artboard.state = Artboard.SELECT_CIRCLE
 			current_selector = artboard.canvas.circle_selector
 			current_selector.opt_as_square = false
-			current_selector.opt_from_center = true
+			current_selector.opt_from_center = false
 		
 	if current_drawer:
 		opt_stroke_dynamics.disabled = not current_drawer.allow_dyn_stroke_width

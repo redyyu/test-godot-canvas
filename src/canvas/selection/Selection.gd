@@ -119,7 +119,7 @@ func update_texture():
 
 # for selection map
 func is_selected(pos: Vector2i) -> bool:
-	if pos.x < 0 or pos.y < 0 or pos.x >= size.x or pos.y >= size.y:
+	if not selection_map_rect.has_point(pos):
 		return false
 	return selection_map.get_pixelv(pos).a > 0
 
@@ -161,10 +161,15 @@ func _select_circle(rect, mode):
 		Mode.SUBTRACT:
 			_unselect_multipixels(ellipse_points, rect.position)
 		Mode.INTERSECTION:
+			var _map = Image.create(size.x, size.y, false, Image.FORMAT_LA8)
+			for p in ellipse_points:
+				var _p := Vector2i(rect.position) + Vector2i(p)
+				if selection_map_rect.has_point(_p):
+					_map.set_pixelv(_p, SELECTED_COLOR)
 			for x in selection_map.get_width():
 				for y in selection_map.get_height():
 					var pos := Vector2i(x, y)
-					if not ellipse_points.has(pos + rect.position) \
+					if not _map.get_pixelv(pos).a > 0 \
 					   and is_selected(pos):
 						_unselect_pixel(pos)
 
