@@ -19,7 +19,12 @@ enum Mode {
 	INTERSECTION,
 }
 
-var mode := Mode.REPLACE
+var mode := Mode.REPLACE :
+	set(val):
+		last_mode = mode
+		mode = val
+
+var last_mode := Mode.REPLACE
 
 var size := Vector2i.ONE:
 	set(val):
@@ -46,6 +51,10 @@ func refresh_material():
 	material.set_shader_parameter("frequency", zoom_ratio * 50)
 	material.set_shader_parameter("width", 1.0 / zoom_ratio)
 	queue_redraw()
+
+
+func rollback_mode():
+	mode = last_mode
 
 
 func deselect():
