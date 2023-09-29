@@ -23,7 +23,7 @@ var create_guide_gate := false
 
 
 func _ready():
-	focus_mode = Control.FOCUS_NONE		
+	focus_mode = Control.FOCUS_NONE
 	_set_default_cursor()
 
 
@@ -238,5 +238,6 @@ func _input(event):
 			if not rect.has_point(mouse_position) and btn_pressed:
 				if create_guide_gate:
 					create_guide_gate = false
-					guide_created.emit(orientation)
+					if not disabled:
+						guide_created.emit(orientation)
 

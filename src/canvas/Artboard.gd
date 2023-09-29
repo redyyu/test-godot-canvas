@@ -34,13 +34,16 @@ var guides :Array[Guide] = []
 var guides_locked := false :
 	set(val):
 		guides_locked = val
-		_lock_guides(guides_locked or state != Artboard.MOVE)
+#		_lock_guides(guides_locked or state != Artboard.MOVE)
+		_lock_guides(guides_locked)
 		
 var show_guides := false :
 	set(val):
 		show_guides = val
 		for guide in guides:
 			guide.visible = show_guides
+		v_ruler.set_activate(show_guides)
+		h_ruler.set_activate(show_guides)
 		place_guides()
 
 var show_grid_state := Grid.NONE :
@@ -146,10 +149,10 @@ func set_state(op_state):
 	canvas.state = state
 	camera.state = state
 	
-	if state == Artboard.MOVE:
-		_lock_guides(guides_locked)
-	else:
-		_lock_guides(true)
+#	if state == Artboard.MOVE:
+#		_lock_guides(guides_locked)
+#	else:
+#		_lock_guides(true)
 
 	change_state_cursor(state)
 		
@@ -244,21 +247,17 @@ func _lock_guides(val :bool): # do not use it in other scopes.
 	# for internal use, temporary lock guides while state switched.
 	for guide in guides:
 		guide.is_locked = val
-		
-	v_ruler.set_activate(not val)
-	h_ruler.set_activate(not val)
 
 
 func _on_guide_created(type):
-	if (not guides_locked and state == Artboard.MOVE):
-		var guide = Guide.new()
-		guide.set_guide(type, size)
-		guides.append(guide)
-		add_child(guide)
-		guide.pressed.connect(_on_guide_pressed)
-		guide.released.connect(_on_guide_released)
-		guide.hovered.connect(_on_guide_hovered)
-		guide.leaved.connect(_on_guide_leaved)
+	var guide = Guide.new()
+	guide.set_guide(type, size)
+	guides.append(guide)
+	add_child(guide)
+	guide.pressed.connect(_on_guide_pressed)
+	guide.released.connect(_on_guide_released)
+	guide.hovered.connect(_on_guide_hovered)
+	guide.leaved.connect(_on_guide_leaved)
 	
 
 func _on_guide_hovered(guide):
@@ -270,10 +269,13 @@ func _on_guide_hovered(guide):
 			mouse_default_cursor_shape = Control.CURSOR_VSPLIT
 		VERTICAL:
 			mouse_default_cursor_shape = Control.CURSOR_HSPLIT
+	if not guide.is_locked:
+		canvas.frozen = true  # frozen canvas if guide is not locked.
 
 
 func _on_guide_leaved(_guide):
 	mouse_default_cursor_shape = Control.CURSOR_ARROW
+	canvas.frozen = false  # unfrozen canvas anyway.
 
 
 func _on_guide_pressed(guide):
@@ -283,11 +285,12 @@ func _on_guide_pressed(guide):
 			_guide.is_pressed = false
 
 
-func _on_guide_released(guide):	
+func _on_guide_released(guide):
+#	guide.is_locked = guides_locked or state != Artboard.MOVE
+	guide.is_locked = guides_locked
 	guide.relative_offset = (guide.position - camera_origin) / camera_zoom
 	# calculate to the right position when zoom is 1.0.
 	# otherwise position might mess-up place guide while is zoomed.
-	
 	match guide.orientation:
 		HORIZONTAL:
 			if guide.position.y < h_ruler.size.y:

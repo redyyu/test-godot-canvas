@@ -14,6 +14,7 @@ var current_drawer :BaseDrawer
 @onready var btn_7 = $BtnSelect
 
 @onready var btn_lock_guide = $BtnLockGuide
+@onready var btn_show_guide = $BtnShowGuide
 
 @onready var opt_stroke_dynamics = $OptStrokeBtn
 @onready var opt_alpha_dynamics = $OptAlphaBtn
@@ -34,6 +35,7 @@ func _ready():
 	btn_7.pressed.connect(_on_btn_pressed.bind(btn_7))
 	
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
+	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
 	
 	opt_stroke_dynamics.item_selected.connect(_on_stroke_dynamics)
 	opt_alpha_dynamics.item_selected.connect(_on_alpha_dynamics)
@@ -44,8 +46,8 @@ func _ready():
 	artboard.snap_to_guide = true
 	
 	artboard.show_mouse_guide = false
-	artboard.show_rulers = false
-	artboard.show_guides = false
+	artboard.show_rulers = true
+	artboard.show_guides = true
 	artboard.show_grid_state = Grid.NONE
 	artboard.show_symmetry_guide_state = SymmetryGuide.NONE
 	
@@ -105,6 +107,9 @@ func _on_btn_pressed(btn):
 		
 		'BtnLockGuide':
 			artboard.guides_locked = btn.button_pressed
+		
+		'BtnShowGuide':
+			artboard.show_guides = btn.button_pressed
 			
 		'BtnSelect':
 			artboard.state = Artboard.SELECT_RECTANGLE

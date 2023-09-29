@@ -10,8 +10,16 @@ enum SelectType {
 	POLYGON,
 	LASSO,
 }
-
 var type := SelectType.NONE
+
+enum Mode {
+	REPLACE,
+	ADD,
+	SUBTRACT,
+	INTERSECTION,
+}
+
+var mode := Mode.REPLACE
 
 var size := Vector2i.ONE:
 	set(val):
@@ -53,12 +61,19 @@ func selecting(sel_points :Array, sel_type:SelectType):
 	queue_redraw()
 	
 
-func selected(sel_points :Array, sel_type:SelectType):
-	clear_select()
-	match sel_type:
-		SelectType.RECTANGLE:
+func selected_rect(sel_points :Array):
+	match mode:
+		Mode.REPLACE:
+			clear_select()
 			select_rect(get_rect_from_points(sel_points))
-			update_texture()
+		Mode.ADD:
+			select_rect(get_rect_from_points(sel_points))
+		Mode.SUBTRACT:
+			select_rect(get_rect_from_points(sel_points), false)
+		Mode.INTERSECTION:
+			pass
+	
+	update_texture()
 	points.clear()
 
 

@@ -30,6 +30,8 @@ var zoom := Vector2.ONE :
 		zoom = val
 		selection.zoom_ratio = (zoom.x + zoom.y) / 2
 
+var frozen := false # temporary prevent canvas operations.
+
 var state := Artboard.NONE:
 	set(val):
 		state = val
@@ -142,7 +144,7 @@ func process_selection(event, selector):
 
 
 func _input(event :InputEvent):
-	if not project.current_cel:
+	if not project.current_cel or frozen:
 		return
 	
 	if event is InputEventMouseButton:
@@ -293,6 +295,11 @@ func _draw():
 #	selection.camera_zoom = camera_zoom
 #	selection.shape_perfect = shape_perfect
 #	selection.shape_center = shape_center
+
+
+# selection
+func change_selection_mode(to_mode:Selection.Mode):
+	selection.mode = to_mode
 
 
 # gizmo
