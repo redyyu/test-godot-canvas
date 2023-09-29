@@ -26,8 +26,8 @@ var size := Vector2i.ONE:
 		if val >= Vector2i.ONE:
 			size = val
 			selection_map.crop(size.x, size.y)
-			offset = size / 2
-		
+#			offset = size / 2  DONT need change offset when `centered` = false
+
 var selection_map := Image.create(size.x, size.y, false, Image.FORMAT_LA8)
 var zoom_ratio := 1.0:
 	set(val):
@@ -38,6 +38,7 @@ var points :PackedVector2Array = []
 
 
 func _ready():
+	centered = false
 	refresh_material()
 
 
@@ -49,7 +50,7 @@ func refresh_material():
 
 func deselect():
 	points.clear()
-	clear_select()
+	_clear_select()
 	texture = null
 	
 
@@ -62,17 +63,7 @@ func selecting(sel_points :Array, sel_type:SelectType):
 	
 
 func selected_rect(sel_points :Array):
-	match mode:
-		Mode.REPLACE:
-			clear_select()
-			select_rect(get_rect_from_points(sel_points))
-		Mode.ADD:
-			select_rect(get_rect_from_points(sel_points))
-		Mode.SUBTRACT:
-			select_rect(get_rect_from_points(sel_points), false)
-		Mode.INTERSECTION:
-			pass
-	
+	_select_rect(get_rect_from_points(sel_points))
 	update_texture()
 	points.clear()
 
@@ -87,7 +78,7 @@ func _draw():
 
 
 func get_rect_from_points(pts):
-	return Rect2i(pts[0], pts[pts.size()-1] - pts[0])
+	return Rect2i(pts[0], pts[pts.size()-1] - pts[0]).abs()
 
 
 func update_texture():
@@ -102,23 +93,37 @@ func is_selected(pos: Vector2i) -> bool:
 	return selection_map.get_pixelv(pos).a > 0
 
 
-func select_rect(rect, select := true):
-	if select:
-		selection_map.fill_rect(rect, SELECTED_COLOR)
-	else:
-		selection_map.fill_rect(rect, UNSELECTED_COLOR)
+func _select_rect(rect):
+	match mode:
+		Mode.REPLACE:
+			selection_map.fill(UNSELECTED_COLOR)
+			selection_map.fill_rect(rect, SELECTED_COLOR)
+		Mode.ADD:
+			selection_map.fill_rect(rect, SELECTED_COLOR)
+		Mode.SUBTRACT:
+			selection_map.fill_rect(rect, UNSELECTED_COLOR)
+		Mode.INTERSECTION:
+			if selection_map.is_empty() or selection_map.is_invisible():
+				selection_map.fill(UNSELECTED_COLOR)
+			else:
+				for x in selection_map.get_width():
+					for y in selection_map.get_height():
+						var pos := Vector2i(x, y)
+						if not rect.has_point(pos) and is_selected(pos):
+							_unselect_pixel(pos)
 
 
-func select_pixel(pos :Vector2i, select := true):
-	if select:
-		selection_map.set_pixelv(pos, SELECTED_COLOR)
-	else:
-		selection_map.set_pixelv(pos, UNSELECTED_COLOR)
+func _select_pixel(pos :Vector2i):
+	selection_map.set_pixelv(pos, SELECTED_COLOR)
 
 
-func select_all() -> void:
+func _unselect_pixel(pos :Vector2i):
+	selection_map.set_pixelv(pos, UNSELECTED_COLOR)
+
+
+func _select_all() -> void:
 	selection_map.fill(SELECTED_COLOR)
 
 
-func clear_select() -> void:
+func _clear_select() -> void:
 	selection_map.fill(UNSELECTED_COLOR)

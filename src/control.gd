@@ -16,6 +16,8 @@ var current_drawer :BaseDrawer
 @onready var btn_lock_guide = $BtnLockGuide
 @onready var btn_show_guide = $BtnShowGuide
 
+@onready var opt_selection_mode = $OptSelectionMode
+
 @onready var opt_stroke_dynamics = $OptStrokeBtn
 @onready var opt_alpha_dynamics = $OptAlphaBtn
 @onready var slider_stroke_width = $StrokeWidthSlider
@@ -36,6 +38,8 @@ func _ready():
 	
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
 	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
+	
+	opt_selection_mode.item_selected.connect(_on_selection_mode)
 	
 	opt_stroke_dynamics.item_selected.connect(_on_stroke_dynamics)
 	opt_alpha_dynamics.item_selected.connect(_on_alpha_dynamics)
@@ -145,3 +149,7 @@ func _on_stroke_space_changed(val):
 	print('Stroke Space: ', val)
 	if current_drawer:
 		current_drawer.stroke_spacing = Vector2i(val, val)
+
+
+func _on_selection_mode(val):
+	artboard.canvas.selection.mode = val

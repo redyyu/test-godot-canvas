@@ -12,4 +12,4 @@ func select_move(pos :Vector2i):
 
 func select_end(_pos):
 	is_selecting = false
-	selection.selected(points, Selection.SelectType.RECTANGLE)
+	selection.selected_rect(points)

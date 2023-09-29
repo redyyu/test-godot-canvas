@@ -68,6 +68,7 @@ script = ExtResource("5_d6712")
 
 [node name="Selection" type="Sprite2D" parent="Viewport/Canvas"]
 material = SubResource("ShaderMaterial_u7ha5")
+centered = false
 script = ExtResource("7_u15up")
 
 [node name="Grid" type="Node2D" parent="Viewport"]

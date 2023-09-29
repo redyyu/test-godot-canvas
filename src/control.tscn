@@ -121,6 +121,23 @@ popup/item_1/id = 1
 popup/item_2/text = "aVELOCTIY"
 popup/item_2/id = 2
 
+[node name="OptSelectionMode" type="OptionButton" parent="."]
+layout_mode = 0
+offset_left = 892.0
+offset_top = 287.0
+offset_right = 1032.0
+offset_bottom = 318.0
+item_count = 4
+selected = 0
+popup/item_0/text = "REPLACE"
+popup/item_0/id = 0
+popup/item_1/text = "ADD"
+popup/item_1/id = 1
+popup/item_2/text = "SUBTRECT"
+popup/item_2/id = 2
+popup/item_3/text = "INTERSECTION"
+popup/item_3/id = 3
+
 [node name="StrokeWidthSlider" type="ProgressBar" parent="."]
 custom_minimum_size = Vector2(85, 30)
 layout_mode = 0

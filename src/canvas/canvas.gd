@@ -297,11 +297,6 @@ func _draw():
 #	selection.shape_center = shape_center
 
 
-# selection
-func change_selection_mode(to_mode:Selection.Mode):
-	selection.mode = to_mode
-
-
 # gizmo
 func _on_selection_gizmo_hovered(gizmo):
 	cursor_changed.emit(gizmo.cursor)
