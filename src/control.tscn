@@ -83,13 +83,21 @@ offset_right = 1107.0
 offset_bottom = 357.0
 text = "Erase"
 
-[node name="BtnSelect" type="Button" parent="."]
+[node name="BtnSelectRect" type="Button" parent="."]
 layout_mode = 0
-offset_left = 1054.0
-offset_top = 445.0
-offset_right = 1105.0
-offset_bottom = 476.0
-text = "Select"
+offset_left = 1037.0
+offset_top = 446.0
+offset_right = 1129.0
+offset_bottom = 477.0
+text = "Select Rect"
+
+[node name="BtnSelectCircle" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1037.0
+offset_top = 486.0
+offset_right = 1139.0
+offset_bottom = 517.0
+text = "Select Circle"
 
 [node name="OptStrokeBtn" type="OptionButton" parent="."]
 layout_mode = 0

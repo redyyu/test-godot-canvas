@@ -7,6 +7,7 @@ var brush := BrushDrawer.new()
 var eraser := EraseDrawer.new()
 
 var rect_selector := RectSelector.new()
+var circle_selector := CircleSelector.new()
 
 var project :Project
 
@@ -68,6 +69,7 @@ func _ready():
 #	selection.gizmo_unhovered.connect(_on_selection_gizmo_unhovered)
 	
 	rect_selector.selection = selection
+	circle_selector.selection = selection
 
 
 func attach_project(proj):
@@ -159,6 +161,8 @@ func _input(event :InputEvent):
 			process_drawing_or_erasing(event, eraser)
 		Artboard.SELECT_RECTANGLE:
 			process_selection(event, rect_selector)
+		Artboard.SELECT_CIRCLE:
+			process_selection(event, circle_selector)
 
 
 func _draw():

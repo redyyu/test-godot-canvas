@@ -12,7 +12,8 @@ var current_selector :BaseSelector
 @onready var btn_4 = $BtnPencil
 @onready var btn_5 = $BtnBrush
 @onready var btn_6 = $BtnErase
-@onready var btn_7 = $BtnSelect
+@onready var btn_7 = $BtnSelectRect
+@onready var btn_8 = $BtnSelectCircle
 
 @onready var btn_lock_guide = $BtnLockGuide
 @onready var btn_show_guide = $BtnShowGuide
@@ -36,6 +37,7 @@ func _ready():
 	btn_5.pressed.connect(_on_btn_pressed.bind(btn_5))
 	btn_6.pressed.connect(_on_btn_pressed.bind(btn_6))
 	btn_7.pressed.connect(_on_btn_pressed.bind(btn_7))
+	btn_8.pressed.connect(_on_btn_pressed.bind(btn_8))
 	
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
 	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
@@ -116,10 +118,16 @@ func _on_btn_pressed(btn):
 		'BtnShowGuide':
 			artboard.show_guides = btn.button_pressed
 			
-		'BtnSelect':
+		'BtnSelectRect':
 			artboard.state = Artboard.SELECT_RECTANGLE
 			current_selector = artboard.canvas.rect_selector
-			current_selector.opt_as_square = true
+			current_selector.opt_as_square = false
+			current_selector.opt_from_center = true
+		
+		'BtnSelectCircle':
+			artboard.state = Artboard.SELECT_CIRCLE
+			current_selector = artboard.canvas.circle_selector
+			current_selector.opt_as_square = false
 			current_selector.opt_from_center = true
 		
 	if current_drawer:
