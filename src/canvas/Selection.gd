@@ -150,7 +150,7 @@ class SelectionMap extends Image:
 
 class Gizmo:
 	
-	extends ColorRect
+	extends Node2D
 	
 	enum {
 		TOP_LEFT,
@@ -168,14 +168,21 @@ class Gizmo:
 	var gizmo_color := Color(0.2, 0.2, 0.2, 1)
 	var gizmo_size :Vector2 :
 		get: return default_size / zoom_ratio
-	var gizmo_rect :Rect2i
-	var saved_pos: Vector2
+	var gizmo_rect :Rect2 :
+		get: return Rect2(- pivot_pos, gizmo_size)
+	var pivot_pos :Vector2:
+		get = _get_pivot_pos
+#	var toucher := ColorRect.new()
 	var zoom_ratio := 1.0:
 		set(val):
 			zoom_ratio = val
-			scale = Vector2.ONE / val 
+			queue_redraw()
 	
 	var cursor := Control.CURSOR_ARROW
+	
+	var is_hover := false
+	var is_pressed := false
+	
 
 	func dismiss():
 		visible = false
@@ -184,8 +191,6 @@ class Gizmo:
 		if not rect:
 			return
 
-		gizmo_rect = rect
-
 		visible = true
 		
 		var gpos = rect.position
@@ -193,40 +198,83 @@ class Gizmo:
 		
 		match direction:
 			TOP_LEFT: 
-				position = gpos + Vector2i.ZERO
+				position = Vector2(gpos) + Vector2.ZERO
 			TOP_CENTER: 
-				position = gpos + Vector2i(gsize.x / 2, 0)
+				position = Vector2(gpos) + Vector2(gsize.x / 2, 0)
 			TOP_RIGHT: 
-				position = gpos + Vector2i(gsize.x, 0)
+				position = Vector2(gpos) + Vector2(gsize.x, 0)
 			MIDDLE_RIGHT:
-				position = gpos + Vector2i(gsize.x, gsize.y /2)
+				position = Vector2(gpos) + Vector2(gsize.x, gsize.y / 2)
 			BOTTOM_RIGHT:
-				position = gpos + Vector2i(gsize.x, gsize.y)
+				position = Vector2(gpos) + Vector2(gsize.x, gsize.y)
 			BOTTOM_CENTER:
-				position = gpos + Vector2i(gsize.x / 2, gsize.y)
+				position = Vector2(gpos) + Vector2(gsize.x / 2, gsize.y)
 			BOTTOM_LEFT:
-				position = gpos + Vector2i(0, gsize.y)
+				position = Vector2(gpos) + Vector2(0, gsize.y)
 			MIDDLE_LEFT:
-				position = gpos + Vector2i(0, gsize.y / 2)
-			
-		saved_pos = position
-		position -= gizmo_size / 2
-
-
-#	func _draw():
-#		draw_rect(Rect2(-gizmo_size/2, gizmo_size), gizmo_color)
-
-	func _on_mouse_over():
-		print('fuck')
+				position = Vector2(gpos) + Vector2(0, gsize.y / 2)
 	
+	func _get_pivot_pos():
+		match direction:
+			TOP_LEFT:
+				return Vector2(gizmo_size.x, gizmo_size.y)
+			TOP_CENTER:
+				return Vector2(gizmo_size.x/2, gizmo_size.y)
+			TOP_RIGHT:
+				return Vector2(0, gizmo_size.y)
+			MIDDLE_RIGHT:
+				return Vector2(0, gizmo_size.y/2)
+			BOTTOM_RIGHT:
+				return Vector2(0, 0)
+			BOTTOM_CENTER:
+				return Vector2(gizmo_size.x/2, 0)
+			BOTTOM_LEFT:
+				return Vector2(gizmo_size.x, 0)
+			MIDDLE_LEFT:
+				return Vector2(gizmo_size.x, gizmo_size.y/2)
+			_:
+				return Vector2.ZERO
+	
+	func _draw():
+		draw_rect(gizmo_rect, gizmo_color)
+		# DO NOT use ColorRect to replace draw_rect,
+		# because the position might be unexcept
+		# when zoom in to very much (maybe 0.15, 0.2).
+		# will see a tiny teeny position jumpping.
+		# actually that's the size is too small.
+		# it might happen on `Contrl`, have not test on others.
+		# ex., try give the toucher a color and zoom in.
+		# ```
+		# toucher = ColorRect.new()
+		# toucher.size = gizmo_size * 4
+		# toucher.position = - toucher.size / 2
+		# print('position ', toucher.position, '/ size /2 ', toucher.size/2)
+		# ```
+		# the position is correct value, but NOT right place on screen.
+
+	func _input(event :InputEvent):
+		if event is InputEventMouse:
+			var pos = get_local_mouse_position()
+			is_hover = gizmo_rect.has_point(pos)
+			if is_hover:
+				if event is InputEventMouseButton:
+					is_pressed = event.pressed
+				if is_pressed and event is InputEventMouseMotion:
+					_dragging(pos)
+			elif event is InputEventMouseButton:
+				# for release outside
+				is_pressed = false
+	
+	func _dragging(pos :Vector2):
+		position = pos
 	
 	func _init(_direction):
 		visible = false
 		direction = _direction
-		size = gizmo_size
-		color = gizmo_color
-		pivot_offset = gizmo_size / 2
-		mouse_entered.connect(_on_mouse_over)
+#		toucher.size = gizmo_size
+#		toucher.color = Color(1, 0, 0, 0.3)
+#		toucher.mouse_entered.connect(_on_mouse_over)
+#		add_child(toucher)
 		
 		match direction:
 			TOP_LEFT:
