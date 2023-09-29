@@ -6,6 +6,8 @@ var pencil := PencilDrawer.new()
 var brush := BrushDrawer.new()
 var eraser := EraseDrawer.new()
 
+var rect_selector := RectSelector.new()
+
 var project :Project
 
 const DEFAULT_PEN_PRESSURE := 1.0
@@ -60,8 +62,10 @@ func _ready():
 #	onion_future.type = onion_future.FUTURE
 #	onion_future.blue_red_color = Color.BLUE
 #
-	selection.gizmo_hovered.connect(_on_selection_gizmo_hovered)
-	selection.gizmo_unhovered.connect(_on_selection_gizmo_unhovered)
+#	selection.gizmo_hovered.connect(_on_selection_gizmo_hovered)
+#	selection.gizmo_unhovered.connect(_on_selection_gizmo_unhovered)
+	
+	rect_selector.selection = selection
 
 
 func attach_project(proj):
@@ -128,13 +132,13 @@ func process_drawing_or_erasing(event, drawer):
 			queue_redraw()
 
 
-func process_selection(event):
+func process_selection(event, selector):
 	if event is InputEventMouseMotion:
 		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed:
-			selection.selecting(pos)
-		elif selection.is_selecting:
-			selection.selected()
+			selector.select_move(pos)
+		elif selector.is_selecting:
+			selector.select_end(pos)
 
 
 func _input(event :InputEvent):
@@ -152,7 +156,7 @@ func _input(event :InputEvent):
 		Artboard.ERASE:
 			process_drawing_or_erasing(event, eraser)
 		Artboard.SELECT_RECTANGLE:
-			process_selection(event)
+			process_selection(event, rect_selector)
 
 
 func _draw():
