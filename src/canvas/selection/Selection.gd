@@ -42,6 +42,9 @@ func deselect():
 	texture = null
 	
 
+
+# Eectangle
+
 func selecting_rect(sel_points :Array):
 	_current_draw = _draw_rectangle
 	points.clear()
@@ -59,6 +62,8 @@ func selected_rect(sel_points :Array,
 	update_texture()
 	points.clear()
 
+
+# Ellipse
 
 func selecting_ellipse(sel_points :Array):
 	_current_draw = _draw_ellipse
@@ -78,11 +83,16 @@ func selected_ellipse(sel_points :Array,
 	points.clear()
 
 
+# Draw selecting lines
+
 func _draw():
 	if points.size() <= 1:
 		return
 	
 	_current_draw.call()
+	# switch in `selection_` func.
+	# try not use state, so many states in proejcts already.
+	# also there is internal useage for this class only.
 
 
 var _current_draw = func():
