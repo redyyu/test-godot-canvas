@@ -15,7 +15,15 @@ enum {
 }
 
 var state := Artboard.NONE :
-	set = set_state
+	set(val):
+		state = val
+		canvas.state = state
+		camera.state = state
+		change_state_cursor(state)
+#		if state == Artboard.MOVE:
+#			_lock_guides(guides_locked)
+#		else:
+#			_lock_guides(true)
 
 var project :Project
 
@@ -143,19 +151,6 @@ func load_project(proj :Project):
 func save_to_project():
 	pass
 
-
-func set_state(op_state):
-	state = op_state
-	canvas.state = state
-	camera.state = state
-	
-#	if state == Artboard.MOVE:
-#		_lock_guides(guides_locked)
-#	else:
-#		_lock_guides(true)
-
-	change_state_cursor(state)
-		
 
 func refresh_canvas():
 	canvas.queue_redraw()

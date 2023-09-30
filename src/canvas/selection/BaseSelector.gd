@@ -57,7 +57,7 @@ func select_end(_pos :Vector2i):
 	is_selecting = false
 
 
-func parse_regular_points(sel_points:PackedVector2Array):
+func parse_rectangle_points(sel_points:PackedVector2Array):
 	var pts :PackedVector2Array = []
 	var start := sel_points[0]
 	var end := sel_points[1]

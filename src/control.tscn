@@ -100,6 +100,22 @@ offset_right = 1139.0
 offset_bottom = 517.0
 text = "Select Circle"
 
+[node name="BtnSelectPolygon" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1017.0
+offset_top = 528.0
+offset_right = 1137.0
+offset_bottom = 559.0
+text = "Select Polygon"
+
+[node name="BtnSelectLasso" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1012.0
+offset_top = 570.0
+offset_right = 1132.0
+offset_bottom = 601.0
+text = "Select Lasso"
+
 [node name="OptStrokeBtn" type="OptionButton" parent="."]
 layout_mode = 0
 offset_left = 973.0

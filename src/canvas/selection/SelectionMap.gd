@@ -29,7 +29,8 @@ func is_selected(pos: Vector2i) -> bool:
 	return get_pixelv(pos).a > 0
 
 
-func select_rect(rect, replace:=false, subtract:=false, intersect:=false):
+func select_rect(rect :Rect2i,
+				 replace:=false, subtract:=false, intersect:=false):
 	if is_empty() or is_invisible():
 		fill_rect(rect, SELECTED_COLOR)
 		return
@@ -52,11 +53,12 @@ func select_rect(rect, replace:=false, subtract:=false, intersect:=false):
 			fill_rect(rect, SELECTED_COLOR)
 
 
-func select_ellipse(rect, replace:=false, subtract:=false, intersect:=false):
-	var ellipse_points = get_ellipse_points_filled(Vector2.ZERO, rect.size)
+func select_ellipse(rect :Rect2i, 
+					replace:=false, subtract:=false, intersect:=false):
+	var ellipse = get_ellipse_points_filled(Vector2.ZERO, rect.size)
 	
 	if is_empty() or is_invisible():
-		select_multipixels(ellipse_points, rect.position)
+		fill_ellipse(ellipse, SELECTED_COLOR, rect.position)
 		return
 	
 	if replace:
@@ -64,10 +66,10 @@ func select_ellipse(rect, replace:=false, subtract:=false, intersect:=false):
 		
 	if intersect:
 		var tmp_map := Image.create(width, height, false, Image.FORMAT_LA8)
-		for p in ellipse_points:
-			var _p :Vector2i = rect.position + Vector2i(p)
-			if map_rect.has_point(_p):
-				tmp_map.set_pixelv(_p, SELECTED_COLOR)
+		for p in ellipse:
+			p += rect.position
+			if map_rect.has_point(p):
+				tmp_map.set_pixelv(p, SELECTED_COLOR)
 
 		for x in width:
 			for y in height:
@@ -75,16 +77,50 @@ func select_ellipse(rect, replace:=false, subtract:=false, intersect:=false):
 				if is_selected(pos) and not tmp_map.get_pixelv(pos).a > 0:
 					select_pixel(pos, true)
 	else:
-		select_multipixels(ellipse_points, rect.position, subtract)
+		if subtract:
+			fill_ellipse(ellipse, UNSELECTED_COLOR, rect.position)
+		else:
+			fill_ellipse(ellipse, SELECTED_COLOR, rect.position)
 
 
-func select_multipixels(sel_points :PackedVector2Array,
-						sel_offset := Vector2i.ZERO,
-						subtract := false):
-	for p in sel_points:
-		var _p := sel_offset + Vector2i(p)
-		if map_rect.has_point(_p):
-			select_pixel(_p, subtract)
+func select_polygon(polygon:, replace:=false, subtract:=false, intersect:=false):
+	if is_empty() or is_invisible():
+		fill_polygon(polygon, SELECTED_COLOR)
+		return
+	
+	if replace:
+		fill(UNSELECTED_COLOR)
+	
+	if intersect:
+		for x in width:
+			for y in height:
+				var pos := Vector2i(x, y)
+				if is_selected(pos) and \
+				   not Geometry2D.is_point_in_polygon(pos, polygon):
+					select_pixel(pos, true)
+	else:
+		if subtract:
+			fill_polygon(polygon, UNSELECTED_COLOR)
+		else:
+			fill_polygon(polygon, SELECTED_COLOR)
+
+
+#func select_multipixels(sel_points :PackedVector2Array,
+#						sel_offset := Vector2i.ZERO,
+#						subtract := false):
+#	for p in sel_points:
+#		var _p := sel_offset + Vector2i(p)
+#		if map_rect.has_point(_p):
+#			select_pixel(_p, subtract)
+
+
+func fill_ellipse(ellipse :PackedVector2Array, color:Color,
+				  pos_offset := Vector2.ZERO):
+	for pos in ellipse:
+		if pos_offset:
+			pos += pos_offset
+		if map_rect.has_point(pos):
+			set_pixelv(pos, color)
 
 
 func select_pixel(pos :Vector2i, subtract:=false):
@@ -101,6 +137,21 @@ func select_all():
 func select_none():
 	fill(UNSELECTED_COLOR)
 
+
+func fill_polygon(polygon:PackedVector2Array,
+				  color:Color, 
+				  pos_offset := Vector2i.ZERO):
+	for x in width:
+		for y in height:
+			var pos :Vector2i
+			if pos_offset:
+				pos = Vector2i(x, y) + pos_offset
+			else:
+				pos = Vector2i(x, y)
+
+			if map_rect.has_point(pos) and \
+			   Geometry2D.is_point_in_polygon(pos, polygon):
+				set_pixelv(pos, color)
 
 
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html

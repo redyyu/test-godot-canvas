@@ -43,13 +43,11 @@ func deselect():
 	
 
 
-# Eectangle
+# Rectangle
 
 func selecting_rect(sel_points :Array):
 	_current_draw = _draw_rectangle
-	points.clear()
-	for p in sel_points:
-		points.append(p)
+	points = sel_points
 	queue_redraw()
 
 
@@ -67,9 +65,7 @@ func selected_rect(sel_points :Array,
 
 func selecting_ellipse(sel_points :Array):
 	_current_draw = _draw_ellipse
-	points.clear()
-	for p in sel_points:
-		points.append(p)
+	points = sel_points
 	queue_redraw()
 
 
@@ -79,6 +75,40 @@ func selected_ellipse(sel_points :Array,
 					  intersect := false):
 	var sel_rect := get_rect_from_points(sel_points)
 	selection_map.select_ellipse(sel_rect, replace, subtract, intersect)
+	update_texture()
+	points.clear()
+
+
+# Polygon
+
+func selecting_polygon(sel_points :Array):
+	_current_draw = _draw_polyline
+	points = sel_points
+	queue_redraw()
+
+
+func selected_polygon(sel_points :Array,
+					  replace := false,
+					  subtract := false,
+					  intersect := false):
+	selection_map.select_polygon(sel_points, replace, subtract, intersect)
+	update_texture()
+	points.clear()
+
+
+# Lasso
+
+func selecting_lasso(sel_points :Array):
+	_current_draw = _draw_polyline
+	points = sel_points
+	queue_redraw()
+
+
+func selected_lasso(sel_points :Array,
+					replace := false,
+					subtract := false,
+					intersect := false):
+	selection_map.select_polygon(sel_points, replace, subtract, intersect)
 	update_texture()
 	points.clear()
 
@@ -131,3 +161,8 @@ var _draw_ellipse = func():
 		draw_set_transform(center, 0, Vector2(1, dscale))
 #	draw_rect(Rect2i(Vector2.ZERO, size), Color.WHITE, false, 1.0 / zoom_ratio)
 	draw_arc(Vector2.ZERO, radius, 0, 360, 36, Color.WHITE, 1.0 / zoom_ratio)
+
+
+var _draw_polyline = func():
+	draw_polyline(points, Color.WHITE, 1 / zoom_ratio)
+	

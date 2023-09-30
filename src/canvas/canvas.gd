@@ -8,6 +8,8 @@ var eraser := EraseDrawer.new()
 
 var rect_selector := RectSelector.new()
 var ellipse_selector := EllipseSelector.new()
+var polygon_selector := PolygonSelector.new()
+var lasso_selector := LassoSelector.new()
 
 var project :Project
 
@@ -68,8 +70,11 @@ func _ready():
 #	selection.gizmo_hovered.connect(_on_selection_gizmo_hovered)
 #	selection.gizmo_unhovered.connect(_on_selection_gizmo_unhovered)
 	
+	# attach selection to selector
 	rect_selector.selection = selection
 	ellipse_selector.selection = selection
+	polygon_selector.selection = selection
+	lasso_selector.selection = selection
 
 
 func attach_project(proj):
@@ -145,6 +150,24 @@ func process_selection(event, selector):
 			selector.select_end(pos)
 
 
+func process_selection_polygon(event, selector):
+	if event is InputEventMouseButton:
+		var pos = snapper.snap_position(get_local_mouse_position())
+		if is_pressed and not event.double_click:
+			selector.select_move(pos)
+		elif event.double_click and selector.is_selecting:
+			selector.select_end(pos)
+			
+
+func process_selection_lasso(event, selector):
+	if event is InputEventMouseMotion:
+		var pos = snapper.snap_position(get_local_mouse_position())
+		if is_pressed:
+			selector.select_move(pos)
+		elif selector.is_selecting:
+			selector.select_end(pos)
+
+
 func _input(event :InputEvent):
 	if not project.current_cel or frozen:
 		return
@@ -163,6 +186,10 @@ func _input(event :InputEvent):
 			process_selection(event, rect_selector)
 		Artboard.SELECT_ELLIPSE:
 			process_selection(event, ellipse_selector)
+		Artboard.SELECT_POLYGON:
+			process_selection_polygon(event, polygon_selector)
+		Artboard.SELECT_LASSO:
+			process_selection_lasso(event, lasso_selector)
 
 
 func _draw():

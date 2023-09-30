@@ -14,6 +14,8 @@ var current_selector :BaseSelector
 @onready var btn_6 = $BtnErase
 @onready var btn_7 = $BtnSelectRect
 @onready var btn_8 = $BtnSelectCircle
+@onready var btn_9 = $BtnSelectPolygon
+@onready var btn_10 = $BtnSelectLasso
 
 @onready var btn_lock_guide = $BtnLockGuide
 @onready var btn_show_guide = $BtnShowGuide
@@ -40,6 +42,8 @@ func _ready():
 	btn_6.pressed.connect(_on_btn_pressed.bind(btn_6))
 	btn_7.pressed.connect(_on_btn_pressed.bind(btn_7))
 	btn_8.pressed.connect(_on_btn_pressed.bind(btn_8))
+	btn_9.pressed.connect(_on_btn_pressed.bind(btn_9))
+	btn_10.pressed.connect(_on_btn_pressed.bind(btn_10))
 	
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
 	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
@@ -126,16 +130,18 @@ func _on_btn_pressed(btn):
 		'BtnSelectRect':
 			artboard.state = Artboard.SELECT_RECTANGLE
 			current_selector = artboard.canvas.rect_selector
-			current_selector.opt_from_center = btn_center_selector.button_pressed
-			current_selector.opt_as_square = btn_square_selector.button_pressed
-			current_selector.mode = opt_selection_mode.selected
 		
 		'BtnSelectCircle':
 			artboard.state = Artboard.SELECT_ELLIPSE
 			current_selector = artboard.canvas.ellipse_selector
-			current_selector.opt_from_center = btn_center_selector.button_pressed
-			current_selector.opt_as_square = btn_square_selector.button_pressed
-			current_selector.mode = opt_selection_mode.selected
+		
+		'BtnSelectPolygon':
+			artboard.state = Artboard.SELECT_POLYGON
+			current_selector = artboard.canvas.polygon_selector
+		
+		'BtnSelectLasso':
+			artboard.state = Artboard.SELECT_LASSO
+			current_selector = artboard.canvas.lasso_selector
 		
 		'BtnCenterSelector':
 			if current_selector:
@@ -150,6 +156,11 @@ func _on_btn_pressed(btn):
 		opt_alpha_dynamics.disabled = not current_drawer.allow_dyn_stroke_alpha
 		slider_stroke_width.value = current_drawer.stroke_width
 		slider_stroke_space.value = current_drawer.stroke_spacing.x
+	
+	if current_selector:
+		current_selector.opt_from_center = btn_center_selector.button_pressed
+		current_selector.opt_as_square = btn_square_selector.button_pressed
+		current_selector.mode = opt_selection_mode.selected
 
 
 func _on_stroke_dynamics(index):
