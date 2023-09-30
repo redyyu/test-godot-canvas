@@ -42,6 +42,8 @@ func select_rect(rect, replace:=false, subtract:=false, intersect:=false):
 			for y in height:
 				var pos := Vector2i(x, y)
 				if is_selected(pos) and not rect.has_point(pos):
+					# DO NOT use 2 Rect check each other.
+					# because the source selected shape can not be sure.
 					select_pixel(pos, true)
 	else:
 		if subtract:
@@ -62,11 +64,15 @@ func select_ellipse(rect, replace:=false, subtract:=false, intersect:=false):
 		
 	if intersect:
 		var tmp_map := Image.create(width, height, false, Image.FORMAT_LA8)
-		select_multipixels(ellipse_points, rect.position)
+		for p in ellipse_points:
+			var _p :Vector2i = rect.position + Vector2i(p)
+			if map_rect.has_point(_p):
+				tmp_map.set_pixelv(_p, SELECTED_COLOR)
+
 		for x in width:
 			for y in height:
 				var pos := Vector2i(x, y)
-				if not tmp_map.get_pixelv(pos).a > 0 and is_selected(pos):
+				if is_selected(pos) and not tmp_map.get_pixelv(pos).a > 0:
 					select_pixel(pos, true)
 	else:
 		select_multipixels(ellipse_points, rect.position, subtract)
