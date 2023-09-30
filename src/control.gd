@@ -66,6 +66,7 @@ func _ready():
 	artboard.show_guides = true
 	artboard.show_grid_state = Grid.NONE
 	artboard.show_symmetry_guide_state = SymmetryGuide.NONE
+
 	
 #	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
 	

@@ -75,6 +75,7 @@ func save():
 
 
 func change_size(value: Vector2i):
+	value = value.clamp(Vector2i.ONE, Vector2i(12000, 12000))
 	if is_instance_valid(tiles):
 		if size.x != 0:
 			tiles.x_basis = tiles.x_basis * value.x / size.x

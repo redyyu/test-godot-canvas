@@ -187,6 +187,21 @@ func get_selected_rect():
 	return rect 
 
 
+func move(delta :int, orientation:Orientation):
+	var tmp_img := Image.new()
+	tmp_img.copy_from(self)
+	select_none()
+	for x in tmp_img.get_width():
+		for y in tmp_img.get_height():
+			var pos := Vector2i(x, y)
+			var to_pos :Vector2i
+			match orientation:
+				HORIZONTAL: to_pos = Vector2i(x + delta, y)
+				VERTICAL: to_pos = Vector2i(x, y + delta)
+			if tmp_img.get_pixelv(pos).a > 0 and map_rect.has_point(to_pos):
+				select_pixel(to_pos)
+
+
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html
 func get_ellipse_points(pos: Vector2i, csize: Vector2i) -> PackedVector2Array:
 	var array: PackedVector2Array = []
