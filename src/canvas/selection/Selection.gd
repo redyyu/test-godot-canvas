@@ -95,8 +95,7 @@ func _draw():
 			var rect = get_rect_from_points(points)
 			if rect.size == Vector2i.ZERO:
 				return
-				
-			rect = Rect2(rect)
+			draw_rect(rect, Color.WHITE, false, 1.0 / zoom_ratio)
 			var radius :float
 			var dscale :float
 			var pos := Vector2.ZERO
@@ -113,6 +112,7 @@ func _draw():
 				dscale = rect.size.y / rect.size.x
 				pos.y = (size.y - size.y * dscale) / 2
 				draw_set_transform(pos, 0, Vector2(1, dscale))
+			draw_rect(Rect2i(Vector2.ZERO, size), Color.WHITE, false, 1.0 / zoom_ratio)
 			draw_arc(center, radius, 0, 360, 36, Color.WHITE, 1 / zoom_ratio)
 
 

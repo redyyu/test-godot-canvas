@@ -24,7 +24,7 @@ func _init():
 
 func is_selected(pos: Vector2i) -> bool:
 #	if pos.x < 0 or pox.y < 0 or pox.x >= get_width() or pos.y >= get_height():
-	if map_rect.has_point(pos):
+	if not map_rect.has_point(pos):
 		return false
 	return get_pixelv(pos).a > 0
 
@@ -41,7 +41,7 @@ func select_rect(rect, replace:=false, subtract:=false, intersect:=false):
 		for x in width:
 			for y in height:
 				var pos := Vector2i(x, y)
-				if not rect.has_point(pos) and is_selected(pos):
+				if is_selected(pos) and not rect.has_point(pos):
 					select_pixel(pos, true)
 	else:
 		if subtract:
@@ -81,7 +81,7 @@ func select_multipixels(sel_points :PackedVector2Array,
 			select_pixel(_p, subtract)
 
 
-func select_pixel(pos :Vector2i, subtract):
+func select_pixel(pos :Vector2i, subtract:=false):
 	if subtract:
 		set_pixelv(pos, UNSELECTED_COLOR)
 	else:

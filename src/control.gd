@@ -126,10 +126,16 @@ func _on_btn_pressed(btn):
 		'BtnSelectRect':
 			artboard.state = Artboard.SELECT_RECTANGLE
 			current_selector = artboard.canvas.rect_selector
+			current_selector.opt_from_center = btn_center_selector.button_pressed
+			current_selector.opt_as_square = btn_square_selector.button_pressed
+			current_selector.mode = opt_selection_mode.selected
 		
 		'BtnSelectCircle':
 			artboard.state = Artboard.SELECT_ELLIPSE
 			current_selector = artboard.canvas.ellipse_selector
+			current_selector.opt_from_center = btn_center_selector.button_pressed
+			current_selector.opt_as_square = btn_square_selector.button_pressed
+			current_selector.mode = opt_selection_mode.selected
 		
 		'BtnCenterSelector':
 			if current_selector:
