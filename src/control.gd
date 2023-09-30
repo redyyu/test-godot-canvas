@@ -19,6 +19,8 @@ var current_selector :BaseSelector
 @onready var btn_show_guide = $BtnShowGuide
 
 @onready var opt_selection_mode = $OptSelectionMode
+@onready var btn_center_selector = $BtnCenterSelector
+@onready var btn_square_selector = $BtnSquareSelector
 
 @onready var opt_stroke_dynamics = $OptStrokeBtn
 @onready var opt_alpha_dynamics = $OptAlphaBtn
@@ -43,6 +45,9 @@ func _ready():
 	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
 	
 	opt_selection_mode.item_selected.connect(_on_selection_mode)
+	
+	btn_center_selector.pressed.connect(_on_btn_pressed.bind(btn_center_selector))
+	btn_square_selector.pressed.connect(_on_btn_pressed.bind(btn_square_selector))
 	
 	opt_stroke_dynamics.item_selected.connect(_on_stroke_dynamics)
 	opt_alpha_dynamics.item_selected.connect(_on_alpha_dynamics)
@@ -121,14 +126,18 @@ func _on_btn_pressed(btn):
 		'BtnSelectRect':
 			artboard.state = Artboard.SELECT_RECTANGLE
 			current_selector = artboard.canvas.rect_selector
-			current_selector.opt_as_square = false
-			current_selector.opt_from_center = true
 		
 		'BtnSelectCircle':
-			artboard.state = Artboard.SELECT_CIRCLE
-			current_selector = artboard.canvas.circle_selector
-			current_selector.opt_as_square = false
-			current_selector.opt_from_center = false
+			artboard.state = Artboard.SELECT_ELLIPSE
+			current_selector = artboard.canvas.ellipse_selector
+		
+		'BtnCenterSelector':
+			if current_selector:
+				current_selector.opt_from_center = btn.button_pressed
+		
+		'BtnSquareSelector':
+			if current_selector:
+				current_selector.opt_as_square = btn.button_pressed
 		
 	if current_drawer:
 		opt_stroke_dynamics.disabled = not current_drawer.allow_dyn_stroke_width

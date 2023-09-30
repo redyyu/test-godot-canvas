@@ -15,6 +15,7 @@ script = ExtResource("1_tve2u")
 
 [node name="Artboard" parent="." instance=ExtResource("1_wuu8o")]
 layout_mode = 1
+rotation = 0.000137085
 
 [node name="BtnMove" type="Button" parent="."]
 layout_mode = 0
@@ -145,6 +146,24 @@ popup/item_2/text = "SUBTRECT"
 popup/item_2/id = 2
 popup/item_3/text = "INTERSECTION"
 popup/item_3/id = 3
+
+[node name="BtnCenterSelector" type="CheckButton" parent="."]
+layout_mode = 0
+offset_left = 893.0
+offset_top = 335.0
+offset_right = 1033.0
+offset_bottom = 366.0
+text = "Sel Center"
+alignment = 2
+
+[node name="BtnSquareSelector" type="CheckButton" parent="."]
+layout_mode = 0
+offset_left = 893.0
+offset_top = 371.0
+offset_right = 1033.0
+offset_bottom = 402.0
+text = "Sel Square"
+alignment = 2
 
 [node name="StrokeWidthSlider" type="ProgressBar" parent="."]
 custom_minimum_size = Vector2(85, 30)

@@ -1,4 +1,4 @@
-class_name CircleSelector extends BaseSelector
+class_name EllipseSelector extends BaseSelector
 
 
 func select_move(pos :Vector2i):
@@ -8,12 +8,13 @@ func select_move(pos :Vector2i):
 		points.resize(1)
 	points.append(pos) # append last point for rectangle.
 	
-	selection.selecting(parse_regular_points(points), Selection.CIRCLE)
+	selection.selecting_ellipse(parse_regular_points(points))
 
 
 func select_end(_pos):
 	is_selecting = false
-	selection.selected(parse_regular_points(points), mode, Selection.CIRCLE)
+	selection.selected_ellipse(parse_regular_points(points),
+							   as_replace, as_subtract, as_intersect)
 
 
 

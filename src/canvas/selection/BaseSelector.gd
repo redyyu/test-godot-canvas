@@ -1,5 +1,27 @@
 class_name BaseSelector extends RefCounted
 
+enum {
+	REPLACE,
+	ADD,
+	SUBTRACT,
+	INTERSECTION,
+}
+
+var mode := REPLACE:
+	set(val):
+		last_mode = mode
+		mode = val
+
+var last_mode := REPLACE
+	
+var as_replace :bool :
+	get: return mode == REPLACE
+	
+var as_subtract :bool :
+	get: return mode == SUBTRACT
+	
+var as_intersect :bool :
+	get: return mode == INTERSECTION
 
 var selection :Selection
 
@@ -9,13 +31,6 @@ var is_selecting := false
 
 var opt_as_square := false
 var opt_from_center := false
-
-var mode := Selection.Mode.REPLACE:
-	set(val):
-		last_mode = mode
-		mode = val
-		
-var last_mode := Selection.Mode.REPLACE
 
 
 func restore_mode():
