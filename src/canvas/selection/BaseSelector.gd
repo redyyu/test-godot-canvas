@@ -63,7 +63,7 @@ func select_end(_pos :Vector2i):
 	is_selecting = false
 
 
-func resize_selected(rect:Rect2i, pivot := Selection.Pivot.TOP_LEFT):
+func resize_selected(rect:Rect2i, pivot := Selection.Pivot):
 	selection.resize_selected(rect, pivot)
 	
 
