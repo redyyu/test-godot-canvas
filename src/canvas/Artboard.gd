@@ -121,6 +121,7 @@ func _ready():
 	camera.press_changed.connect(_on_camera_pressing)
 	
 	canvas.cursor_changed.connect(_on_canvas_change_cursor)
+	canvas.selected_changed.connect(_on_canvas_change_selected)
 	
 	trans_checker.add_sibling(reference_image)
 	
@@ -227,6 +228,9 @@ func _on_canvas_change_cursor(cursor):
 	else:
 		mouse_default_cursor_shape = Control.CURSOR_ARROW
 
+
+func _on_canvas_change_selected(cursor):
+	pass
 
 
 func _on_mouse_entered():

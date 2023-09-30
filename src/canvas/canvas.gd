@@ -1,6 +1,7 @@
 class_name Canvas extends Node2D
 
 signal cursor_changed(cursor)
+signal selected_changed(rect)
 
 var pencil := PencilDrawer.new()
 var brush := BrushDrawer.new()
@@ -10,8 +11,6 @@ var rect_selector := RectSelector.new()
 var ellipse_selector := EllipseSelector.new()
 var polygon_selector := PolygonSelector.new()
 var lasso_selector := LassoSelector.new()
-
-var selected_area := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 
 var project :Project
 
@@ -333,7 +332,7 @@ func _draw():
 
 # selection
 func _on_selected_updated(sel_rect :Rect2i):
-	selected_area = sel_rect
+	selected_changed.emit(sel_rect)
 
 
 # gizmo

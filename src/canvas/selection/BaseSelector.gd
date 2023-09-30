@@ -24,6 +24,12 @@ var as_intersect :bool :
 	get: return mode == INTERSECTION
 
 var selection :Selection
+var selected_rect :Rect2i :
+	get: 
+		if selection:
+			return selection.selected_rect
+		else:
+			return Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 
 var points :PackedVector2Array = []
 
@@ -56,6 +62,10 @@ func select_move(pos :Vector2i):
 func select_end(_pos :Vector2i):
 	is_selecting = false
 
+
+func resize_selected(rect:Rect2i, pivot := Selection.Pivot.TOP_LEFT):
+	selection.resize_selected(rect, pivot)
+	
 
 func parse_rectangle_points(sel_points:PackedVector2Array):
 	var pts :PackedVector2Array = []

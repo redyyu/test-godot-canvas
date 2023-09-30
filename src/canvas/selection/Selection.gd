@@ -3,6 +3,19 @@ class_name Selection extends Sprite2D
 
 signal selected(rect)
 
+
+enum Pivot {
+	TOP_LEFT,
+	TOP_CENTER,
+	TOP_RIGHT,
+	MIDDLE_RIGHT,
+	BOTTOM_RIGHT,
+	BOTTOM_CENTER,
+	BOTTOM_LEFT,
+	MIDDLE_LEFT,
+}
+
+
 var size := Vector2i.ONE:
 	set(val):
 		if val >= Vector2i.ONE:

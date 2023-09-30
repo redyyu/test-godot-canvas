@@ -29,6 +29,14 @@ var current_selector :BaseSelector
 @onready var slider_stroke_width = $StrokeWidthSlider
 @onready var slider_stroke_space = $StrokeSpaceSlider
 
+@onready var spin_sel_width = $SelWidth
+@onready var spin_sel_height = $SelHeight
+
+@onready var spin_sel_x = $SelPosX
+@onready var spin_sel_y = $SelPosY
+
+@onready var opt_sel_pivot = $OptSelectionPivot
+
 
 func _ready():
 	g.current_project = Project.new(Vector2i(400, 300))
@@ -59,6 +67,11 @@ func _ready():
 	slider_stroke_width.value_changed.connect(_on_stroke_width_changed)
 	slider_stroke_space.value_changed.connect(_on_stroke_space_changed)
 	
+	spin_sel_width.value_changed.connect(_on_sel_rect_changed)
+	spin_sel_height.value_changed.connect(_on_sel_rect_changed)
+	spin_sel_x.value_changed.connect(_on_sel_rect_changed)
+	spin_sel_y.value_changed.connect(_on_sel_rect_changed)
+	
 	artboard.snap_to_guide = true
 	
 	artboard.show_mouse_guide = false
@@ -67,7 +80,7 @@ func _ready():
 	artboard.show_grid_state = Grid.NONE
 	artboard.show_symmetry_guide_state = SymmetryGuide.NONE
 
-	
+	artboard.selected_changed.connect(_on_selected_changed)
 #	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
 	
 #	var image = Image.new()
@@ -188,6 +201,21 @@ func _on_stroke_space_changed(val):
 	print('Stroke Space: ', val)
 	if current_drawer:
 		current_drawer.stroke_spacing = Vector2i(val, val)
+
+
+func _on_sel_rect_changed(val):
+	print('Selection: ', val)
+	if current_selector:
+		var rect = Rect2i(Vector2i(spin_sel_x.value, spin_sel_y.value),
+						  Vector2i(spin_sel_width.value, spin_sel_width.value))
+		current_selector.resize_selected(rect, opt_sel_pivot.selected)
+
+
+func _on_selected_changed(rect):
+	spin_sel_x.value = rect.position.x
+	spin_sel_y.value = rect.position.y
+	spin_sel_height.value = rect.size.x
+	spin_sel_height.value = rect.size.y
 
 
 func _on_selection_mode(val):
