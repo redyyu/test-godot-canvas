@@ -1,5 +1,8 @@
 class_name Selection extends Sprite2D
 
+
+signal selected(rect)
+
 var size := Vector2i.ONE:
 	set(val):
 		if val >= Vector2i.ONE:
@@ -8,12 +11,15 @@ var size := Vector2i.ONE:
 #			offset = size / 2  DONT need Sprite2D offset. `centered = false`
 
 var selection_map := SelectionMap.new()
+var selected_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 var zoom_ratio := 1.0:
 	set(val):
 		zoom_ratio = val
 		refresh_material()
 
 var points :PackedVector2Array = []
+
+var is_pressed := false
 
 
 func _ready():
@@ -31,33 +37,39 @@ func get_rect_from_points(pts) -> Rect2i:
 	return Rect2i(pts[0], pts[pts.size()-1] - pts[0]).abs()
 
 
-func update_texture():
-	texture = ImageTexture.create_from_image(selection_map)
+func update_selection():
+	if selection_map.is_invisible():
+		texture = null
+		selected_rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
+	else:
+		texture = ImageTexture.create_from_image(selection_map)
+	selected_rect = selection_map.get_selected_rect()
+	selected.emit(selected_rect)
+	_current_draw = _draw_nothing
 	queue_redraw()
 
 
 func deselect():
 	points.clear()
 	selection_map.select_none()
+	_current_draw = _draw_nothing
 	texture = null
-	
-
 
 # Rectangle
 
-func selecting_rect(sel_points :Array):
+func selecting_rectangle(sel_points :Array):
 	_current_draw = _draw_rectangle
 	points = sel_points
 	queue_redraw()
 
 
-func selected_rect(sel_points :Array,
-				   replace := false,
-				   subtract := false,
-				   intersect := false):
+func selected_rectangle(sel_points :Array,
+						replace := false,
+						subtract := false,
+						intersect := false):
 	var sel_rect := get_rect_from_points(sel_points)
 	selection_map.select_rect(sel_rect, replace, subtract, intersect)
-	update_texture()
+	update_selection()
 	points.clear()
 
 
@@ -75,7 +87,7 @@ func selected_ellipse(sel_points :Array,
 					  intersect := false):
 	var sel_rect := get_rect_from_points(sel_points)
 	selection_map.select_ellipse(sel_rect, replace, subtract, intersect)
-	update_texture()
+	update_selection()
 	points.clear()
 
 
@@ -92,7 +104,7 @@ func selected_polygon(sel_points :Array,
 					  subtract := false,
 					  intersect := false):
 	selection_map.select_polygon(sel_points, replace, subtract, intersect)
-	update_texture()
+	update_selection()
 	points.clear()
 
 
@@ -109,7 +121,7 @@ func selected_lasso(sel_points :Array,
 					subtract := false,
 					intersect := false):
 	selection_map.select_polygon(sel_points, replace, subtract, intersect)
-	update_texture()
+	update_selection()
 	points.clear()
 
 
@@ -125,7 +137,10 @@ func _draw():
 	# also there is internal useage for this class only.
 
 
-var _current_draw = func():
+var _current_draw = _draw_nothing
+
+
+var _draw_nothing = func():
 	pass
 
 

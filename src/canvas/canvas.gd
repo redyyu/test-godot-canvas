@@ -11,6 +11,8 @@ var ellipse_selector := EllipseSelector.new()
 var polygon_selector := PolygonSelector.new()
 var lasso_selector := LassoSelector.new()
 
+var selected_area := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
+
 var project :Project
 
 const DEFAULT_PEN_PRESSURE := 1.0
@@ -75,6 +77,7 @@ func _ready():
 	ellipse_selector.selection = selection
 	polygon_selector.selection = selection
 	lasso_selector.selection = selection
+	selection.selected.connect(_on_selected_updated)
 
 
 func attach_project(proj):
@@ -326,6 +329,11 @@ func _draw():
 #	selection.camera_zoom = camera_zoom
 #	selection.shape_perfect = shape_perfect
 #	selection.shape_center = shape_center
+
+
+# selection
+func _on_selected_updated(sel_rect :Rect2i):
+	selected_area = sel_rect
 
 
 # gizmo

@@ -154,6 +154,39 @@ func fill_polygon(polygon:PackedVector2Array,
 				set_pixelv(pos, color)
 
 
+func get_selected_rect():
+	var rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
+	var start: Vector2i
+	var end: Vector2i
+	
+	if is_invisible():
+		return rect
+	
+	for x in width:
+		for y in height:
+			var pos := Vector2i(x, y)
+			if get_pixelv(pos).a > 0:
+				if start:
+					if start.x > pos.x:
+						start.x = pos.x
+					if start.y > pos.y:
+						start.y = pos.y
+				else:
+					start = pos
+				
+				if end:
+					if end.x < pos.x:
+						end.x = pos.x
+					if end.y < pos.y:
+						end.y = pos.y
+				else:
+					end = pos
+	
+	if start and end:
+		rect = Rect2i(start, end - start)
+	return rect 
+
+
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html
 func get_ellipse_points(pos: Vector2i, csize: Vector2i) -> PackedVector2Array:
 	var array: PackedVector2Array = []
