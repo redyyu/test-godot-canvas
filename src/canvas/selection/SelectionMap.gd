@@ -157,17 +157,18 @@ func fill_polygon(polygon:PackedVector2Array,
 
 func get_selected_rect() ->Rect2i:
 	var rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
-	var start: Vector2i
-	var end: Vector2i
-	
+	var start := Vector2i(-1, -1)
+	var end := Vector2i(-1, -1)
+	# DO NOT use `if start:` because the first possible point will be .ZERO.
+
 	if is_invisible():
 		return rect
-	
+
 	for x in width:
 		for y in height:
 			var pos := Vector2i(x, y)
 			if get_pixelv(pos).a > 0:
-				if start:
+				if start >= Vector2i.ZERO:
 					if start.x > pos.x:
 						start.x = pos.x
 					if start.y > pos.y:
@@ -175,7 +176,7 @@ func get_selected_rect() ->Rect2i:
 				else:
 					start = pos
 				
-				if end:
+				if end >= Vector2i.ZERO:
 					if end.x < pos.x:
 						end.x = pos.x
 					if end.y < pos.y:
@@ -183,7 +184,7 @@ func get_selected_rect() ->Rect2i:
 				else:
 					end = pos
 	
-	if start and end:
+	if (end - start) > Vector2i.ZERO:
 		rect = Rect2i(start, end - start + Vector2i.ONE) 
 		# size must + Vector2i.ONE, it is for make sure last point count.
 		# ex. for size (10, 10), the start (0, 0), end (9, 9).
@@ -211,13 +212,16 @@ func move_delta(delta :int, orientation:Orientation):
 func move_to(to_position :Vector2i, pivot_offset :=Vector2i.ZERO):
 	if is_invisible():
 		return 
+	var sel_rect := get_selected_rect()
 	var tmp_img := Image.new()
 	tmp_img.copy_from(self)
 	select_none()
+	var move_pos :Vector2i = (to_position - pivot_offset) - sel_rect.position
+
 	for x in tmp_img.get_width():
 		for y in tmp_img.get_height():
 			var pos := Vector2i(x, y)
-			var to_pos := pos + to_position - pivot_offset
+			var to_pos := pos + move_pos
 			if tmp_img.get_pixelv(pos).a > 0 and map_rect.has_point(to_pos):
 				select_pixel(to_pos)
 				
@@ -243,7 +247,10 @@ func resize_to(to_size :Vector2i, pivot_offset :=Vector2i.ZERO):
 
 	tmp_img.resize(to_size.x, to_size.y, INTERPOLATE_NEAREST)
 	select_none()
-	var move_pos :Vector2i = sel_rect.position - pivot_offset
+	var coef := Vector2(pivot_offset) / Vector2(to_size)
+	var size_diff :Vector2i = Vector2(sel_rect.size - to_size) * coef
+	var move_pos :Vector2i = sel_rect.position + size_diff
+	
 	for x in tmp_img.get_width():
 		for y in tmp_img.get_height():
 			var pos := Vector2i(x, y)

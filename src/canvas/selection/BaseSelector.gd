@@ -30,6 +30,9 @@ var pivot := Pivot.TOP_LEFT
 	
 var as_replace :bool :
 	get: return mode == Mode.REPLACE
+
+var as_add :bool :
+	get: return mode == Mode.ADD
 	
 var as_subtract :bool :
 	get: return mode == Mode.SUBTRACT
@@ -44,6 +47,11 @@ var selected_rect :Rect2i :
 			return selection.selected_rect
 		else:
 			return Rect2i(Vector2i.ZERO, Vector2i.ZERO)
+
+var relative_position :Vector2i :
+	get:
+		var _offset = get_pivot_offset(selected_rect.size)
+		return selected_rect.position + _offset
 
 var size :Vector2i :
 	get: 
@@ -67,6 +75,8 @@ func restore_mode():
 func reset():
 	points.clear()
 	is_selecting = false
+	if selection and mode == Mode.REPLACE:
+		selection.deselect()
 
 
 func select_start(pos :Vector2i):
@@ -85,14 +95,31 @@ func select_end(_pos :Vector2i):
 
 
 func move_to(to_pos :Vector2i):
-	selection.move_to(to_pos, get_pivot_offset(selected_rect.size))
+	var pivot_offset := get_pivot_offset(selected_rect.size)
+	var target_pos := to_pos - pivot_offset
+	var target_edge := target_pos + selected_rect.size
+	if target_pos.x < 0:
+		to_pos.x = pivot_offset.x
+	if target_pos.y < 0:
+		to_pos.y = pivot_offset.y
+	if target_edge.x > size.x:
+		to_pos.x -= target_edge.x - size.x
+	if target_edge.y > size.y:
+		to_pos.y -= target_edge.y - size.y
+
+	selection.move_to(to_pos, pivot_offset)
 
 
 func resize_to(to_size:Vector2i):
 	if to_size.x > size.x:
 		to_size.x = size.x
+	elif to_size.x < 1:
+		to_size.x = 1
+		
 	if to_size.y > size.y:
 		to_size.y = size.y
+	elif to_size.y < 1:
+		to_size.y = 1
 	
 	selection.resize_to(to_size, get_pivot_offset(to_size))
 	

@@ -73,13 +73,15 @@ func _ready():
 	spin_sel_x.value_changed.connect(_on_sel_pos_changed.bind(spin_sel_x))
 	spin_sel_y.value_changed.connect(_on_sel_pos_changed.bind(spin_sel_y))
 	
+	opt_sel_pivot.item_selected.connect(_on_sel_pivot_changed)
+	
 	artboard.snap_to_guide = true
 	
 	artboard.show_mouse_guide = false
 	artboard.show_rulers = true
 	artboard.show_guides = true
 	artboard.show_grid_state = Grid.NONE
-	artboard.show_symmetry_guide_state = SymmetryGuide.NONE
+	artboard.show_symmetry_guide_state = SymmetryGuide.CROSS_AXIS
 
 	artboard.canvas.selection_changed.connect(_on_selection_changed)
 #	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
@@ -91,7 +93,7 @@ func _ready():
 	spin_sel_height.editable = false
 	spin_sel_width.value = artboard.canvas_size.x
 	spin_sel_height.value = artboard.canvas_size.y
-	
+
 #	var image = Image.new()
 #	if image.load('res://test.png') == OK:
 #		artboard.canvas.reference_image.set_image(image)
@@ -228,10 +230,21 @@ func _on_sel_pos_changed(val, spin):
 		current_selector.move_to(rpos)
 
 
+func _on_sel_pivot_changed(val):
+	if current_selector:
+		current_selector.pivot = val
+		trigger_sel_input = false
+		spin_sel_x.value = current_selector.relative_position.x
+		spin_sel_y.value = current_selector.relative_position.y
+		trigger_sel_input = true
+
+
 func _on_selection_changed(rect):
+#	print(rect.position)
 	trigger_sel_input = false
-	spin_sel_x.value = rect.position.x
-	spin_sel_y.value = rect.position.y
+	if current_selector:
+		spin_sel_x.value = current_selector.relative_position.x
+		spin_sel_y.value = current_selector.relative_position.y
 	spin_sel_width.value = rect.size.x
 	spin_sel_height.value = rect.size.y
 	if rect.size.x and rect.size.y:
