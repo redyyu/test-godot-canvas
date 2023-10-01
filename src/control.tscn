@@ -242,11 +242,10 @@ offset_left = 900.0
 offset_top = 429.0
 offset_right = 985.0
 offset_bottom = 460.0
-min_value = 1.0
 max_value = 12000.0
 value = 1.0
 prefix = "W"
-custom_arrow_step = 100.0
+custom_arrow_step = 10.0
 
 [node name="SelHeight" type="SpinBox" parent="."]
 custom_minimum_size = Vector2(85, 30)
@@ -255,11 +254,10 @@ offset_left = 901.0
 offset_top = 467.0
 offset_right = 986.0
 offset_bottom = 498.0
-min_value = 1.0
 max_value = 12000.0
 value = 1.0
 prefix = "H"
-custom_arrow_step = 100.0
+custom_arrow_step = 10.0
 
 [node name="SelPosX" type="SpinBox" parent="."]
 custom_minimum_size = Vector2(85, 30)
@@ -268,11 +266,9 @@ offset_left = 803.0
 offset_top = 429.0
 offset_right = 888.0
 offset_bottom = 460.0
-min_value = 1.0
 max_value = 12000.0
-value = 1.0
 prefix = "X"
-custom_arrow_step = 100.0
+custom_arrow_step = 10.0
 
 [node name="SelPosY" type="SpinBox" parent="."]
 custom_minimum_size = Vector2(85, 30)
@@ -281,8 +277,6 @@ offset_left = 803.0
 offset_top = 467.0
 offset_right = 888.0
 offset_bottom = 498.0
-min_value = 1.0
 max_value = 12000.0
-value = 1.0
 prefix = "Y"
-custom_arrow_step = 100.0
+custom_arrow_step = 10.0

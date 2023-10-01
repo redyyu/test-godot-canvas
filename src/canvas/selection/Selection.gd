@@ -4,18 +4,6 @@ class_name Selection extends Sprite2D
 signal selected(rect)
 
 
-enum Pivot {
-	TOP_LEFT,
-	TOP_CENTER,
-	TOP_RIGHT,
-	MIDDLE_RIGHT,
-	BOTTOM_RIGHT,
-	BOTTOM_CENTER,
-	BOTTOM_LEFT,
-	MIDDLE_LEFT,
-}
-
-
 var size := Vector2i.ONE:
 	set(val):
 		if val >= Vector2i.ONE:
@@ -66,7 +54,13 @@ func deselect():
 	points.clear()
 	selection_map.select_none()
 	_current_draw = _draw_nothing
-	texture = null
+	update_selection()
+
+
+func resize_selection(resize_rect :Rect2i, velocity :Vector2i):
+	selection_map.resize_to(resize_rect, velocity)
+	update_selection()
+
 
 # Rectangle
 
@@ -203,7 +197,7 @@ func _input(_event):
 	if Input.is_action_pressed('ui_up'):
 		if selected_rect.position.y < delta:
 			delta = selected_rect.position.y
-		selection_map.move(-delta, VERTICAL)
+		selection_map.move_delta(-delta, VERTICAL)
 		update_selection()
 	
 	elif Input.is_action_pressed('ui_right'):
@@ -211,7 +205,7 @@ func _input(_event):
 			size.x - selected_rect.position.x - selected_rect.size.x)
 		if right_remain < delta:
 			delta = right_remain
-		selection_map.move(delta, HORIZONTAL)
+		selection_map.move_delta(delta, HORIZONTAL)
 		update_selection()
 	
 	if Input.is_action_pressed('ui_down'):
@@ -219,13 +213,13 @@ func _input(_event):
 			size.y - selected_rect.position.y - selected_rect.size.y)
 		if bottom_remain < delta:
 			delta = bottom_remain
-		selection_map.move(delta, VERTICAL)
+		selection_map.move_delta(delta, VERTICAL)
 		update_selection()
 	
 	elif Input.is_action_pressed('ui_left'):
 		if selected_rect.position.x < delta:
 			delta = selected_rect.position.x
-		selection_map.move(-delta, HORIZONTAL)
+		selection_map.move_delta(-delta, HORIZONTAL)
 		update_selection()
 	
 	

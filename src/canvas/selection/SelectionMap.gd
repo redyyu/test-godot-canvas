@@ -20,6 +20,7 @@ var map_rect :Rect2i :
 func _init():
 	var img = Image.create(1,1,false, FORMAT_LA8)
 	copy_from(img)
+	# make sure image with Alpha
 
 
 func is_selected(pos: Vector2i) -> bool:
@@ -154,7 +155,7 @@ func fill_polygon(polygon:PackedVector2Array,
 				set_pixelv(pos, color)
 
 
-func get_selected_rect():
+func get_selected_rect() ->Rect2i:
 	var rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 	var start: Vector2i
 	var end: Vector2i
@@ -187,7 +188,7 @@ func get_selected_rect():
 	return rect 
 
 
-func move(delta :int, orientation:Orientation):
+func move_delta(delta :int, orientation:Orientation):
 	var tmp_img := Image.new()
 	tmp_img.copy_from(self)
 	select_none()
@@ -199,6 +200,20 @@ func move(delta :int, orientation:Orientation):
 				HORIZONTAL: to_pos = Vector2i(x + delta, y)
 				VERTICAL: to_pos = Vector2i(x, y + delta)
 			if tmp_img.get_pixelv(pos).a > 0 and map_rect.has_point(to_pos):
+				select_pixel(to_pos)
+
+
+func resize_to(resize_rect :Rect2i, velocity :=Vector2i.ZERO):
+	var tmp_img := Image.new()
+	tmp_img.copy_from(self)
+	select_none()
+	print(resize_rect, velocity)
+	for x in tmp_img.get_width():
+		for y in tmp_img.get_height():
+			var pos := Vector2i(x, y)
+			var to_pos := pos + velocity
+			if (tmp_img.get_pixelv(pos).a > 0 and resize_rect.has_point(pos)
+				and map_rect.has_point(to_pos)):
 				select_pixel(to_pos)
 
 

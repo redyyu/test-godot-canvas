@@ -1,27 +1,39 @@
 class_name BaseSelector extends RefCounted
 
-enum {
+enum Mode {
 	REPLACE,
 	ADD,
 	SUBTRACT,
 	INTERSECTION,
 }
 
-var mode := REPLACE:
+enum Pivot {
+	TOP_LEFT,
+	TOP_CENTER,
+	TOP_RIGHT,
+	MIDDLE_RIGHT,
+	BOTTOM_RIGHT,
+	BOTTOM_CENTER,
+	BOTTOM_LEFT,
+	MIDDLE_LEFT,
+	CENTER,
+}
+
+var mode := Mode.REPLACE:
 	set(val):
 		last_mode = mode
 		mode = val
 
-var last_mode := REPLACE
+var last_mode := Mode.REPLACE
 	
 var as_replace :bool :
-	get: return mode == REPLACE
+	get: return mode == Mode.REPLACE
 	
 var as_subtract :bool :
-	get: return mode == SUBTRACT
+	get: return mode == Mode.SUBTRACT
 	
 var as_intersect :bool :
-	get: return mode == INTERSECTION
+	get: return mode == Mode.INTERSECTION
 
 var selection :Selection
 var selected_rect :Rect2i :
@@ -30,6 +42,13 @@ var selected_rect :Rect2i :
 			return selection.selected_rect
 		else:
 			return Rect2i(Vector2i.ZERO, Vector2i.ZERO)
+
+var size :Vector2i :
+	get: 
+		if selection:
+			return selection.size
+		else:
+			return Vector2i.ZERO
 
 var points :PackedVector2Array = []
 
@@ -63,8 +82,56 @@ func select_end(_pos :Vector2i):
 	is_selecting = false
 
 
-func resize_selected(rect:Rect2i, pivot := Selection.Pivot):
-	selection.resize_selected(rect, pivot)
+func resize_to(rsize:Vector2i, rpos:Vector2i, pivot := Pivot.TOP_LEFT):
+	if rsize.x > size.x:
+		rsize.x = size.x
+	if rsize.y > size.y:
+		rsize.y = size.y
+		
+	var rect = Rect2i(selected_rect.position, rsize)
+	var velocity = Vector2i(rpos.x - selected_rect.position.x,
+							rpos.y - selected_rect.position.y)
+			
+	match pivot:
+		Pivot.TOP_LEFT:
+			pass
+		Pivot.TOP_CENTER:
+			rect.position.x = (selected_rect.position.x + 
+				selected_rect.size.x - rect.size.x) / 2
+				
+		Pivot.TOP_RIGHT:
+			rect.position.x = (selected_rect.position.x + 
+				selected_rect.size.x - rect.size.x)
+
+		Pivot.MIDDLE_RIGHT:
+			rect.position.x = (selected_rect.position.x + 
+				selected_rect.size.x - rect.size.x)
+			rect.position.y = (selected_rect.position.y + 
+				(selected_rect.size.y - rect.size.y) / 2)
+
+		Pivot.BOTTOM_RIGHT:
+			rect.position.x = (selected_rect.position.x + 
+				selected_rect.size.x - rect.size.x)
+			rect.position.y = (selected_rect.position.y + 
+				selected_rect.size.y - rect.size.y)
+
+		Pivot.BOTTOM_CENTER:
+			rect.position.x = (selected_rect.position.x + 
+				(selected_rect.size.x - rect.size.x) / 2 )
+			rect.position.y = (selected_rect.position.y + 
+				selected_rect.size.y - rect.size.y)
+
+		Pivot.BOTTOM_CENTER:
+			rect.position.y = (selected_rect.position.y + 
+				selected_rect.size.y - rect.size.y)
+
+		Pivot.MIDDLE_LEFT:
+			rect.position.x = (selected_rect.position.x + 
+				selected_rect.size.x - rect.size.x)
+			rect.position.y = (selected_rect.position.y + 
+				(selected_rect.size.y - rect.size.y) / 2)
+
+	selection.resize_selection(rect, velocity)
 	
 
 func parse_rectangle_points(sel_points:PackedVector2Array):

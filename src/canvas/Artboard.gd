@@ -27,6 +27,12 @@ var state := Artboard.NONE :
 
 var project :Project
 
+var canvas_size :Vector2i:
+	get: return canvas.size
+
+var selection_rect :Vector2i:
+	get: return canvas.selection_rect
+
 var camera_offset :Vector2 :
 	get: return camera.offset
 	
@@ -121,7 +127,6 @@ func _ready():
 	camera.press_changed.connect(_on_camera_pressing)
 	
 	canvas.cursor_changed.connect(_on_canvas_change_cursor)
-	canvas.selected_changed.connect(_on_canvas_change_selected)
 	
 	trans_checker.add_sibling(reference_image)
 	
@@ -227,10 +232,6 @@ func _on_canvas_change_cursor(cursor):
 		mouse_default_cursor_shape = cursor
 	else:
 		mouse_default_cursor_shape = Control.CURSOR_ARROW
-
-
-func _on_canvas_change_selected(cursor):
-	pass
 
 
 func _on_mouse_entered():

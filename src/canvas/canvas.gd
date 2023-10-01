@@ -1,7 +1,7 @@
 class_name Canvas extends Node2D
 
 signal cursor_changed(cursor)
-signal selected_changed(rect)
+signal selection_changed(rect)
 
 var pencil := PencilDrawer.new()
 var brush := BrushDrawer.new()
@@ -13,6 +13,14 @@ var polygon_selector := PolygonSelector.new()
 var lasso_selector := LassoSelector.new()
 
 var project :Project
+var size :Vector2i :
+	get:
+		if project:
+			return project.size
+		else:
+			return Vector2i.ZERO
+var selection_rect: Rect2i :
+	get: return selection.selection_rect
 
 const DEFAULT_PEN_PRESSURE := 1.0
 const DEFAULT_PEN_VELOCITY := 1.0
@@ -76,7 +84,7 @@ func _ready():
 	ellipse_selector.selection = selection
 	polygon_selector.selection = selection
 	lasso_selector.selection = selection
-	selection.selected.connect(_on_selected_updated)
+	selection.selected.connect(_on_selection_updated)
 
 
 func attach_project(proj):
@@ -209,130 +217,9 @@ func _draw():
 			draw_texture(tex, Vector2.ZERO, modulate_color)
 
 
-#func _on_stop_draw():
-#	g.can_draw = false
-#
-#
-#func _on_reset_draw():
-#	g.can_draw = false
-#
-#
-#func _on_selection_map_changed(sel_map :SelectionMap):
-#	g.current_project.selection_map = sel_map
-#	g.current_project.selection_map_changed()
-#
-#
-#func _draw():
-#	var project = g.current_project
-#	var layers = project.layers
-#	var current_frame = project.current_frame
-#	var current_cels :Array = (project.frames[current_frame].cels)
-#
-#	var position_tmp = position
-#	var scale_tmp = scale
-#	if mirror_view:
-#		position_tmp.x = position_tmp.x + project.size.x
-#		scale_tmp.x = -1
-#	draw_set_transform(position_tmp, rotation, scale_tmp)
-#	# Draw current frame layers
-#	for i in project.layers.size():
-#		if current_cels[i] is GroupCel:
-#			continue
-#		var modulate_color := Color(1, 1, 1, current_cels[i].opacity)
-#		if layers[i].is_visible_in_hierarchy():
-#			var selected_layers = []
-#			if move_preview_location != Vector2.ZERO:
-#				for cel_pos in project.selected_cels:
-#					if cel_pos[0] == current_frame:
-#						if layers[cel_pos[1]].can_layer_get_drawn():
-#							selected_layers.append(cel_pos[1])
-#			if i in selected_layers:
-#				draw_texture(current_cels[i].image_texture, 
-#							 move_preview_location,
-#							 modulate_color)
-#			else:
-#				draw_texture(current_cels[i].image_texture,
-#							 Vector2.ZERO,
-#							 modulate_color)
-#
-#	if onion_skinning:
-#		refresh_onion()
-#	currently_visible_frame.size = project.size
-#	current_frame_drawer.queue_redraw()
-#	if project.tiles.mode != Tiles.MODE.NONE:
-#		tile_mode.queue_redraw()
-#	draw_set_transform(position, rotation, scale)
-#
-#
-#func _input(event: InputEvent):
-#	if event is InputEventMouse:
-#		var tmp_transform := get_canvas_transform().affine_inverse()
-#		current_pixel = tmp_transform.basis_xform(mouse_pos) + tmp_transform.origin
-#		queue_redraw()
-#
-#
-
-#	selection.update_zoom(camera_zoom)
-#
-#
-#func update_texture(layer_i :int, frame_i :int = -1):
-#	var project = g.current_project
-#
-#	if frame_i == -1:
-#		frame_i = project.current_frame
-#
-#	if frame_i < project.frames.size() and layer_i < project.layers.size():
-#		var current_cel: BaseCel = project.frames[frame_i].cels[layer_i]
-#		current_cel.update_texture()
-#
-#
-#func update_selected_cels_textures():
-#	var project = g.current_project
-#	for cel_index in project.selected_cels:
-#		var frame_index: int = cel_index[0]
-#		var layer_index: int = cel_index[1]
-#		if frame_index < project.frames.size() and layer_index < project.layers.size():
-#			var current_cel: BaseCel = project.frames[frame_index].cels[layer_index]
-#			current_cel.update_texture()
-#
-#
-#func refresh_onion():
-#	onion_past.queue_redraw()
-#	onion_future.queue_redraw()
-#
-#
-#func refresh_pixel_grid():
-#	pixel_grid.camera_zoom = camera_zoom
-#	pixel_grid.draw_pixel_grid = draw_pixel_grid
-#	pixel_grid.queue_redraw()
-#
-#
-#func refresh_grid():
-#	if grid_draw_over_tile_mode:
-#		grid.target_rect = g.current_project.tiles.get_bounding_rect()
-#	else:
-#		grid.target_rect = Rect2i(Vector2.ZERO, g.current_project.size)
-#	grid.queue_redraw()
-#
-#
-#func refresh_tile_mode():
-#	tile_mode.mirror_view = mirror_view
-#	tile_mode.currently_visible_frame = currently_visible_frame
-#	tile_mode.queue_redraw()
-#
-#
-#func update_selection():
-#	var project = g.current_project
-#	selection.current_size = project.size
-#	selection.current_layer = project.layers[project.current_layer]
-#	selection.camera_zoom = camera_zoom
-#	selection.shape_perfect = shape_perfect
-#	selection.shape_center = shape_center
-
-
 # selection
-func _on_selected_updated(sel_rect :Rect2i):
-	selected_changed.emit(sel_rect)
+func _on_selection_updated(sel_rect :Rect2i):
+	selection_changed.emit(sel_rect)
 
 
 # gizmo
@@ -346,10 +233,10 @@ func _on_selection_gizmo_unhovered(_gizmo):
 
 # snapping
 
-func attach_snap_to(size:Vector2, guides:Array, grid:Grid):
+func attach_snap_to(canvas_size:Vector2, guides:Array, grid:Grid):
 	snapper.guides = guides
 	snapper.grid = grid
-	snapper.canvas_size = size
+	snapper.canvas_size = canvas_size
 
 
 func snap_to_guide(val := false):
