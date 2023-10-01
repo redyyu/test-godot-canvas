@@ -192,6 +192,8 @@ func get_selected_rect() ->Rect2i:
 
 
 func move_delta(delta :int, orientation:Orientation):
+	if is_invisible():
+		return 
 	var tmp_img := Image.new()
 	tmp_img.copy_from(self)
 	select_none()
@@ -206,7 +208,21 @@ func move_delta(delta :int, orientation:Orientation):
 				select_pixel(to_pos)
 
 
-func resize_to(to_size :Vector2i, to_position :=Vector2i.ZERO):
+func move_to(to_position :Vector2i, pivot_offset :=Vector2i.ZERO):
+	if is_invisible():
+		return 
+	var tmp_img := Image.new()
+	tmp_img.copy_from(self)
+	select_none()
+	for x in tmp_img.get_width():
+		for y in tmp_img.get_height():
+			var pos := Vector2i(x, y)
+			var to_pos := pos + to_position - pivot_offset
+			if tmp_img.get_pixelv(pos).a > 0 and map_rect.has_point(to_pos):
+				select_pixel(to_pos)
+				
+
+func resize_to(to_size :Vector2i, pivot_offset :=Vector2i.ZERO):
 	if is_invisible():
 		return 
 	var sel_rect := get_selected_rect()
@@ -227,11 +243,11 @@ func resize_to(to_size :Vector2i, to_position :=Vector2i.ZERO):
 
 	tmp_img.resize(to_size.x, to_size.y, INTERPOLATE_NEAREST)
 	select_none()
-	
+	var move_pos :Vector2i = sel_rect.position - pivot_offset
 	for x in tmp_img.get_width():
 		for y in tmp_img.get_height():
 			var pos := Vector2i(x, y)
-			var new_pos := pos + to_position
+			var new_pos := pos + move_pos
 			if tmp_img.get_pixelv(pos).a > 0 and map_rect.has_point(new_pos):
 				select_pixel(new_pos)
 

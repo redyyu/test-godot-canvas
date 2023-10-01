@@ -57,8 +57,13 @@ func deselect():
 	update_selection()
 
 
-func resize_selection(new_size :Vector2i, move_pos :=Vector2i.ZERO):
-	selection_map.resize_to(new_size, move_pos)
+func move_to(to_pos :Vector2i, pivot_offset :=Vector2i.ZERO):
+	selection_map.move_to(to_pos, pivot_offset)
+	update_selection()
+
+
+func resize_to(to_size :Vector2i, pivot_offset :=Vector2i.ZERO):
+	selection_map.resize_to(to_size, pivot_offset)
 	update_selection()
 
 

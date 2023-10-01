@@ -7,6 +7,13 @@ enum Mode {
 	INTERSECTION,
 }
 
+var mode := Mode.REPLACE:
+	set(val):
+		last_mode = mode
+		mode = val
+
+var last_mode := Mode.REPLACE
+
 enum Pivot {
 	TOP_LEFT,
 	TOP_CENTER,
@@ -19,12 +26,7 @@ enum Pivot {
 	CENTER,
 }
 
-var mode := Mode.REPLACE:
-	set(val):
-		last_mode = mode
-		mode = val
-
-var last_mode := Mode.REPLACE
+var pivot := Pivot.TOP_LEFT
 	
 var as_replace :bool :
 	get: return mode == Mode.REPLACE
@@ -82,47 +84,55 @@ func select_end(_pos :Vector2i):
 	is_selecting = false
 
 
-func resize_to(to_size:Vector2i, to_pos:Vector2i, pivot := Pivot.TOP_LEFT):
+func move_to(to_pos :Vector2i):
+	selection.move_to(to_pos, get_pivot_offset(selected_rect.size))
+
+
+func resize_to(to_size:Vector2i):
 	if to_size.x > size.x:
 		to_size.x = size.x
 	if to_size.y > size.y:
 		to_size.y = size.y
 	
-	var resize_to_pos := Vector2i.ZERO
+	selection.resize_to(to_size, get_pivot_offset(to_size))
 	
+
+func get_pivot_offset(to_size:Vector2i) -> Vector2i:
+	var _offset = Vector2i.ZERO
 	match pivot:
 		Pivot.TOP_LEFT:
 			pass
+			
 		Pivot.TOP_CENTER:
-			to_pos.x = to_pos.x - to_size.x / 2
+			_offset.x = to_size.x / 2.0
 
 		Pivot.TOP_RIGHT:
-			to_pos.x = to_pos.x - to_size.x
+			_offset.x = to_size.x
 
 		Pivot.MIDDLE_RIGHT:
-			to_pos.x = to_pos.x - to_size.x
-			to_pos.y = to_pos.y - to_size.y / 2
+			_offset.x = to_size.x
+			_offset.y = to_size.y / 2.0
 
 		Pivot.BOTTOM_RIGHT:
-			to_pos.x = to_pos.x - to_size.x
-			to_pos.y = to_pos.y - to_size.y
+			_offset.x = to_size.x
+			_offset.y = to_size.y
 
 		Pivot.BOTTOM_CENTER:
-			to_pos.x = to_pos.x - to_size.x / 2
-			to_pos.y = to_pos.y - to_size.y
+			_offset.x = to_size.x / 2.0
+			_offset.y = to_size.y
 
 		Pivot.BOTTOM_LEFT:
-			to_pos.y = to_pos.y - to_size.y
+			_offset.y = to_size.y
 
 		Pivot.MIDDLE_LEFT:
-			to_pos.y = to_pos.y - to_size.y / 2
+			_offset.y = to_size.y / 2.0
 		
 		Pivot.CENTER:
-			to_pos.x = to_pos.x - to_size.x / 2
-			to_pos.y = to_pos.y - to_size.y / 2
+			_offset.x = to_size.x / 2.0
+			_offset.y = to_size.y / 2.0
+			
+	return _offset
 
-	selection.resize_selection(to_size, to_pos)
-	
 
 func parse_rectangle_points(sel_points:PackedVector2Array):
 	var pts :PackedVector2Array = []

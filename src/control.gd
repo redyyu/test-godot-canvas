@@ -68,10 +68,10 @@ func _ready():
 	slider_stroke_width.value_changed.connect(_on_stroke_width_changed)
 	slider_stroke_space.value_changed.connect(_on_stroke_space_changed)
 	
-	spin_sel_width.value_changed.connect(_on_sel_rect_changed.bind(spin_sel_width))
-	spin_sel_height.value_changed.connect(_on_sel_rect_changed.bind(spin_sel_height))
-	spin_sel_x.value_changed.connect(_on_sel_rect_changed.bind(spin_sel_x))
-	spin_sel_y.value_changed.connect(_on_sel_rect_changed.bind(spin_sel_y))
+	spin_sel_width.value_changed.connect(_on_sel_size_changed.bind(spin_sel_width))
+	spin_sel_height.value_changed.connect(_on_sel_size_changed.bind(spin_sel_height))
+	spin_sel_x.value_changed.connect(_on_sel_pos_changed.bind(spin_sel_x))
+	spin_sel_y.value_changed.connect(_on_sel_pos_changed.bind(spin_sel_y))
 	
 	artboard.snap_to_guide = true
 	
@@ -214,12 +214,18 @@ func _on_stroke_space_changed(val):
 
 var trigger_sel_input := false
 
-func _on_sel_rect_changed(val, spin):
+func _on_sel_size_changed(val, spin):
 	if current_selector and trigger_sel_input:
-		print(spin.name, ' Selection: ', val)
-		var rpos = Vector2i(spin_sel_x.value, spin_sel_y.value)
+		print(spin.name, ' Selection SIZE: ', val)
 		var rsize = Vector2i(spin_sel_width.value, spin_sel_height.value)
-		current_selector.resize_to(rsize, rpos, opt_sel_pivot.selected)
+		current_selector.resize_to(rsize)
+
+
+func _on_sel_pos_changed(val, spin):
+	if current_selector and trigger_sel_input:
+		print(spin.name, ' Selection POS: ', val)
+		var rpos = Vector2i(spin_sel_x.value, spin_sel_y.value)
+		current_selector.move_to(rpos)
 
 
 func _on_selection_changed(rect):
