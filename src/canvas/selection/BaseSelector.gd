@@ -82,56 +82,46 @@ func select_end(_pos :Vector2i):
 	is_selecting = false
 
 
-func resize_to(rsize:Vector2i, rpos:Vector2i, pivot := Pivot.TOP_LEFT):
-	if rsize.x > size.x:
-		rsize.x = size.x
-	if rsize.y > size.y:
-		rsize.y = size.y
-		
-	var rect = Rect2i(selected_rect.position, rsize)
-	var velocity = Vector2i(rpos.x - selected_rect.position.x,
-							rpos.y - selected_rect.position.y)
-			
+func resize_to(to_size:Vector2i, to_pos:Vector2i, pivot := Pivot.TOP_LEFT):
+	if to_size.x > size.x:
+		to_size.x = size.x
+	if to_size.y > size.y:
+		to_size.y = size.y
+	
+	var resize_to_pos := Vector2i.ZERO
+	
 	match pivot:
 		Pivot.TOP_LEFT:
 			pass
 		Pivot.TOP_CENTER:
-			rect.position.x = (selected_rect.position.x + 
-				selected_rect.size.x - rect.size.x) / 2
-				
+			to_pos.x = to_pos.x - to_size.x / 2
+
 		Pivot.TOP_RIGHT:
-			rect.position.x = (selected_rect.position.x + 
-				selected_rect.size.x - rect.size.x)
+			to_pos.x = to_pos.x - to_size.x
 
 		Pivot.MIDDLE_RIGHT:
-			rect.position.x = (selected_rect.position.x + 
-				selected_rect.size.x - rect.size.x)
-			rect.position.y = (selected_rect.position.y + 
-				(selected_rect.size.y - rect.size.y) / 2)
+			to_pos.x = to_pos.x - to_size.x
+			to_pos.y = to_pos.y - to_size.y / 2
 
 		Pivot.BOTTOM_RIGHT:
-			rect.position.x = (selected_rect.position.x + 
-				selected_rect.size.x - rect.size.x)
-			rect.position.y = (selected_rect.position.y + 
-				selected_rect.size.y - rect.size.y)
+			to_pos.x = to_pos.x - to_size.x
+			to_pos.y = to_pos.y - to_size.y
 
 		Pivot.BOTTOM_CENTER:
-			rect.position.x = (selected_rect.position.x + 
-				(selected_rect.size.x - rect.size.x) / 2 )
-			rect.position.y = (selected_rect.position.y + 
-				selected_rect.size.y - rect.size.y)
+			to_pos.x = to_pos.x - to_size.x / 2
+			to_pos.y = to_pos.y - to_size.y
 
-		Pivot.BOTTOM_CENTER:
-			rect.position.y = (selected_rect.position.y + 
-				selected_rect.size.y - rect.size.y)
+		Pivot.BOTTOM_LEFT:
+			to_pos.y = to_pos.y - to_size.y
 
 		Pivot.MIDDLE_LEFT:
-			rect.position.x = (selected_rect.position.x + 
-				selected_rect.size.x - rect.size.x)
-			rect.position.y = (selected_rect.position.y + 
-				(selected_rect.size.y - rect.size.y) / 2)
+			to_pos.y = to_pos.y - to_size.y / 2
+		
+		Pivot.CENTER:
+			to_pos.x = to_pos.x - to_size.x / 2
+			to_pos.y = to_pos.y - to_size.y / 2
 
-	selection.resize_selection(rect, velocity)
+	selection.resize_selection(to_size, to_pos)
 	
 
 func parse_rectangle_points(sel_points:PackedVector2Array):

@@ -85,10 +85,10 @@ func _ready():
 #	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
 	
 	
-#	spin_sel_x.editable = false
-#	spin_sel_y.editable = false
-#	spin_sel_width.editable = false
-#	spin_sel_height.editable = false
+	spin_sel_x.editable = false
+	spin_sel_y.editable = false
+	spin_sel_width.editable = false
+	spin_sel_height.editable = false
 	spin_sel_width.value = artboard.canvas_size.x
 	spin_sel_height.value = artboard.canvas_size.y
 	
@@ -212,31 +212,34 @@ func _on_stroke_space_changed(val):
 		current_drawer.stroke_spacing = Vector2i(val, val)
 
 
+var trigger_sel_input := false
+
 func _on_sel_rect_changed(val, spin):
-	if current_selector:
-		print('Selection: ', val)
+	if current_selector and trigger_sel_input:
+		print(spin.name, ' Selection: ', val)
 		var rpos = Vector2i(spin_sel_x.value, spin_sel_y.value)
 		var rsize = Vector2i(spin_sel_width.value, spin_sel_height.value)
 		current_selector.resize_to(rsize, rpos, opt_sel_pivot.selected)
 
 
 func _on_selection_changed(rect):
-	pass
-#	spin_sel_x.value = rect.position.x
-#	spin_sel_y.value = rect.position.y
-#	spin_sel_width.value = rect.size.x
-#	spin_sel_height.value = rect.size.y
-#	if rect.size.x and rect.size.y:
-#		spin_sel_x.editable = true
-#		spin_sel_y.editable = true
-#		spin_sel_width.editable = true
-#		spin_sel_height.editable = true
-#	else:
-#		spin_sel_x.editable = false
-#		spin_sel_y.editable = false
-#		spin_sel_width.editable = false
-#		spin_sel_height.editable = false
-
+	trigger_sel_input = false
+	spin_sel_x.value = rect.position.x
+	spin_sel_y.value = rect.position.y
+	spin_sel_width.value = rect.size.x
+	spin_sel_height.value = rect.size.y
+	if rect.size.x and rect.size.y:
+		spin_sel_x.editable = true
+		spin_sel_y.editable = true
+		spin_sel_width.editable = true
+		spin_sel_height.editable = true
+	else:
+		spin_sel_x.editable = false
+		spin_sel_y.editable = false
+		spin_sel_width.editable = false
+		spin_sel_height.editable = false
+	trigger_sel_input = true
+	
 
 func _on_selection_mode(val):
 	if current_selector:

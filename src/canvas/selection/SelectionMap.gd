@@ -18,7 +18,7 @@ var map_rect :Rect2i :
 
 
 func _init():
-	var img = Image.create(1,1,false, FORMAT_LA8)
+	var img = Image.create(1, 1, false, FORMAT_LA8)
 	copy_from(img)
 	# make sure image with Alpha
 
@@ -184,7 +184,10 @@ func get_selected_rect() ->Rect2i:
 					end = pos
 	
 	if start and end:
-		rect = Rect2i(start, end - start)
+		rect = Rect2i(start, end - start + Vector2i.ONE) 
+		# size must + Vector2i.ONE, it is for make sure last point count.
+		# ex. for size (10, 10), the start (0, 0), end (9, 9).
+		# but end - start will be (9, 9).
 	return rect 
 
 
@@ -203,18 +206,34 @@ func move_delta(delta :int, orientation:Orientation):
 				select_pixel(to_pos)
 
 
-func resize_to(resize_rect :Rect2i, velocity :=Vector2i.ZERO):
-	var tmp_img := Image.new()
-	tmp_img.copy_from(self)
+func resize_to(to_size :Vector2i, to_position :=Vector2i.ZERO):
+	if is_invisible():
+		return 
+	var sel_rect := get_selected_rect()
+	var tmp_img := Image.create(sel_rect.size.x, sel_rect.size.y, 
+								false, FORMAT_LA8)
+	
+	var x_range = range(sel_rect.position.x, 
+						sel_rect.position.x + sel_rect.size.x)
+	var y_range = range(sel_rect.position.y,
+						sel_rect.position.y + sel_rect.size.y)
+	
+	for x in x_range:
+		for y in y_range:
+			var pos := Vector2i(x, y)
+			if is_selected(pos):
+				var tmp_pos = pos - sel_rect.position
+				tmp_img.set_pixelv(tmp_pos, SELECTED_COLOR)
+
+	tmp_img.resize(to_size.x, to_size.y, INTERPOLATE_NEAREST)
 	select_none()
-	print(resize_rect, velocity)
+	
 	for x in tmp_img.get_width():
 		for y in tmp_img.get_height():
 			var pos := Vector2i(x, y)
-			var to_pos := pos + velocity
-			if (tmp_img.get_pixelv(pos).a > 0 and resize_rect.has_point(pos)
-				and map_rect.has_point(to_pos)):
-				select_pixel(to_pos)
+			var new_pos := pos + to_position
+			if tmp_img.get_pixelv(pos).a > 0 and map_rect.has_point(new_pos):
+				select_pixel(new_pos)
 
 
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html
