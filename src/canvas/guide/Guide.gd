@@ -8,6 +8,7 @@ signal locked(guide)
 
 const DEFAULT_WIDTH := 2
 const LINE_COLOR := Color.REBECCA_PURPLE
+const TO_SNAP_SELECTION := 10
 
 var relative_offset := Vector2.ZERO 
 # it is calculated position to parent scene when zoom is 1.0

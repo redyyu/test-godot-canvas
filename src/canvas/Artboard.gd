@@ -196,9 +196,11 @@ func place_guides():
 				HORIZONTAL:
 					var _y = guide.relative_offset.y * camera_zoom.y
 					guide.position.y = camera_origin.y + _y
+					print(_y,' / ', camera_origin.y, ' / ', guide.relative_offset.y)
 				VERTICAL:
 					var _x = guide.relative_offset.x * camera_zoom.x
 					guide.position.x = camera_origin.x + _x 
+					print(_x,' / ', camera_origin.x, ' / ',guide.relative_offset.x)
 
 
 func _on_artboard_resized():
@@ -288,8 +290,11 @@ func _on_guide_pressed(guide):
 func _on_guide_released(guide):
 #	guide.is_locked = guides_locked or state != Artboard.MOVE
 	guide.is_locked = guides_locked
-	guide.relative_offset = (guide.position - camera_origin) / camera_zoom
-	# calculate to the right position when zoom is 1.0.
+	guide.relative_offset = Vector2i(
+		(guide.position - camera_origin) / camera_zoom)
+	var relative_position = canvas.get_local_mouse_position()
+	print(guide.relative_offset)
+	# calculate to the relative position might not working precisely.
 	# otherwise position might mess-up place guide while is zoomed.
 	match guide.orientation:
 		HORIZONTAL:
@@ -302,10 +307,14 @@ func _on_guide_released(guide):
 			elif selected_rect.size != Vector2i.ZERO:
 				var sel_y = selected_rect.position.y
 				var sel_y2 = selected_rect.position.y + selected_rect.size.y
-				if abs(guide.position.y - sel_y) < guide.TO_SNAP_SELECTION:
-					guide.position.y = sel_y
-				elif abs(guide.position.y - sel_y2) < guide.TO_SNAP_SELECTION:
-					guide.position.y = sel_y2
+				var rel_y = camera_origin.y + sel_y * camera_zoom.y
+				var rel_y2 = camera_origin.y + sel_y2 * camera_zoom.y
+				
+				if abs(guide.position.y - rel_y) < guide.TO_SNAP_SELECTION:
+					guide.position.y = rel_y
+				elif abs(guide.position.y - rel_y2) < guide.TO_SNAP_SELECTION:
+					guide.position.y = rel_y2
+				print(guide.position.y)
 		VERTICAL:
 			if guide.position.x < v_ruler.size.x:
 				guide.pressed.disconnect(_on_guide_pressed)
@@ -316,7 +325,11 @@ func _on_guide_released(guide):
 			elif selected_rect.size != Vector2i.ZERO:
 				var sel_x = selected_rect.position.x
 				var sel_x2 = selected_rect.position.x + selected_rect.size.x
-				if abs(guide.position.x - sel_x) < guide.TO_SNAP_SELECTION:
-					guide.position.x = sel_x
-				elif abs(guide.position.x - sel_x2) < guide.TO_SNAP_SELECTION:
-					guide.position.x = sel_x2
+				var rel_x = camera_origin.x + sel_x * camera_zoom.x
+				var rel_x2 = camera_origin.x + sel_x2 * camera_zoom.x
+				
+				if abs(guide.position.x - rel_x) < guide.TO_SNAP_SELECTION:
+					guide.position.x = rel_x
+				elif abs(guide.position.x - rel_x2) < guide.TO_SNAP_SELECTION:
+					guide.position.x = rel_x2
+				print(guide.position.x)

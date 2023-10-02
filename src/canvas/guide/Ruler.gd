@@ -3,7 +3,6 @@ class_name Ruler extends Button
 signal guide_created(orientation)
 
 const RULER_WIDTH := 16
-const TO_SNAP_SELECTION := 6
 
 @export var orientation :Orientation = HORIZONTAL
 
