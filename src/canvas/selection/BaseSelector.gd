@@ -84,7 +84,7 @@ func reset():
 
 func select_start(pos :Vector2i):
 	reset()
-	if selection.has_point(pos):
+	if selection.has_point(pos, true):
 		is_moving = true
 	else:
 		if mode == Mode.REPLACE:

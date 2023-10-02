@@ -51,8 +51,11 @@ func has_selected() -> bool:
 	return selected_rect.has_area()
 
 
-func has_point(point) -> bool:
-	return selected_rect.has_point(point)
+func has_point(point :Vector2i, precisely := false) -> bool:
+	if selected_rect.has_area() and selected_rect.has_point(point):
+		return selection_map.is_selected(point)
+	else:
+		return false
 
 
 func deselect():
