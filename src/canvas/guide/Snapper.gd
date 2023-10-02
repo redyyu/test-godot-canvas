@@ -180,8 +180,7 @@ func process_snap_to_guide(pos :Vector2,
 				snap_to.x = snap.x
 			else:
 				snap_to = snap
-	if snap_to != Vector2.INF:
-		print(snap_to)
+
 	return snap_to
 
 

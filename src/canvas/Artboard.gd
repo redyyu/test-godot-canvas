@@ -129,6 +129,7 @@ func _ready():
 	camera.press_changed.connect(_on_camera_pressing)
 	
 	canvas.cursor_changed.connect(_on_canvas_change_cursor)
+	canvas.operating.connect(_on_canvas_operating)
 	
 	trans_checker.add_sibling(reference_image)
 	
@@ -230,6 +231,13 @@ func _on_camera_pressing(is_pressed):
 			mouse_default_cursor_shape = Control.CURSOR_DRAG
 		else:
 			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+
+func _on_canvas_operating(_state, _operator, is_finished):
+	if is_finished:
+		_lock_guides(guides_locked)
+	else:
+		_lock_guides(true)
 
 
 func _on_canvas_change_cursor(cursor):

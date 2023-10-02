@@ -2,6 +2,7 @@ class_name Canvas extends Node2D
 
 signal cursor_changed(cursor)
 signal selection_changed(rect)
+signal operating(operate_state, operater, is_finished)
 
 var pencil := PencilDrawer.new()
 var brush := BrushDrawer.new()
@@ -143,11 +144,13 @@ func process_drawing_or_erasing(event, drawer):
 						drawer.set_stroke_alpha_dynamics() # back to default
 				drawer.draw_move(pos)
 				project.current_cel.update_texture()
+				operating.emit(state, drawer, false)
 				queue_redraw()
 				
 		elif drawer.is_drawing:
 			drawer.draw_end(pos)
 			project.current_cel.update_texture()
+			operating.emit(state, drawer, true)
 			queue_redraw()
 
 
@@ -156,8 +159,10 @@ func process_selection(event, selector):
 		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed:
 			selector.select_move(pos)
+			operating.emit(state, selector, false)
 		elif selector.is_selecting:
 			selector.select_end(pos)
+			operating.emit(state, selector, true)
 
 
 func process_selection_polygon(event, selector):
@@ -165,8 +170,10 @@ func process_selection_polygon(event, selector):
 		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed and not event.double_click:
 			selector.select_move(pos)
+			operating.emit(state, selector, false)
 		elif event.double_click and selector.is_selecting:
 			selector.select_end(pos)
+			operating.emit(state, selector, true)
 			
 
 func process_selection_lasso(event, selector):
@@ -174,8 +181,10 @@ func process_selection_lasso(event, selector):
 		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed:
 			selector.select_move(pos)
+			operating.emit(state, selector, false)
 		elif selector.is_selecting:
 			selector.select_end(pos)
+			operating.emit(state, selector, true)
 
 
 func _input(event :InputEvent):
