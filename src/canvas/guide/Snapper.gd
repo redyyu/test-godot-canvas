@@ -1,39 +1,45 @@
 class_name Snapper extends RefCounted
 
-var canvas_size := Vector2.ZERO
+const SNAPPING_DISTANCE := 12.0
+
+var canvas_size := Vector2i.ZERO
 
 var snap_to_grid_boundary := false
 var snap_to_grid_center := false
-var snap_to_guides := false
+var snap_to_guide := false
+var snap_to_symmetry_guide := false
 #var snap_to_perspective_guides := false
-
-var snapping_distance := 12.0
 
 var grid :Grid
 var guides :Array[Guide]
-var guide_orientation = null
+var symmetry_guide :SymmetryGuide
 
 
-func snap_position(pos: Vector2) -> Vector2:
+func snap_position(pos: Vector2) -> Vector2: # NO need Vector2i, floor at end.
 	if grid == null or guides == null:
 		return pos
 		
-	var snap_to_pos: Vector2 = Vector2.INF
+	var snap_to_pos := Vector2.INF
 	
-	if snap_to_guides and snap_to_pos == Vector2.INF:
+	if snap_to_guide and snap_to_pos == Vector2.INF:
 		snap_to_pos = process_snap_to_guide(pos,
 											guides,
-											snapping_distance)
+											SNAPPING_DISTANCE)
+	
+	if snap_to_symmetry_guide and snap_to_pos == Vector2.INF:
+		snap_to_pos = process_snap_to_symmetry(pos,
+											   symmetry_guide,
+											   SNAPPING_DISTANCE)
 
 	if snap_to_grid_center and snap_to_pos == Vector2.INF:
 		snap_to_pos = process_snap_to_grid_center(pos,
 												  grid.grid_size,
-												  snapping_distance)
+												  SNAPPING_DISTANCE)
 
 	if snap_to_grid_boundary and snap_to_pos == Vector2.INF:
 		snap_to_pos = process_snap_to_grid_boundary(pos,
 													grid.grid_size,
-													snapping_distance)
+													SNAPPING_DISTANCE)
 #	if snap_to_perspective_guides:
 #		snap_to_pos = process_snap_to_perspective_guides(pos, vanishing_points)
 
@@ -105,33 +111,77 @@ func process_snap_to_grid_center(pos :Vector2,
 	return snap_to
 	
 
+func process_snap_to_symmetry(pos :Vector2,
+							  symmetry :SymmetryGuide,
+							  distance :float) -> Vector2:
+	var snap_to := Vector2.INF
+	
+	if not symmetry:
+		return snap_to
+	
+	var snap := Vector2.INF
+	var s1 := Vector2.ZERO
+	var s2 := Vector2.ZERO
+	
+	if symmetry.h_symmetry_guide.visible:
+		s1 = Vector2i(0, round(canvas_size.y / 2.0))
+		s2 = Vector2i(canvas_size.x, round(canvas_size.y / 2.0))
+		snap = _snap_to_guide(snap_to, pos, distance, s1, s2)
+		if snap != Vector2.INF:
+			snap_to = snap
+			
+	if symmetry.v_symmetry_guide.visible:
+		s1 = Vector2i(round(canvas_size.x / 2.0), 0)
+		s2 = Vector2i(round(canvas_size.x / 2.0), canvas_size.y)
+		snap = _snap_to_guide(snap_to, pos, distance, s1, s2)
+		if snap != Vector2.INF:
+			if snap_to != Vector2.INF:
+				snap_to.x = snap.x
+			else:
+				snap_to = snap
+		
+	return snap_to
+
+
 func process_snap_to_guide(pos :Vector2,
 						   to_guides :Array,
 						   distance :float) -> Vector2:
 	var snap_to := Vector2.INF
-	for guide in to_guides:
-		# there is no need check guide is cross over.
-		# cross over might cause unexcpet pixel drawing.
-		# but, why need they don't snap when drwaing?
-		# I checked other photo edtior software, 
-		# they don't snap while drating either.
-		var s1 := Vector2.ZERO
-		var s2 := Vector2.ZERO
-		match guide.orientation:
-			# the guide is place on outside the viewport, 
-			# so use `relative_offset`, this croodinate is calculated 
-			# when place the guide.
-			# guide is cross the canvas, so one of croodinate is uesless.
-			# for horizontal is y, vertical is x,
-			HORIZONTAL:
-				s1 = Vector2(0, guide.relative_offset.y)
-				s2 = Vector2(canvas_size.x, guide.relative_offset.y)
-			VERTICAL:
-				s1 = Vector2(guide.relative_offset.x, 0)
-				s2 = Vector2(guide.relative_offset.x, canvas_size.y)
+	
+	# split two array is for guides might cross over.
+	var h_guides = to_guides.filter(
+		func(guide): return guide.orientation == HORIZONTAL)
+	var v_guides = to_guides.filter(
+		func(guide): return guide.orientation == VERTICAL)
+
+	for guide in h_guides:
+		# the guide is place on outside the viewport, 
+		# so use `relative_position`, this get form canvas when released.
+		# when place the guide.
+		# guide is cross the canvas, so one of croodinate is uesless.
+		# for horizontal is y, vertical is x,
+		var s1 := Vector2(0, guide.relative_position.y)
+		var s2 := Vector2(canvas_size.x, guide.relative_position.y)
 		var snap := _snap_to_guide(snap_to, pos, distance, s1, s2)
 		if snap != Vector2.INF:
 			snap_to = snap
+	
+	for guide in v_guides:
+		# the guide is place on outside the viewport, 
+		# so use `relative_position`, this get form canvas when released.
+		# when place the guide.
+		# guide is cross the canvas, so one of croodinate is uesless.
+		# for horizontal is y, vertical is x,
+		var s1 := Vector2(guide.relative_position.x, 0)
+		var s2 := Vector2(guide.relative_position.x, canvas_size.y)
+		var snap := _snap_to_guide(snap_to, pos, distance, s1, s2)
+		if snap != Vector2.INF:
+			if snap_to != Vector2.INF:
+				snap_to.x = snap.x
+			else:
+				snap_to = snap
+	if snap_to != Vector2.INF:
+		print(snap_to)
 	return snap_to
 
 
@@ -151,7 +201,7 @@ func process_snap_to_perspective_guide(pos, vanishing_points):
 									   length * sin(angle))
 				var tmp_snap := _snap_to_guide(snap_to,
 											   pos, 
-											   snapping_distance,
+											   SNAPPING_DISTANCE,
 											   s1,
 											   s2)
 				if tmp_snap == Vector2.INF:

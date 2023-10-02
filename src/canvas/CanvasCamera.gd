@@ -25,9 +25,6 @@ var zoom_in_max := Vector2(100, 100)
 var zoom_out_max := Vector2(0.1, 0.1)
 var zoom_center_point := Vector2.ZERO
 
-var canvas_origin := Vector2.ZERO
-var canvas_scale := Vector2.ZERO
-
 var use_integer_zoom := false
 
 var btn_pressed := false
@@ -44,21 +41,21 @@ func _input(event: InputEvent):
 			zoom_camera(1)
 		else:
 			zoom_camera(-1)
-		send_camera_zoomed()
+		zoomed.emit()
 	elif event is InputEventPanGesture and OS.get_name() != "Android":
 		# Pan Gesture on a laptop touchpad
 		offset = offset + event.delta * 7.0 / zoom
-		send_camera_dragged()
+		dragged.emit()
 	
 	# hit the hot key directly.
 	elif event.is_action_pressed("zoom_in"):
 		zoom_center_point = canvas_size * 0.5 
 		zoom_camera(1)
-		send_camera_zoomed()
+		zoomed.emit()
 	elif event.is_action_released("zoom_out"):
 		zoom_center_point = canvas_size * 0.5
 		zoom_camera(-1)
-		send_camera_zoomed()
+		zoomed.emit()
 	
 	if event is InputEventMouseButton:
 		btn_pressed = event.pressed
@@ -67,16 +64,15 @@ func _input(event: InputEvent):
 	match state:
 		Artboard.DRAG:
 			process_dragging(event)
-			send_camera_dragged()
 		Artboard.ZOOM:
 			process_zooming(event)
-			send_camera_zoomed()
 
 
 func process_dragging(event):
 	# activated by pan tool.
 	if event is InputEventMouseMotion and btn_pressed:
 		offset = offset - event.relative / zoom
+		dragged.emit()
 
 
 func process_zooming(event):
@@ -86,10 +82,12 @@ func process_zooming(event):
 			event.button_index == MOUSE_BUTTON_WHEEL_UP):
 			zoom_center_point = get_local_mouse_position()
 			zoom_camera(1)
+			zoomed.emit()
 		elif (event.button_index == MOUSE_BUTTON_RIGHT or 
 			  event.button_index == MOUSE_BUTTON_WHEEL_DOWN):
 			zoom_center_point = get_local_mouse_position()
-			zoom_camera(-1)	
+			zoom_camera(-1)
+			zoomed.emit()
 
 
 func zoom_camera(direction: int):
@@ -99,7 +97,6 @@ func zoom_camera(direction: int):
 	if new_zoom < zoom_in_max && new_zoom > zoom_out_max:
 		zoom = new_zoom
 		offset = zoom_center_point
-		send_camera_zoomed()
 		
 		# use Tween to smooth the zoom effect. DO NEED for now.
 #		var tween = create_tween().set_parallel()
@@ -113,7 +110,7 @@ func zoom_100():
 	zoom = Vector2.ONE
 	zoom_center_point = canvas_size * 0.5
 	offset = zoom_center_point
-	send_camera_zoomed()
+	zoomed.emit()
 	
 
 func fit_to_frame() -> void:
@@ -126,16 +123,4 @@ func fit_to_frame() -> void:
 
 	ratio = clampf(ratio, 0.1, ratio)
 	zoom = Vector2(ratio, ratio)
-	send_camera_zoomed()
-
-
-func send_camera_zoomed():
-	canvas_origin = get_global_transform_with_canvas().get_origin()
-	canvas_scale = get_global_transform_with_canvas().get_scale()
 	zoomed.emit()
-
-
-func send_camera_dragged():
-	canvas_origin = get_global_transform_with_canvas().get_origin()
-	canvas_scale = get_global_transform_with_canvas().get_scale()
-	dragged.emit()

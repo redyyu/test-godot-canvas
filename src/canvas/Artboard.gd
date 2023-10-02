@@ -27,9 +27,6 @@ var state := Artboard.NONE :
 
 var project :Project
 
-var canvas_size :Vector2i:
-	get: return canvas.size
-
 var selected_rect :Rect2i:
 	get: return canvas.selected_rect
 
@@ -86,20 +83,25 @@ var show_rulers := false:
 		v_ruler.visible = val
 		place_rulers()
 
-var snap_to_guide := false:
+var snap_to_guide :bool:
 	set(val):
-		snap_to_guide = val
-		canvas.snap_to_guide(val)
+		canvas.snap_to_guide = val
+	get: return canvas.snap_to_guide
 
-var snap_to_grid_center := false:
+var snap_to_grid_center :bool:
 	set(val):
-		snap_to_grid_center = val
-		canvas.snap_to_grid_center(val)
+		canvas.snap_to_grid_center = val
+	get: return canvas.snap_to_grid_center
 
-var snap_to_grid_boundary := false:
+var snap_to_grid_boundary :bool :
 	set(val):
-		snap_to_grid_boundary = val
-		canvas.snap_to_grid_boundary(val)
+		canvas.snap_to_grid_boundary = val
+	get: return canvas.snap_to_grid_boundary
+
+var snap_to_symmetry_guide :bool :
+	set(val):
+		canvas.snap_to_symmetry_guide = val
+	get: return canvas.snap_to_symmetry_guide
 
 @onready var viewport :SubViewport = $Viewport
 @onready var camera :Camera2D = $Viewport/Camera
@@ -150,7 +152,7 @@ func load_project(proj :Project):
 	
 #	camera.camera_offset_changed.connect(_on_camera_offset_changed)
 	canvas.attach_project(project)
-	canvas.attach_snap_to(project.size, guides, grid)
+	canvas.attach_snap_to(project.size, guides, symmetry_guide, grid)
 	trans_checker.update_bounds(project.size)
 	
 
@@ -180,7 +182,7 @@ func place_grid():
 
 func place_symmetry_guides():
 	if project and show_symmetry_guide_state != SymmetryGuide.NONE:
-		symmetry_guide.move_guide(project.size, camera_origin, camera_zoom)
+		symmetry_guide.move(project.size, camera_origin, camera_zoom)
 
 
 func place_rulers():
@@ -194,13 +196,11 @@ func place_guides():
 		for guide in guides:
 			match guide.orientation:
 				HORIZONTAL:
-					var _y = guide.relative_offset.y * camera_zoom.y
-					guide.position.y = camera_origin.y + _y
-					print(_y,' / ', camera_origin.y, ' / ', guide.relative_offset.y)
+					guide.position.y = camera_origin.y + \
+						guide.relative_position.y * camera_zoom.y
 				VERTICAL:
-					var _x = guide.relative_offset.x * camera_zoom.x
-					guide.position.x = camera_origin.x + _x 
-					print(_x,' / ', camera_origin.x, ' / ',guide.relative_offset.x)
+					guide.position.x = camera_origin.x + \
+						guide.relative_position.x * camera_zoom.x
 
 
 func _on_artboard_resized():
@@ -208,8 +208,12 @@ func _on_artboard_resized():
 	
 	# no need to sheck show options, hiden will still be hidden,
 	# but keep the size correct, even it is not showing up.
-	mouse_guide.set_guide(size) 
-	symmetry_guide.set_guide(size)
+	
+	mouse_guide.resize(size) 
+	symmetry_guide.resize(size)
+	
+	for guide in guides:
+		guide.resize(size)
 
 
 func _on_camera_changed():
@@ -217,7 +221,6 @@ func _on_camera_changed():
 	place_guides()
 	place_symmetry_guides()
 	place_grid()
-	
 	canvas.zoom = camera_zoom
 	
 
@@ -290,12 +293,11 @@ func _on_guide_pressed(guide):
 func _on_guide_released(guide):
 #	guide.is_locked = guides_locked or state != Artboard.MOVE
 	guide.is_locked = guides_locked
-	guide.relative_offset = Vector2i(
-		(guide.position - camera_origin) / camera_zoom)
-	var relative_position = canvas.get_local_mouse_position()
-	print(guide.relative_offset)
+	
+	guide.relative_position = canvas.get_relative_mouse_position()
+	# take canvas local mouse position as rounded.
 	# calculate to the relative position might not working precisely.
-	# otherwise position might mess-up place guide while is zoomed.
+	# otherwise position might mess-up place guide while is zoomed and snapping.
 	match guide.orientation:
 		HORIZONTAL:
 			if guide.position.y < h_ruler.size.y:
@@ -305,16 +307,8 @@ func _on_guide_released(guide):
 				guide.queue_free()
 				mouse_default_cursor_shape = Control.CURSOR_ARROW
 			elif selected_rect.size != Vector2i.ZERO:
-				var sel_y = selected_rect.position.y
-				var sel_y2 = selected_rect.position.y + selected_rect.size.y
-				var rel_y = camera_origin.y + sel_y * camera_zoom.y
-				var rel_y2 = camera_origin.y + sel_y2 * camera_zoom.y
-				
-				if abs(guide.position.y - rel_y) < guide.TO_SNAP_SELECTION:
-					guide.position.y = rel_y
-				elif abs(guide.position.y - rel_y2) < guide.TO_SNAP_SELECTION:
-					guide.position.y = rel_y2
-				print(guide.position.y)
+				guide.snap_to(selected_rect.position)
+				guide.snap_to(selected_rect.position + selected_rect.size)
 		VERTICAL:
 			if guide.position.x < v_ruler.size.x:
 				guide.pressed.disconnect(_on_guide_pressed)
@@ -323,13 +317,8 @@ func _on_guide_released(guide):
 				guide.queue_free()
 				mouse_default_cursor_shape = Control.CURSOR_ARROW
 			elif selected_rect.size != Vector2i.ZERO:
-				var sel_x = selected_rect.position.x
-				var sel_x2 = selected_rect.position.x + selected_rect.size.x
-				var rel_x = camera_origin.x + sel_x * camera_zoom.x
-				var rel_x2 = camera_origin.x + sel_x2 * camera_zoom.x
-				
-				if abs(guide.position.x - rel_x) < guide.TO_SNAP_SELECTION:
-					guide.position.x = rel_x
-				elif abs(guide.position.x - rel_x2) < guide.TO_SNAP_SELECTION:
-					guide.position.x = rel_x2
-				print(guide.position.x)
+				guide.snap_to(selected_rect.position)
+				guide.snap_to(selected_rect.position + selected_rect.size)
+	
+	# make sure guides is in place
+	place_guides()

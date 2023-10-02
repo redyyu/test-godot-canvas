@@ -217,6 +217,11 @@ func _draw():
 			draw_texture(tex, Vector2.ZERO, modulate_color)
 
 
+func get_relative_mouse_position():
+	var mpos = get_local_mouse_position()
+	return Vector2i(round(mpos.x), round(mpos.y))
+
+
 # selection
 func _on_selection_updated(sel_rect :Rect2i):
 	selection_changed.emit(sel_rect)
@@ -233,19 +238,28 @@ func _on_selection_gizmo_unhovered(_gizmo):
 
 # snapping
 
-func attach_snap_to(canvas_size:Vector2, guides:Array, grid:Grid):
+func attach_snap_to(canvas_size:Vector2, guides:Array,
+					symmetry_guide:SymmetryGuide, grid:Grid):
 	snapper.guides = guides
 	snapper.grid = grid
+	snapper.symmetry_guide = symmetry_guide
 	snapper.canvas_size = canvas_size
 
 
-func snap_to_guide(val := false):
-	snapper.snap_to_guides = val
+var snap_to_guide :bool :
+	get: return snapper.snap_to_guide
+	set(val): snapper.snap_to_guide = val
 
 
-func snap_to_grid_center(val := false):
-	snapper.snap_to_grid_center = val
+var snap_to_grid_center :bool :
+	get: return snapper.snap_to_grid_center
+	set(val): snapper.snap_to_grid_center = val
 
 
-func snap_to_grid_boundary(val := false):
-		snapper.snap_to_grid_boundary = val
+var snap_to_grid_boundary :bool :
+	get: return snapper.snap_to_grid_boundary
+	set(val): snapper.snap_to_grid_boundary = val
+
+var snap_to_symmetry_guide :bool :
+	get: return snapper.snap_to_symmetry_guide
+	set(val): snapper.snap_to_symmetry_guide = val

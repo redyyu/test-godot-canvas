@@ -38,6 +38,11 @@ func set_guide(size :Vector2i):
 	v_mouse_guide.add_point(Vector2(0, size.y))
 
 
+func resize(size :Vector2i):
+	h_mouse_guide.points[1].x = size.x
+	v_mouse_guide.points[1].y = size.y
+
+
 func _input(event: InputEvent) -> void:
 	if visible and event is InputEventMouseMotion:
 		var mouse_pos = get_local_mouse_position()

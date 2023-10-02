@@ -76,6 +76,7 @@ func _ready():
 	opt_sel_pivot.item_selected.connect(_on_sel_pivot_changed)
 	
 	artboard.snap_to_guide = true
+	artboard.snap_to_symmetry_guide = true
 	
 	artboard.show_mouse_guide = false
 	artboard.show_rulers = true
@@ -91,8 +92,8 @@ func _ready():
 	spin_sel_y.editable = false
 	spin_sel_width.editable = false
 	spin_sel_height.editable = false
-	spin_sel_width.value = artboard.canvas_size.x
-	spin_sel_height.value = artboard.canvas_size.y
+	spin_sel_width.value = artboard.canvas.size.x
+	spin_sel_height.value = artboard.canvas.size.y
 
 #	var image = Image.new()
 #	if image.load('res://test.png') == OK:

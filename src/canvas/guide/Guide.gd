@@ -8,11 +8,17 @@ signal locked(guide)
 
 const DEFAULT_WIDTH := 2
 const LINE_COLOR := Color.REBECCA_PURPLE
-const TO_SNAP_SELECTION := 10
+const SNAPPING_DISTANCE := 12.0
 
-var relative_offset := Vector2.ZERO 
+var relative_position := Vector2.ZERO
+# one of coordinate x or y is useless,
+# because guide is cross over the artboard.
+# y used for HORIZONTAL, x used for VERTICAL.
+
+#var relative_offset := Vector2.ZERO
 # it is calculated position to parent scene when zoom is 1.0
 # use to keep the right position when place guide while is zoomed.
+# DO NOT do this, it's not precisely.
 
 var orientation := HORIZONTAL
 var is_pressed := false
@@ -93,11 +99,26 @@ func set_guide(orient :Orientation, size :Vector2):
 	orientation = orient
 	match orientation:
 		HORIZONTAL:
-			add_point(Vector2(-size.x, 0))
+			add_point(Vector2(0, 0))
 			add_point(Vector2(size.x, 0))
-#			position.y = get_global_mouse_position().y
-#			mouse_default_cursor_shape = Control.CURSOR_VSPLIT
 		VERTICAL:
-			add_point(Vector2(0, -size.y))
+			add_point(Vector2(0, 0))
 			add_point(Vector2(0, size.y))
-#			position.x = get_global_mouse_position().x
+
+
+func resize(size :Vector2):
+	match orientation:
+		HORIZONTAL:
+			points[1].x = size.x
+		VERTICAL:
+			points[1].y = size.y
+
+
+func snap_to(pos :Vector2i):
+	match orientation:
+		HORIZONTAL:
+			if abs(relative_position.y - pos.y) < SNAPPING_DISTANCE:
+				relative_position.y = pos.y
+		VERTICAL:
+			if abs(relative_position.x - pos.x) < SNAPPING_DISTANCE:
+				relative_position.x = pos.x
