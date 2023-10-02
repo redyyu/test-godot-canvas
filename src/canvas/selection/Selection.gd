@@ -48,7 +48,7 @@ func update_selection():
 
 
 func has_selected() -> bool:
-	return selection_map.is_empty() or selection_map.is_invisible()
+	return not(selection_map.is_empty() or selection_map.is_invisible())
 
 
 func deselect():

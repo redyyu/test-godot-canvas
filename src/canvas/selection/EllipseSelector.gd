@@ -7,7 +7,6 @@ func select_move(pos :Vector2i):
 		# only keep frist points for rectangle.
 		points.resize(1)
 	points.append(pos) # append last point for rectangle.
-	
 	selection.selecting_ellipse(parse_rectangle_points(points))
 
 

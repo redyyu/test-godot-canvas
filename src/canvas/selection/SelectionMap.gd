@@ -32,6 +32,8 @@ func is_selected(pos: Vector2i) -> bool:
 
 func select_rect(rect :Rect2i,
 				 replace:=false, subtract:=false, intersect:=false):
+	if rect.size < Vector2i.ONE:
+		return
 	if is_empty() or is_invisible():
 		fill_rect(rect, SELECTED_COLOR)
 		return
@@ -56,6 +58,8 @@ func select_rect(rect :Rect2i,
 
 func select_ellipse(rect :Rect2i, 
 					replace:=false, subtract:=false, intersect:=false):
+	if rect.size < Vector2i.ONE:
+		return
 	var ellipse = get_ellipse_points_filled(Vector2.ZERO, rect.size)
 	
 	if is_empty() or is_invisible():
@@ -84,7 +88,8 @@ func select_ellipse(rect :Rect2i,
 			fill_ellipse(ellipse, SELECTED_COLOR, rect.position)
 
 
-func select_polygon(polygon:, replace:=false, subtract:=false, intersect:=false):
+func select_polygon(polygon:PackedVector2Array, 
+					replace:=false, subtract:=false, intersect:=false):
 	if is_empty() or is_invisible():
 		fill_polygon(polygon, SELECTED_COLOR)
 		return
