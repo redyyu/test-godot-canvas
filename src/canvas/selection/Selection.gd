@@ -48,7 +48,11 @@ func update_selection():
 
 
 func has_selected() -> bool:
-	return not(selection_map.is_empty() or selection_map.is_invisible())
+	return selected_rect.has_area()
+
+
+func has_point(point) -> bool:
+	return selected_rect.has_point(point)
 
 
 func deselect():

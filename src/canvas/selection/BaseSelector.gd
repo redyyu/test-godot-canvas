@@ -63,6 +63,10 @@ var size :Vector2i :
 var points :PackedVector2Array = []
 
 var is_selecting := false
+var is_moving := false
+
+var is_operating :bool :
+	get: return is_selecting or is_moving
 
 var opt_as_square := false
 var opt_from_center := false
@@ -75,26 +79,30 @@ func restore_mode():
 func reset():
 	points.clear()
 	is_selecting = false
+	is_moving = false
 
 
 func select_start(pos :Vector2i):
 	reset()
-	is_selecting = true
-	if selection and selection.has_selected() and mode == Mode.REPLACE:
-		selection.deselect()
-		# when already has a selection,
-		# then first click will clear the selection.
+	if selection.has_point(pos):
+		is_moving = true
 	else:
+		if mode == Mode.REPLACE:
+			selection.deselect()
+			# when already has a selection,
+			# then first click will clear the selection.
+		is_selecting = true
 		points.append(pos)
 
 
 func select_move(pos :Vector2i):
-	if not is_selecting:
+	if not is_operating:
 		select_start(pos)
 	
 
 func select_end(_pos :Vector2i):
 	is_selecting = false
+	is_moving = false
 
 
 func move_to(to_pos :Vector2i, use_pivot := true):

@@ -160,7 +160,7 @@ func process_selection(event, selector):
 		if is_pressed:
 			selector.select_move(pos)
 			operating.emit(state, selector, false)
-		elif selector.is_selecting:
+		elif selector.is_operating:
 			selector.select_end(pos)
 			operating.emit(state, selector, true)
 
@@ -171,7 +171,15 @@ func process_selection_polygon(event, selector):
 		if is_pressed and not event.double_click:
 			selector.select_move(pos)
 			operating.emit(state, selector, false)
-		elif event.double_click and selector.is_selecting:
+		elif selector.is_selecting and event.double_click:
+			selector.select_end(pos)
+			operating.emit(state, selector, true)
+	elif event is InputEventMouseMotion and selector.is_moving:
+		var pos = snapper.snap_position(get_local_mouse_position())
+		if is_pressed:
+			selector.select_move(pos)
+			operating.emit(state, selector, false)
+		else:
 			selector.select_end(pos)
 			operating.emit(state, selector, true)
 			
@@ -182,7 +190,7 @@ func process_selection_lasso(event, selector):
 		if is_pressed:
 			selector.select_move(pos)
 			operating.emit(state, selector, false)
-		elif selector.is_selecting:
+		elif selector.is_operating:
 			selector.select_end(pos)
 			operating.emit(state, selector, true)
 
