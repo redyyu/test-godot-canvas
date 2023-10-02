@@ -19,8 +19,8 @@ var size :Vector2i :
 			return project.size
 		else:
 			return Vector2i.ZERO
-var selection_rect: Rect2i :
-	get: return selection.selection_rect
+var selected_rect: Rect2i :
+	get: return selection.selected_rect
 
 const DEFAULT_PEN_PRESSURE := 1.0
 const DEFAULT_PEN_VELOCITY := 1.0

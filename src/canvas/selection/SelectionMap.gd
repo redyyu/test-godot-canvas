@@ -212,7 +212,7 @@ func move_delta(delta :int, orientation:Orientation):
 func move_to(to_position :Vector2i, pivot_offset :=Vector2i.ZERO):
 	if is_invisible():
 		return 
-	var sel_rect := get_selected_rect()
+	var sel_rect := get_used_rect()
 	var tmp_img := Image.new()
 	tmp_img.copy_from(self)
 	select_none()
@@ -229,7 +229,7 @@ func move_to(to_position :Vector2i, pivot_offset :=Vector2i.ZERO):
 func resize_to(to_size :Vector2i, pivot_offset :=Vector2i.ZERO):
 	if is_invisible():
 		return 
-	var sel_rect := get_selected_rect()
+	var sel_rect := get_used_rect()
 	var tmp_img := Image.create(sel_rect.size.x, sel_rect.size.y, 
 								false, FORMAT_LA8)
 	

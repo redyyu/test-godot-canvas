@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://c08qtjj7x8pnk"]
+[gd_scene load_steps=18 format=3 uid="uid://c08qtjj7x8pnk"]
 
 [ext_resource type="Shader" path="res://src/shaders/TransparentChecker.gdshader" id="1_d8lm1"]
 [ext_resource type="Script" path="res://src/canvas/Artboard.gd" id="1_fg2jv"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://src/canvas/selection/Selection.gd" id="7_u15up"]
 [ext_resource type="Shader" path="res://src/shaders/MarchingAntsOutline.gdshader" id="9_y3e15"]
 [ext_resource type="Script" path="res://src/canvas/guide/SymmetryGuide.gd" id="10_xpo1w"]
+[ext_resource type="Script" path="res://src/canvas/CropRect.gd" id="11_x8d2w"]
 [ext_resource type="Script" path="res://src/canvas/guide/Ruler.gd" id="12_o861q"]
 [ext_resource type="Script" path="res://src/canvas/guide/MouseGuide.gd" id="13_xksjp"]
 
@@ -88,6 +89,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="CropRect" type="ColorRect" parent="Viewport"]
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("11_x8d2w")
 
 [node name="HRuler" type="Button" parent="."]
 visible = false

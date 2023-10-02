@@ -44,7 +44,7 @@ func update_selection():
 		selected_rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 	else:
 		texture = ImageTexture.create_from_image(selection_map)
-	selected_rect = selection_map.get_selected_rect()
+	selected_rect = selection_map.get_used_rect()
 	selected.emit(selected_rect)
 	_current_draw = _draw_nothing
 	queue_redraw()

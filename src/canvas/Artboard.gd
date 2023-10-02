@@ -30,8 +30,8 @@ var project :Project
 var canvas_size :Vector2i:
 	get: return canvas.size
 
-var selection_rect :Vector2i:
-	get: return canvas.selection_rect
+var selected_rect :Rect2i:
+	get: return canvas.selected_rect
 
 var camera_offset :Vector2 :
 	get: return camera.offset
@@ -299,6 +299,13 @@ func _on_guide_released(guide):
 				guides.erase(guide)
 				guide.queue_free()
 				mouse_default_cursor_shape = Control.CURSOR_ARROW
+			elif selected_rect.size != Vector2i.ZERO:
+				var sel_y = selected_rect.position.y
+				var sel_y2 = selected_rect.position.y + selected_rect.size.y
+				if abs(guide.position.y - sel_y) < guide.TO_SNAP_SELECTION:
+					guide.position.y = sel_y
+				elif abs(guide.position.y - sel_y2) < guide.TO_SNAP_SELECTION:
+					guide.position.y = sel_y2
 		VERTICAL:
 			if guide.position.x < v_ruler.size.x:
 				guide.pressed.disconnect(_on_guide_pressed)
@@ -306,3 +313,10 @@ func _on_guide_released(guide):
 				guides.erase(guide)
 				guide.queue_free()
 				mouse_default_cursor_shape = Control.CURSOR_ARROW
+			elif selected_rect.size != Vector2i.ZERO:
+				var sel_x = selected_rect.position.x
+				var sel_x2 = selected_rect.position.x + selected_rect.size.x
+				if abs(guide.position.x - sel_x) < guide.TO_SNAP_SELECTION:
+					guide.position.x = sel_x
+				elif abs(guide.position.x - sel_x2) < guide.TO_SNAP_SELECTION:
+					guide.position.x = sel_x2
