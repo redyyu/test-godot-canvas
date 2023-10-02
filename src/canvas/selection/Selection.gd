@@ -11,8 +11,9 @@ var size := Vector2i.ONE:
 			selection_map.crop(size.x, size.y)
 #			offset = size / 2  DONT need Sprite2D offset. `centered = false`
 
-var selection_map := SelectionMap.new()
+var selection_map := SelectionMap.new(size.x, size.y)
 var selected_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
+
 var zoom_ratio := 1.0:
 	set(val):
 		zoom_ratio = val
@@ -34,10 +35,6 @@ func refresh_material():
 	queue_redraw()
 
 
-func get_rect_from_points(pts) -> Rect2i:
-	return Rect2i(pts[0], pts[pts.size()-1] - pts[0]).abs()
-
-
 func update_selection():
 	if selection_map.is_invisible():
 		texture = null
@@ -48,6 +45,10 @@ func update_selection():
 	selected.emit(selected_rect)
 	_current_draw = _draw_nothing
 	queue_redraw()
+
+
+func has_selected() -> bool:
+	return selection_map.is_empty() or selection_map.is_invisible()
 
 
 func deselect():
@@ -67,9 +68,15 @@ func resize_to(to_size :Vector2i, pivot_offset :=Vector2i.ZERO):
 	update_selection()
 
 
+func get_rect_from_points(pts) -> Rect2i:
+	return Rect2i(pts[0], pts[pts.size()-1] - pts[0]).abs()
+
+
 # Rectangle
 
 func selecting_rectangle(sel_points :Array):
+	if sel_points.size() < 2:
+		return
 	_current_draw = _draw_rectangle
 	points = sel_points
 	queue_redraw()
@@ -79,6 +86,8 @@ func selected_rectangle(sel_points :Array,
 						replace := false,
 						subtract := false,
 						intersect := false):
+	if sel_points.size() < 2:
+		return
 	var sel_rect := get_rect_from_points(sel_points)
 	selection_map.select_rect(sel_rect, replace, subtract, intersect)
 	update_selection()
@@ -88,6 +97,8 @@ func selected_rectangle(sel_points :Array,
 # Ellipse
 
 func selecting_ellipse(sel_points :Array):
+	if sel_points.size() < 2:
+		return
 	_current_draw = _draw_ellipse
 	points = sel_points
 	queue_redraw()
@@ -97,6 +108,8 @@ func selected_ellipse(sel_points :Array,
 					  replace := false,
 					  subtract := false,
 					  intersect := false):
+	if sel_points.size() < 2:
+		return
 	var sel_rect := get_rect_from_points(sel_points)
 	selection_map.select_ellipse(sel_rect, replace, subtract, intersect)
 	update_selection()
@@ -106,6 +119,8 @@ func selected_ellipse(sel_points :Array,
 # Polygon
 
 func selecting_polygon(sel_points :Array):
+	if sel_points.size() < 2:
+		return
 	_current_draw = _draw_polyline
 	points = sel_points
 	queue_redraw()
@@ -115,6 +130,8 @@ func selected_polygon(sel_points :Array,
 					  replace := false,
 					  subtract := false,
 					  intersect := false):
+	if sel_points.size() < 2:
+		return
 	selection_map.select_polygon(sel_points, replace, subtract, intersect)
 	update_selection()
 	points.clear()
@@ -123,6 +140,8 @@ func selected_polygon(sel_points :Array,
 # Lasso
 
 func selecting_lasso(sel_points :Array):
+	if sel_points.size() < 2:
+		return
 	_current_draw = _draw_polyline
 	points = sel_points
 	queue_redraw()
@@ -132,6 +151,8 @@ func selected_lasso(sel_points :Array,
 					replace := false,
 					subtract := false,
 					intersect := false):
+	if sel_points.size() < 2:
+		return
 	selection_map.select_polygon(sel_points, replace, subtract, intersect)
 	update_selection()
 	points.clear()
@@ -140,7 +161,7 @@ func selected_lasso(sel_points :Array,
 # Draw selecting lines
 
 func _draw():
-	if points.size() <= 1:
+	if points.size() < 2:
 		return
 	
 	_current_draw.call()

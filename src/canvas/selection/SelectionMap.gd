@@ -17,8 +17,8 @@ var map_rect :Rect2i :
 	get : return Rect2i(Vector2i.ZERO, Vector2i(get_width(), get_height()))
 
 
-func _init():
-	var img = Image.create(1, 1, false, FORMAT_LA8)
+func _init(w:int, h:int):
+	var img = Image.create(maxi(w, 1), maxi(h, 1), false, FORMAT_LA8)
 	copy_from(img)
 	# make sure image with Alpha
 
@@ -154,109 +154,143 @@ func fill_polygon(polygon:PackedVector2Array,
 			   Geometry2D.is_point_in_polygon(pos, polygon):
 				set_pixelv(pos, color)
 
-
-func get_selected_rect() ->Rect2i:
-	var rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
-	var start := Vector2i(-1, -1)
-	var end := Vector2i(-1, -1)
-	# DO NOT use `if start:` because the first possible point will be .ZERO.
-
-	if is_invisible():
-		return rect
-
-	for x in width:
-		for y in height:
-			var pos := Vector2i(x, y)
-			if get_pixelv(pos).a > 0:
-				if start >= Vector2i.ZERO:
-					if start.x > pos.x:
-						start.x = pos.x
-					if start.y > pos.y:
-						start.y = pos.y
-				else:
-					start = pos
-				
-				if end >= Vector2i.ZERO:
-					if end.x < pos.x:
-						end.x = pos.x
-					if end.y < pos.y:
-						end.y = pos.y
-				else:
-					end = pos
-	
-	if (end - start) > Vector2i.ZERO:
-		rect = Rect2i(start, end - start + Vector2i.ONE) 
-		# size must + Vector2i.ONE, it is for make sure last point count.
-		# ex. for size (10, 10), the start (0, 0), end (9, 9).
-		# but end - start will be (9, 9).
-	return rect 
+# DONT NEED THIS, already replace to navtive way.
+#func get_selected_rect() ->Rect2i:
+#	var rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
+#	var start := Vector2i(-1, -1)
+#	var end := Vector2i(-1, -1)
+#	# DO NOT use `if start:` because the first possible point will be .ZERO.
+#
+#	if is_invisible():
+#		return rect
+#
+#	for x in width:
+#		for y in height:
+#			var pos := Vector2i(x, y)
+#			if get_pixelv(pos).a > 0:
+#				if start >= Vector2i.ZERO:
+#					if start.x > pos.x:
+#						start.x = pos.x
+#					if start.y > pos.y:
+#						start.y = pos.y
+#				else:
+#					start = pos
+#
+#				if end >= Vector2i.ZERO:
+#					if end.x < pos.x:
+#						end.x = pos.x
+#					if end.y < pos.y:
+#						end.y = pos.y
+#				else:
+#					end = pos
+#
+#	if (end - start) > Vector2i.ZERO:
+#		rect = Rect2i(start, end - start + Vector2i.ONE) 
+#		# size must + Vector2i.ONE, it is for make sure last point count.
+#		# ex. for size (10, 10), the start (0, 0), end (9, 9).
+#		# but end - start will be (9, 9).
+#	return rect 
 
 
 func move_delta(delta :int, orientation:Orientation):
 	if is_invisible():
-		return 
-	var tmp_img := Image.new()
-	tmp_img.copy_from(self)
-	select_none()
-	for x in tmp_img.get_width():
-		for y in tmp_img.get_height():
-			var pos := Vector2i(x, y)
-			var to_pos :Vector2i
-			match orientation:
-				HORIZONTAL: to_pos = Vector2i(x + delta, y)
-				VERTICAL: to_pos = Vector2i(x, y + delta)
-			if tmp_img.get_pixelv(pos).a > 0 and map_rect.has_point(to_pos):
-				select_pixel(to_pos)
+		return
+	var sel_rect := get_used_rect()
+	var tmp_img := get_region(sel_rect)
+	var dest_pos := sel_rect.position
+	match orientation:
+		HORIZONTAL: dest_pos.x += delta
+		VERTICAL: dest_pos.y += delta
+	var tmp_img_size := Vector2i(tmp_img.get_width(), tmp_img.get_height())
+	
+	fill(UNSELECTED_COLOR)
+	blit_rect(tmp_img, Rect2i(Vector2i.ZERO, tmp_img_size), dest_pos)
+
+#	DONT NEED THIS, already replace to navtive way.
+#	var tmp_img := Image.new()
+#	tmp_img.copy_from(self)
+#	select_none()
+#	for x in tmp_img.get_width():
+#		for y in tmp_img.get_height():
+#			var pos := Vector2i(x, y)
+#			var to_pos :Vector2i
+#			match orientation:
+#				HORIZONTAL: to_pos = Vector2i(x + delta, y)
+#				VERTICAL: to_pos = Vector2i(x, y + delta)
+#			if tmp_img.get_pixelv(pos).a > 0 and map_rect.has_point(to_pos):
+#				select_pixel(to_pos)
 
 
-func move_to(to_position :Vector2i, pivot_offset :=Vector2i.ZERO):
+func move_to(to_position :Vector2i, pivot_offset := Vector2i.ZERO):
+	# pivot_offset is for when to_position is by different pivot.
+	# when move the selection with keyboard or mouse drag, 
+	# the pivot_offset should be ignore by leave it to ZERO.
 	if is_invisible():
 		return 
-	var sel_rect := get_used_rect()
-	var tmp_img := Image.new()
-	tmp_img.copy_from(self)
-	select_none()
-	var move_pos :Vector2i = (to_position - pivot_offset) - sel_rect.position
-
-	for x in tmp_img.get_width():
-		for y in tmp_img.get_height():
-			var pos := Vector2i(x, y)
-			var to_pos := pos + move_pos
-			if tmp_img.get_pixelv(pos).a > 0 and map_rect.has_point(to_pos):
-				select_pixel(to_pos)
+	var tmp_img := get_region(get_used_rect())
+	var dest_pos :Vector2i = to_position - pivot_offset
+	var tmp_img_size := Vector2i(tmp_img.get_width(), tmp_img.get_height())
+	
+	fill(UNSELECTED_COLOR)
+	blit_rect(tmp_img, Rect2i(Vector2i.ZERO, tmp_img_size), dest_pos)
+	
+#	DONT NEED THIS, already replace to navtive way.
+#	var sel_rect := get_used_rect()
+#	var tmp_img := Image.new()
+#	tmp_img.copy_from(self)
+#	select_none()
+#	var move_pos :Vector2i = (to_position - pivot_offset) - sel_rect.position
+#
+#	for x in tmp_img.get_width():
+#		for y in tmp_img.get_height():
+#			var pos := Vector2i(x, y)
+#			var to_pos := pos + move_pos
+#			if tmp_img.get_pixelv(pos).a > 0 and map_rect.has_point(to_pos):
+#				select_pixel(to_pos)
 				
 
 func resize_to(to_size :Vector2i, pivot_offset :=Vector2i.ZERO):
 	if is_invisible():
 		return 
 	var sel_rect := get_used_rect()
-	var tmp_img := Image.create(sel_rect.size.x, sel_rect.size.y, 
-								false, FORMAT_LA8)
-	
-	var x_range = range(sel_rect.position.x, 
-						sel_rect.position.x + sel_rect.size.x)
-	var y_range = range(sel_rect.position.y,
-						sel_rect.position.y + sel_rect.size.y)
-	
-	for x in x_range:
-		for y in y_range:
-			var pos := Vector2i(x, y)
-			if is_selected(pos):
-				var tmp_pos = pos - sel_rect.position
-				tmp_img.set_pixelv(tmp_pos, SELECTED_COLOR)
-
-	tmp_img.resize(to_size.x, to_size.y, INTERPOLATE_NEAREST)
-	select_none()
+	var tmp_img := get_region(get_used_rect())
 	var coef := Vector2(pivot_offset) / Vector2(to_size)
 	var size_diff :Vector2i = Vector2(sel_rect.size - to_size) * coef
-	var move_pos :Vector2i = sel_rect.position + size_diff
+	var dest_pos :Vector2i = sel_rect.position + size_diff
 	
-	for x in tmp_img.get_width():
-		for y in tmp_img.get_height():
-			var pos := Vector2i(x, y)
-			var new_pos := pos + move_pos
-			if tmp_img.get_pixelv(pos).a > 0 and map_rect.has_point(new_pos):
-				select_pixel(new_pos)
+	tmp_img.resize(to_size.x, to_size.y, INTERPOLATE_NEAREST)
+	
+	fill(UNSELECTED_COLOR)
+	blit_rect(tmp_img, Rect2i(Vector2i.ZERO, to_size), dest_pos)
+
+#	DONT NEED THIS, already replace to navtive way.
+#	var tmp_img := Image.create(sel_rect.size.x, sel_rect.size.y, 
+#								false, FORMAT_LA8)
+#
+#	var x_range = range(sel_rect.position.x, 
+#						sel_rect.position.x + sel_rect.size.x)
+#	var y_range = range(sel_rect.position.y,
+#						sel_rect.position.y + sel_rect.size.y)
+#
+#	for x in x_range:
+#		for y in y_range:
+#			var pos := Vector2i(x, y)
+#			if is_selected(pos):
+#				var tmp_pos = pos - sel_rect.position
+#				tmp_img.set_pixelv(tmp_pos, SELECTED_COLOR)
+#
+#	tmp_img.resize(to_size.x, to_size.y, INTERPOLATE_NEAREST)
+#	select_none()
+#	var coef := Vector2(pivot_offset) / Vector2(to_size)
+#	var size_diff :Vector2i = Vector2(sel_rect.size - to_size) * coef
+#	var move_pos :Vector2i = sel_rect.position + size_diff
+#
+#	for x in tmp_img.get_width():
+#		for y in tmp_img.get_height():
+#			var pos := Vector2i(x, y)
+#			var new_pos := pos + move_pos
+#			if tmp_img.get_pixelv(pos).a > 0 and map_rect.has_point(new_pos):
+#				select_pixel(new_pos)
 
 
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html

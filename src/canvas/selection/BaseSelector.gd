@@ -48,7 +48,7 @@ var selected_rect :Rect2i :
 		else:
 			return Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 
-var relative_position :Vector2i :
+var relative_position :Vector2i :  # with pivot, for display on panel
 	get:
 		var _offset = get_pivot_offset(selected_rect.size)
 		return selected_rect.position + _offset
@@ -75,14 +75,17 @@ func restore_mode():
 func reset():
 	points.clear()
 	is_selecting = false
-	if selection and mode == Mode.REPLACE:
-		selection.deselect()
 
 
 func select_start(pos :Vector2i):
 	reset()
 	is_selecting = true
-	points.append(pos)
+	if selection and selection.has_selected() and mode == Mode.REPLACE:
+		selection.deselect()
+		# when already has a selection,
+		# then first click will clear the selection.
+	else:
+		points.append(pos)
 
 
 func select_move(pos :Vector2i):
@@ -94,8 +97,10 @@ func select_end(_pos :Vector2i):
 	is_selecting = false
 
 
-func move_to(to_pos :Vector2i):
-	var pivot_offset := get_pivot_offset(selected_rect.size)
+func move_to(to_pos :Vector2i, use_pivot := true):
+	var pivot_offset := get_pivot_offset(selected_rect.size) \
+		if use_pivot else Vector2i.ZERO
+		
 	var target_pos := to_pos - pivot_offset
 	var target_edge := target_pos + selected_rect.size
 	if target_pos.x < 0:
@@ -162,6 +167,11 @@ func get_pivot_offset(to_size:Vector2i) -> Vector2i:
 
 
 func parse_rectangle_points(sel_points:PackedVector2Array):
+	if sel_points.size() < 2:
+		# skip parse if points is not up to 2.
+		# the _draw() will take off the rest.
+		return sel_points
+		
 	var pts :PackedVector2Array = []
 	var start := sel_points[0]
 	var end := sel_points[1]
