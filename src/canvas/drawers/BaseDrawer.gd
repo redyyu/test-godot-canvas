@@ -70,7 +70,7 @@ func can_draw(pos :Vector2i):
 		return draw_rect.has_point(pos) and _can_draw_hook.call(pos)
 
 
-var _can_draw_hook = func(pos :Vector2i):
+var _can_draw_hook = func(_pos :Vector2i):
 	return true
 
 
@@ -78,7 +78,7 @@ func set_can_draw_hook(function:Variant):
 	if function is Callable:
 		_can_draw_hook = function
 	else:
-		_can_draw_hook = func(pos :Vector2i):
+		_can_draw_hook = func(_pos :Vector2i):
 			return true
 
 

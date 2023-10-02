@@ -53,7 +53,10 @@ func has_selected() -> bool:
 
 func has_point(point :Vector2i, precisely := false) -> bool:
 	if has_selected() and selected_rect.has_point(point):
-		return selection_map.is_selected(point)
+		if precisely:
+			return selection_map.is_selected(point)
+		else:
+			return true
 	else:
 		return false
 
