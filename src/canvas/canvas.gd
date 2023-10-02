@@ -86,6 +86,10 @@ func _ready():
 	polygon_selector.selection = selection
 	lasso_selector.selection = selection
 	selection.selected.connect(_on_selection_updated)
+	
+	attach_selection_to_drawer(pencil)
+	attach_selection_to_drawer(brush)
+	attach_selection_to_drawer(eraser)
 
 
 func attach_project(proj):
@@ -96,6 +100,15 @@ func attach_project(proj):
 		brush.image = project.current_cel.image
 		eraser.image = project.current_cel.image
 		selection.size = project.size
+
+
+func attach_selection_to_drawer(drawer):
+	var _can_draw := func(point) -> bool:
+		if selection.has_selected():
+			return selection.has_point(point, true)
+		else:
+			return true
+	drawer.set_can_draw_hook(_can_draw)
 
 
 func prepare_pressure(pressure:float) -> float:
@@ -122,30 +135,33 @@ func process_drawing_or_erasing(event, drawer):
 		var pos = snapper.snap_position(get_local_mouse_position())
 		indicator.show_indicator(pos, drawer.stroke_dimensions)
 		
+		if (not drawer.can_draw(pos) or
+			not project.current_cel is PixelCel):
+			return
+			
 		if is_pressed:
-			if drawer.can_draw(pos) and project.current_cel is PixelCel:
-				match dynamics_stroke_width:
-					Dynamics.PRESSURE:
-						drawer.set_stroke_width_dynamics(
-							prepare_pressure(event.pressure))
-					Dynamics.VELOCITY:
-						drawer.set_stroke_width_dynamics(
-							prepare_velocity(event.velocity))
-					_:
-						drawer.set_stroke_width_dynamics() # back to default
-				match dynamics_stroke_alpha:
-					Dynamics.PRESSURE:
-						drawer.set_stroke_alpha_dynamics(
-							prepare_pressure(event.pressure))
-					Dynamics.VELOCITY:
-						drawer.set_stroke_alpha_dynamics(
-							prepare_velocity(event.velocity))
-					_:
-						drawer.set_stroke_alpha_dynamics() # back to default
-				drawer.draw_move(pos)
-				project.current_cel.update_texture()
-				operating.emit(state, drawer, false)
-				queue_redraw()
+			match dynamics_stroke_width:
+				Dynamics.PRESSURE:
+					drawer.set_stroke_width_dynamics(
+						prepare_pressure(event.pressure))
+				Dynamics.VELOCITY:
+					drawer.set_stroke_width_dynamics(
+						prepare_velocity(event.velocity))
+				_:
+					drawer.set_stroke_width_dynamics() # back to default
+			match dynamics_stroke_alpha:
+				Dynamics.PRESSURE:
+					drawer.set_stroke_alpha_dynamics(
+						prepare_pressure(event.pressure))
+				Dynamics.VELOCITY:
+					drawer.set_stroke_alpha_dynamics(
+						prepare_velocity(event.velocity))
+				_:
+					drawer.set_stroke_alpha_dynamics() # back to default
+			drawer.draw_move(pos)
+			project.current_cel.update_texture()
+			operating.emit(state, drawer, false)
+			queue_redraw()
 				
 		elif drawer.is_drawing:
 			drawer.draw_end(pos)

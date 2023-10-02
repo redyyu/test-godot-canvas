@@ -67,7 +67,19 @@ func can_draw(pos :Vector2i):
 	if image.is_empty():
 		return false
 	else:
-		return draw_rect.has_point(pos)
+		return draw_rect.has_point(pos) and _can_draw_hook.call(pos)
+
+
+var _can_draw_hook = func(pos :Vector2i):
+	return true
+
+
+func set_can_draw_hook(function:Variant):
+	if function is Callable:
+		_can_draw_hook = function
+	else:
+		_can_draw_hook = func(pos :Vector2i):
+			return true
 
 
 func draw_start(pos: Vector2i):
