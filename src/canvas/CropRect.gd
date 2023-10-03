@@ -44,15 +44,17 @@ func crop_move(pos :Vector2i):
 		crop_start(pos)
 	
 	cropped_rect.size = abs(pos - start_position)
-	if pos.x < start_position.x or pos.y < start_position.y:
-		cropped_rect.position = pos
-	else:
-		cropped_rect.position = start_position
+	cropped_rect.position = start_position
+	if pos.x < start_position.x:
+		cropped_rect.position.x = pos.x
+	if pos.y < start_position.y:
+		cropped_rect.position.y = pos.y
+		
 	
 	queue_redraw()
 
 
-func crop_end(pos):
+func crop_end(_pos):
 	is_cropping = false
 
 
@@ -76,15 +78,15 @@ func _draw() -> void:
 	# Background
 	draw_rect(Rect2(0, 0, size.x, cropped_rect.position.y), BG_COLOR)
 	draw_rect(Rect2(cropped_rect.end.x, 
-					cropped_rect.size.x, 
-					size.x - cropped_rect.end.x,
-					size.y - cropped_rect.end.y), BG_COLOR)
+					cropped_rect.position.y, 
+					size.x - cropped_rect.end.x, 
+					cropped_rect.size.y), BG_COLOR)
 	draw_rect(Rect2(0, cropped_rect.end.y, 
-					size.y - cropped_rect.end.y, 
-					size.y), BG_COLOR)
+					size.x, 
+					size.y - cropped_rect.end.y), BG_COLOR)
 	draw_rect(Rect2(0, cropped_rect.position.y,
-					size.y - cropped_rect.end.y,
-					size.x - cropped_rect.position.x), BG_COLOR)
+					cropped_rect.position.x,
+					cropped_rect.size.y), BG_COLOR)
 	
 	# Rect:
 	draw_rect(cropped_rect, LINE_COLOR, false, 1.0 / zoom_ratio)

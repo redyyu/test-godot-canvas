@@ -15,33 +15,39 @@ var guides :Array[Guide]
 var symmetry_guide :SymmetryGuide
 
 
-func snap_position(pos: Vector2) -> Vector2: # NO need Vector2i, floor at end.
-	if grid == null or guides == null:
-		return pos
-		
-	var snap_to_pos := Vector2.INF
+func snap_position(pos: Vector2, snap_to_edge:=false) -> Vector2:
 	
+	var h_guides :PackedVector2Array = []
+	var v_guides :PackedVector2Array = []
+	
+	if snap_to_edge:
+		snap_to_pos = process_snap_to_edge(pos, SNAPPING_DISTANCE)
+		
 	if snap_to_guide and snap_to_pos == Vector2.INF:
 		snap_to_pos = process_snap_to_guide(pos,
 											guides,
 											SNAPPING_DISTANCE)
 	
-	if snap_to_symmetry_guide and snap_to_pos == Vector2.INF:
+	if snap_to_symmetry_guide and symmetry_guide.visible:
 		snap_to_pos = process_snap_to_symmetry(pos,
 											   symmetry_guide,
 											   SNAPPING_DISTANCE)
+	
+	var snap_to_pos == Vector2.INF
 
-	if snap_to_grid_center and snap_to_pos == Vector2.INF:
-		snap_to_pos = process_snap_to_grid_center(pos,
-												  grid.grid_size,
-												  SNAPPING_DISTANCE)
+	if grid and grid.visible:  # only snapping when grid is showing.
+		if snap_to_grid_center and snap_to_pos == Vector2.INF:
+			snap_to_pos = process_snap_to_grid_center(pos,
+													  grid.grid_size,
+													  SNAPPING_DISTANCE)
 
-	if snap_to_grid_boundary and snap_to_pos == Vector2.INF:
-		snap_to_pos = process_snap_to_grid_boundary(pos,
-													grid.grid_size,
-													SNAPPING_DISTANCE)
+		if snap_to_grid_boundary and snap_to_pos == Vector2.INF:
+			snap_to_pos = process_snap_to_grid_boundary(pos,
+														grid.grid_size,
+														SNAPPING_DISTANCE)
 #	if snap_to_perspective_guides:
 #		snap_to_pos = process_snap_to_perspective_guides(pos, vanishing_points)
+
 
 	if snap_to_pos != Vector2.INF:
 		pos = snap_to_pos.floor()
@@ -109,7 +115,38 @@ func process_snap_to_grid_center(pos :Vector2,
 	if grid_center.distance_to(pos) <= distance:
 		snap_to = grid_center.floor()
 	return snap_to
+
+
+func process_snap_to_edge(pos :Vector2, distance :float) -> Vector2:
+	var snap_to := Vector2.INF
 	
+	if canvas_size == Vector2i.ZERO:
+		return snap_to
+	
+	var h_edges = [
+		[Vector2(0, 0), Vector2(canvas_size.x, 0)],
+		[Vector2(0, canvas_size.y), Vector2(canvas_size.x, canvas_size.y)],
+	]
+	
+	var v_edges = [
+		[Vector2(0, 0), Vector2(0, canvas_size.y)],
+		[Vector2(canvas_size.x, 0), Vector2(canvas_size.x, canvas_size.y)],
+	]
+	
+	for edge in h_edges:
+		var snap := _snap_to_guide(snap_to, pos, distance, edge[0], edge[1])
+		if snap != Vector2.INF:
+			snap_to = snap
+	
+	for edge in v_edges:
+		var snap := _snap_to_guide(snap_to, pos, distance, edge[0], edge[1])
+		if snap != Vector2.INF:
+			if snap_to != Vector2.INF:
+				snap_to.x = snap.x
+			else:
+				snap_to = snap
+	return snap_to
+
 
 func process_snap_to_symmetry(pos :Vector2,
 							  symmetry :SymmetryGuide,

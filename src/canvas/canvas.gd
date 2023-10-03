@@ -169,7 +169,7 @@ func process_drawing_or_erasing(event, drawer):
 
 func process_selection(event, selector):
 	if event is InputEventMouseMotion:
-		var pos = snapper.snap_position(get_local_mouse_position())
+		var pos = snapper.snap_position(get_local_mouse_position(), true)
 		if is_pressed:
 			selector.select_move(pos)
 			operating.emit(state, selector, false)
@@ -180,7 +180,7 @@ func process_selection(event, selector):
 
 func process_selection_polygon(event, selector):
 	if event is InputEventMouseButton:
-		var pos = snapper.snap_position(get_local_mouse_position())
+		var pos = snapper.snap_position(get_local_mouse_position(), true)
 		if is_pressed and not event.double_click:
 			selector.select_move(pos)
 			operating.emit(state, selector, false)
@@ -188,7 +188,7 @@ func process_selection_polygon(event, selector):
 			selector.select_end(pos)
 			operating.emit(state, selector, true)
 	elif event is InputEventMouseMotion and selector.is_moving:
-		var pos = snapper.snap_position(get_local_mouse_position())
+		var pos = snapper.snap_position(get_local_mouse_position(), true)
 		if is_pressed:
 			selector.select_move(pos)
 			operating.emit(state, selector, false)
@@ -199,7 +199,7 @@ func process_selection_polygon(event, selector):
 
 func process_selection_lasso(event, selector):
 	if event is InputEventMouseMotion:
-		var pos = snapper.snap_position(get_local_mouse_position())
+		var pos = snapper.snap_position(get_local_mouse_position(), true)
 		if is_pressed:
 			selector.select_move(pos)
 			operating.emit(state, selector, false)
@@ -210,7 +210,7 @@ func process_selection_lasso(event, selector):
 
 func process_cropping(event):
 	if event is InputEventMouseMotion:
-		var pos = snapper.snap_position(get_local_mouse_position())
+		var pos = snapper.snap_position(get_local_mouse_position(), true)
 		if is_pressed:
 			if selection.has_selected():
 				selection.deselect()
