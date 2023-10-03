@@ -43,19 +43,20 @@ func draw_pixel(position: Vector2i):
 		return
 	var old_color = image.get_pixelv(position)
 	var drawing_color :Color = color_op.process(stroke_color)
-
-	# for different stroke weight, draw pixel is one by one, 
-	# even the stroke is large weight. actually its draw many pixel once.
-	var coords_to_draw := PackedVector2Array()
-	var start := position - Vector2i.ONE * (stroke_width_dynamics >> 1)
-	var end := start + Vector2i.ONE * stroke_width_dynamics
 	
-	for y in range(start.y, end.y):
-		for x in range(start.x, end.x):
-			coords_to_draw.append(Vector2(x, y))
-	for coord in coords_to_draw:
-		if can_draw(coord):
-			image.set_pixelv(coord, drawing_color)
+	if stroke_width_dynamics > 1:
+		var start := position - Vector2i.ONE * (stroke_width_dynamics >> 1)
+		var end := start + Vector2i.ONE * stroke_width_dynamics
+		var rect := Rect2i(start, end - start)
+		if mask.is_empty() or mask.is_invisible():
+			image.fill_rect(rect, drawing_color)
+		else:
+			var tmp_img = Image.create(image.get_width(), image.get_height(),
+									   false, image.get_format())
+			tmp_img.fill_rect(Rect2i(start, end - start), drawing_color)
+			image.blit_rect_mask(tmp_img, mask, rect, start)
+	else:
+		image.set_pixelv(position, drawing_color)
 
 	if pixel_perfect and stroke_width_dynamics == 1:
 		last_pixels.push_back([position, old_color])

@@ -58,28 +58,20 @@ var spacing_factor :Vector2i :
 
 var last_position :Vector2i
 
+var mask := Image.new()
+
 
 class ColorOp:
 	var strength := 1.0
-	
+
 
 func can_draw(pos :Vector2i):
 	if image.is_empty():
 		return false
+	elif not mask.is_empty() and not mask.is_invisible():
+		return draw_rect.has_point(pos) and mask.get_pixelv(pos).a > 0
 	else:
-		return draw_rect.has_point(pos) and _can_draw_hook.call(pos)
-
-
-var _can_draw_hook = func(_pos :Vector2i):
-	return true
-
-
-func set_can_draw_hook(function:Variant):
-	if function is Callable:
-		_can_draw_hook = function
-	else:
-		_can_draw_hook = func(_pos :Vector2i):
-			return true
+		return draw_rect.has_point(pos)
 
 
 func draw_start(pos: Vector2i):
@@ -163,7 +155,9 @@ func draw_fill_gap(start: Vector2i, end: Vector2i):
 	var sy := 1 if start.y < end.y else -1
 	var x := start.x
 	var y := start.y
-	# This needs to be a dictionary to ensure duplicate coordinates are not being added
+	
+	# This needs to be a dictionary to 
+	# ensure duplicate coordinates are not being added
 	var coords_to_draw := {}
 	while !(x == end.x && y == end.y):
 		e2 = err << 1

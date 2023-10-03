@@ -120,15 +120,6 @@ func select_polygon(polygon:PackedVector2Array,
 #			select_pixel(_p, subtract)
 
 
-func fill_ellipse(ellipse :PackedVector2Array, color:Color,
-				  pos_offset := Vector2.ZERO):
-	for pos in ellipse:
-		if pos_offset:
-			pos += pos_offset
-		if map_rect.has_point(pos):
-			set_pixelv(pos, color)
-
-
 func select_pixel(pos :Vector2i, subtract:=false):
 	if subtract:
 		set_pixelv(pos, UNSELECTED_COLOR)
@@ -142,6 +133,15 @@ func select_all():
 
 func select_none():
 	fill(UNSELECTED_COLOR)
+
+
+func fill_ellipse(ellipse :PackedVector2Array, color:Color,
+				  pos_offset := Vector2.ZERO):
+	for pos in ellipse:
+		if pos_offset:
+			pos += pos_offset
+		if map_rect.has_point(pos):
+			set_pixelv(pos, color)
 
 
 func fill_polygon(polygon:PackedVector2Array,

@@ -187,6 +187,7 @@ func _on_btn_pressed(btn):
 		current_selector.opt_from_center = btn_center_selector.button_pressed
 		current_selector.opt_as_square = btn_square_selector.button_pressed
 		current_selector.mode = opt_selection_mode.selected
+		current_selector.pivot = opt_sel_pivot.selected
 
 
 func _on_stroke_dynamics(index):

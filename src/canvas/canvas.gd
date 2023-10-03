@@ -87,9 +87,10 @@ func _ready():
 	lasso_selector.selection = selection
 	selection.selected.connect(_on_selection_updated)
 	
-	attach_selection_to_drawer(pencil)
-	attach_selection_to_drawer(brush)
-	attach_selection_to_drawer(eraser)
+	pencil.mask = selection.mask
+	brush.mask = selection.mask
+	eraser.mask = selection.mask
+	selection.mask = selection.mask
 
 
 func attach_project(proj):
@@ -100,15 +101,6 @@ func attach_project(proj):
 		brush.image = project.current_cel.image
 		eraser.image = project.current_cel.image
 		selection.size = project.size
-
-
-func attach_selection_to_drawer(drawer):
-	var _can_draw := func(point) -> bool:
-		if selection.has_selected():
-			return selection.has_point(point, true)
-		else:
-			return true
-	drawer.set_can_draw_hook(_can_draw)
 
 
 func prepare_pressure(pressure:float) -> float:
@@ -134,7 +126,7 @@ func process_drawing_or_erasing(event, drawer):
 	if event is InputEventMouseMotion:
 		var pos = snapper.snap_position(get_local_mouse_position())
 		indicator.show_indicator(pos, drawer.stroke_dimensions)
-		
+
 		if (not drawer.can_draw(pos) or
 			not project.current_cel is PixelCel):
 			return

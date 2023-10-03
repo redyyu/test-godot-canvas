@@ -14,6 +14,9 @@ var size := Vector2i.ONE:
 var selection_map := SelectionMap.new(size.x, size.y)
 var selected_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 
+var mask :SelectionMap :
+	get: return selection_map
+
 var zoom_ratio := 1.0:
 	set(val):
 		zoom_ratio = val
