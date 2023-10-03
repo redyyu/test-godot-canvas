@@ -272,10 +272,8 @@ func resize_to(to_size :Vector2i, pivot_offset :=Vector2i.ZERO):
 #	var tmp_img := Image.create(sel_rect.size.x, sel_rect.size.y, 
 #								false, FORMAT_LA8)
 #
-#	var x_range = range(sel_rect.position.x, 
-#						sel_rect.position.x + sel_rect.size.x)
-#	var y_range = range(sel_rect.position.y,
-#						sel_rect.position.y + sel_rect.size.y)
+#	var x_range = range(sel_rect.position.x, sel_rect.end.x)
+#	var y_range = range(sel_rect.position.y, sel_rect.end.y)
 #
 #	for x in x_range:
 #		for y in y_range:

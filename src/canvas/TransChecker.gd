@@ -53,9 +53,9 @@ func set_bounds(bounds: Vector2) -> void:
 #
 func fit_rect(rect: Rect2) -> void:
 	offset_left = rect.position.x
-	offset_right = rect.position.x + rect.size.x
+	offset_right = rect.end.x
 	offset_top = rect.position.y
-	offset_bottom = rect.position.y + rect.size.y
+	offset_bottom = rect.end.y
 
 
 func _on_resized():

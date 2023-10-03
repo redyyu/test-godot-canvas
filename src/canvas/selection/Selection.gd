@@ -3,6 +3,7 @@ class_name Selection extends Sprite2D
 
 signal selected(rect)
 
+var marching_ants_outline := preload('MarchingAntsOutline.gdshader')
 
 var size := Vector2i.ONE:
 	set(val):
@@ -27,8 +28,14 @@ var points :PackedVector2Array = []
 var is_pressed := false
 
 
-func _ready():
+func _init():
 	centered = false
+	var shader_material = ShaderMaterial.new()
+	shader_material.shader = marching_ants_outline
+	material = shader_material
+	
+
+func _ready():
 	refresh_material()
 
 
@@ -240,16 +247,14 @@ func _input(_event):
 		update_selection()
 	
 	elif Input.is_action_pressed('ui_right'):
-		var right_remain := (
-			size.x - selected_rect.position.x - selected_rect.size.x)
+		var right_remain := size.x - selected_rect.end.x
 		if right_remain < delta:
 			delta = right_remain
 		selection_map.move_delta(delta, HORIZONTAL)
 		update_selection()
 	
 	if Input.is_action_pressed('ui_down'):
-		var bottom_remain := (
-			size.y - selected_rect.position.y - selected_rect.size.y)
+		var bottom_remain := size.y - selected_rect.end.y
 		if bottom_remain < delta:
 			delta = bottom_remain
 		selection_map.move_delta(delta, VERTICAL)
