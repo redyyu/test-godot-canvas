@@ -15,7 +15,7 @@
 [ext_resource type="Script" path="res://src/canvas/guide/Ruler.gd" id="12_o861q"]
 [ext_resource type="Script" path="res://src/canvas/guide/MouseGuide.gd" id="13_xksjp"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_u122j"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fwpdp"]
 shader = ExtResource("1_d8lm1")
 shader_parameter/size = 10.0
 shader_parameter/alpha = 1.0
@@ -27,7 +27,7 @@ shader_parameter/rect_size = Vector2(0, 0)
 shader_parameter/follow_movement = false
 shader_parameter/follow_scale = false
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_88miq"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_paxfm"]
 shader = ExtResource("9_y3e15")
 shader_parameter/first_color = Color(1, 1, 1, 1)
 shader_parameter/second_color = Color(0, 0, 0, 1)
@@ -57,7 +57,7 @@ size = Vector2i(1152, 648)
 render_target_update_mode = 4
 
 [node name="TransChecker" type="ColorRect" parent="Viewport"]
-material = SubResource("ShaderMaterial_u122j")
+material = SubResource("ShaderMaterial_fwpdp")
 mouse_filter = 2
 script = ExtResource("3_dvs3t")
 
@@ -68,7 +68,7 @@ script = ExtResource("4_1y3pt")
 script = ExtResource("5_d6712")
 
 [node name="Selection" type="Sprite2D" parent="Viewport/Canvas"]
-material = SubResource("ShaderMaterial_88miq")
+material = SubResource("ShaderMaterial_paxfm")
 centered = false
 script = ExtResource("7_u15up")
 

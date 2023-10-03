@@ -17,20 +17,56 @@ var zoom_ratio := 1.0:
 	set(val):
 		zoom_ratio = val
 
+var start_position := Vector2i.ZERO
+var is_cropping := false
 
-func start_crop():
-	cropped_rect.size = size
+
+func _ready():
 	hide()
+	
+
+func reset():
+	is_cropping = false
+	cropped_rect.position = Vector2i.ZERO
+	cropped_rect.size = Vector2i.ZERO
+	hide()
+
+
+func crop_start(pos :Vector2i):
+	reset()
+	is_cropping = true
+	start_position = pos
+	show()
+
+
+func crop_move(pos :Vector2i):
+	if not is_cropping:
+		crop_start(pos)
+	
+	cropped_rect.size = abs(pos - start_position)
+	if pos.x < start_position.x or pos.y < start_position.y:
+		cropped_rect.position = pos
+	else:
+		cropped_rect.position = start_position
+	
+	queue_redraw()
+
+
+func crop_end(pos):
+	is_cropping = false
 
 
 func cancel_crop():
-	hide()
+	reset()
 
 
-func apply_crop() -> void:
+func apply_crop():
 	applied.emit(cropped_rect)
-	hide()
+	reset()
 
+
+func has_point(point :Vector2i) ->bool:
+	return cropped_rect.has_point(point)
 
 
 func _draw() -> void:

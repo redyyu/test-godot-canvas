@@ -25,21 +25,29 @@ offset_right = 1103.0
 offset_bottom = 229.0
 text = "Move"
 
+[node name="BtnCrop" type="Button" parent="."]
+layout_mode = 0
+offset_left = 981.0
+offset_top = 324.0
+offset_right = 1034.0
+offset_bottom = 355.0
+text = "Crop"
+
 [node name="BtnLockGuide" type="CheckButton" parent="."]
 layout_mode = 0
-offset_left = 893.0
-offset_top = 198.0
-offset_right = 1027.0
-offset_bottom = 229.0
+offset_left = 844.0
+offset_top = 202.0
+offset_right = 978.0
+offset_bottom = 233.0
 text = "Lock Guide"
 alignment = 2
 
 [node name="BtnShowGuide" type="CheckButton" parent="."]
 layout_mode = 0
-offset_left = 893.0
-offset_top = 240.0
-offset_right = 1027.0
-offset_bottom = 271.0
+offset_left = 839.0
+offset_top = 238.0
+offset_right = 979.0
+offset_bottom = 269.0
 text = "Show Guide"
 alignment = 2
 

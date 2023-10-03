@@ -8,6 +8,7 @@ enum {
 	PENCIL,
 	BRUSH,
 	ERASE,
+	CROP,
 	SELECT_RECTANGLE,
 	SELECT_ELLIPSE,
 	SELECT_POLYGON,
@@ -233,7 +234,7 @@ func _on_camera_pressing(is_pressed):
 			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
 
-func _on_canvas_operating(_state, _operator, is_finished):
+func _on_canvas_operating(_state:int, _operator :Variant, is_finished :bool):
 	if is_finished:
 		_lock_guides(guides_locked)
 	else:

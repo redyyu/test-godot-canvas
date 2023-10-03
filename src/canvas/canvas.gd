@@ -208,6 +208,26 @@ func process_selection_lasso(event, selector):
 			operating.emit(state, selector, true)
 
 
+func process_cropping(event):
+	if event is InputEventMouseMotion:
+		var pos = snapper.snap_position(get_local_mouse_position())
+		if is_pressed:
+			if selection.has_selected():
+				selection.deselect()
+			crop_rect.crop_move(pos)
+			operating.emit(state, crop_rect, false)
+		elif crop_rect.is_cropping:
+			crop_rect.crop_end(pos)
+	elif event is InputEventMouseButton:
+		if crop_rect.is_cropping and event.double_click:
+			var pos = get_local_mouse_position()
+			if crop_rect.has_point(pos):
+				crop_rect.apply_crop()
+			else:
+				crop_rect.cancel_crop()
+			operating.emit(state, crop_rect, true)
+
+
 func _input(event :InputEvent):
 	if not project.current_cel or frozen:
 		return
@@ -222,6 +242,8 @@ func _input(event :InputEvent):
 			process_drawing_or_erasing(event, brush)
 		Artboard.ERASE:
 			process_drawing_or_erasing(event, eraser)
+		Artboard.CROP:
+			process_cropping(event)
 		Artboard.SELECT_RECTANGLE:
 			process_selection(event, rect_selector)
 		Artboard.SELECT_ELLIPSE:

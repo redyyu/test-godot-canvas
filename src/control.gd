@@ -17,6 +17,7 @@ var current_selector :BaseSelector
 @onready var btn_8 = $BtnSelectCircle
 @onready var btn_9 = $BtnSelectPolygon
 @onready var btn_10 = $BtnSelectLasso
+@onready var btn_11 = $BtnCrop
 
 @onready var btn_lock_guide = $BtnLockGuide
 @onready var btn_show_guide = $BtnShowGuide
@@ -53,6 +54,7 @@ func _ready():
 	btn_8.pressed.connect(_on_btn_pressed.bind(btn_8))
 	btn_9.pressed.connect(_on_btn_pressed.bind(btn_9))
 	btn_10.pressed.connect(_on_btn_pressed.bind(btn_10))
+	btn_11.pressed.connect(_on_btn_pressed.bind(btn_11))
 	
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
 	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
@@ -146,6 +148,9 @@ func _on_btn_pressed(btn):
 		'BtnErase':
 			artboard.state = Artboard.ERASE
 			current_drawer = artboard.canvas.eraser
+			
+		'BtnCrop':
+			artboard.state = Artboard.CROP
 		
 		'BtnLockGuide':
 			artboard.guides_locked = btn.button_pressed
