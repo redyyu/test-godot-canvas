@@ -15,11 +15,11 @@ var guides :Array[Guide]
 var symmetry_guide :SymmetryGuide
 
 
-func snap_position(pos: Vector2, snap_to_edge:=false) -> Vector2:
+func snap_position(pos: Vector2, snap_to_edge := false) -> Vector2:
 	
 	var to_guides :Array = []
 	
-	if snap_to_edge:
+	if snap_to_edge:  # sometime no need snap to edge, ex., draw or erasing.
 		to_guides.append_array([
 			{
 				'start': Vector2(0, 0), 
