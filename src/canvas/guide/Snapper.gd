@@ -17,23 +17,72 @@ var symmetry_guide :SymmetryGuide
 
 func snap_position(pos: Vector2, snap_to_edge:=false) -> Vector2:
 	
-	var h_guides :PackedVector2Array = []
-	var v_guides :PackedVector2Array = []
+	var to_guides :Array = []
 	
 	if snap_to_edge:
-		snap_to_pos = process_snap_to_edge(pos, SNAPPING_DISTANCE)
+		to_guides.append_array([
+			{
+				'start': Vector2(0, 0), 
+				'end': Vector2(canvas_size.x, 0),
+				'type': HORIZONTAL
+			},
+			{
+				'start': Vector2(0, canvas_size.y),
+				'end': Vector2(canvas_size.x, canvas_size.y),
+				'type': HORIZONTAL
+			},
+			{
+				'start': Vector2(0, 0),
+				'end': Vector2(0, canvas_size.y),
+				'type': VERTICAL
+			},
+			{
+				'start': Vector2(canvas_size.x, 0),
+				'end': Vector2(canvas_size.x, canvas_size.y),
+				'type': VERTICAL
+			}
+		])
 		
-	if snap_to_guide and snap_to_pos == Vector2.INF:
-		snap_to_pos = process_snap_to_guide(pos,
-											guides,
-											SNAPPING_DISTANCE)
+		
+	if snap_to_guide:
+		# the guide is place on outside the viewport, 
+		# so use `relative_position`, this get form canvas when released.
+		# when place the guide.
+		# guide is cross the canvas, so one of croodinate is uesless.
+		# for horizontal is y, vertical is x,
+		for guide in guides:
+			if not guide.visible:
+				continue
+			if guide.orientation == HORIZONTAL:
+				to_guides.append({
+					'start': Vector2(0, guide.relative_position.y),
+					'end': Vector2(canvas_size.x, guide.relative_position.y),
+					'type': HORIZONTAL
+				})
+			elif guide.orientation == VERTICAL:
+				to_guides.append({
+					'start': Vector2(guide.relative_position.x, 0),
+					'end': Vector2(guide.relative_position.x, canvas_size.y),
+					'type': VERTICAL
+				})
 	
-	if snap_to_symmetry_guide and symmetry_guide.visible:
-		snap_to_pos = process_snap_to_symmetry(pos,
-											   symmetry_guide,
-											   SNAPPING_DISTANCE)
+	if snap_to_symmetry_guide and symmetry_guide:
+		if symmetry_guide.h_symmetry_guide.visible:
+			to_guides.append({
+				'start': Vector2(0, round(canvas_size.y / 2.0)),
+				'end': Vector2(canvas_size.x, round(canvas_size.y / 2.0)),
+				'type': HORIZONTAL
+			})
+			
+		if symmetry_guide.v_symmetry_guide.visible:
+			to_guides.append({
+				'start': Vector2(round(canvas_size.x / 2.0), 0),
+				'end': Vector2(round(canvas_size.x / 2.0), canvas_size.y),
+				'type': VERTICAL
+			})
 	
-	var snap_to_pos == Vector2.INF
+	var snap_to_pos = Vector2.INF
+	snap_to_pos = process_snap_to_guides(pos, to_guides, SNAPPING_DISTANCE)
 
 	if grid and grid.visible:  # only snapping when grid is showing.
 		if snap_to_grid_center and snap_to_pos == Vector2.INF:
@@ -117,101 +166,26 @@ func process_snap_to_grid_center(pos :Vector2,
 	return snap_to
 
 
-func process_snap_to_edge(pos :Vector2, distance :float) -> Vector2:
-	var snap_to := Vector2.INF
-	
-	if canvas_size == Vector2i.ZERO:
-		return snap_to
-	
-	var h_edges = [
-		[Vector2(0, 0), Vector2(canvas_size.x, 0)],
-		[Vector2(0, canvas_size.y), Vector2(canvas_size.x, canvas_size.y)],
-	]
-	
-	var v_edges = [
-		[Vector2(0, 0), Vector2(0, canvas_size.y)],
-		[Vector2(canvas_size.x, 0), Vector2(canvas_size.x, canvas_size.y)],
-	]
-	
-	for edge in h_edges:
-		var snap := _snap_to_guide(snap_to, pos, distance, edge[0], edge[1])
-		if snap != Vector2.INF:
-			snap_to = snap
-	
-	for edge in v_edges:
-		var snap := _snap_to_guide(snap_to, pos, distance, edge[0], edge[1])
-		if snap != Vector2.INF:
-			if snap_to != Vector2.INF:
-				snap_to.x = snap.x
-			else:
-				snap_to = snap
-	return snap_to
-
-
-func process_snap_to_symmetry(pos :Vector2,
-							  symmetry :SymmetryGuide,
-							  distance :float) -> Vector2:
-	var snap_to := Vector2.INF
-	
-	if not symmetry:
-		return snap_to
-	
-	var snap := Vector2.INF
-	var s1 := Vector2.ZERO
-	var s2 := Vector2.ZERO
-	
-	if symmetry.h_symmetry_guide.visible:
-		s1 = Vector2i(0, round(canvas_size.y / 2.0))
-		s2 = Vector2i(canvas_size.x, round(canvas_size.y / 2.0))
-		snap = _snap_to_guide(snap_to, pos, distance, s1, s2)
-		if snap != Vector2.INF:
-			snap_to = snap
-			
-	if symmetry.v_symmetry_guide.visible:
-		s1 = Vector2i(round(canvas_size.x / 2.0), 0)
-		s2 = Vector2i(round(canvas_size.x / 2.0), canvas_size.y)
-		snap = _snap_to_guide(snap_to, pos, distance, s1, s2)
-		if snap != Vector2.INF:
-			if snap_to != Vector2.INF:
-				snap_to.x = snap.x
-			else:
-				snap_to = snap
-		
-	return snap_to
-
-
-func process_snap_to_guide(pos :Vector2,
-						   to_guides :Array,
-						   distance :float) -> Vector2:
+func process_snap_to_guides(pos :Vector2,
+							to_guides :Array,
+							distance :float) -> Vector2:
 	var snap_to := Vector2.INF
 	
 	# split two array is for guides might cross over.
 	var h_guides = to_guides.filter(
-		func(guide): return guide.orientation == HORIZONTAL)
+		func(guide): return guide['type'] == HORIZONTAL)
 	var v_guides = to_guides.filter(
-		func(guide): return guide.orientation == VERTICAL)
+		func(guide): return guide['type'] == VERTICAL)
 
 	for guide in h_guides:
-		# the guide is place on outside the viewport, 
-		# so use `relative_position`, this get form canvas when released.
-		# when place the guide.
-		# guide is cross the canvas, so one of croodinate is uesless.
-		# for horizontal is y, vertical is x,
-		var s1 := Vector2(0, guide.relative_position.y)
-		var s2 := Vector2(canvas_size.x, guide.relative_position.y)
-		var snap := _snap_to_guide(snap_to, pos, distance, s1, s2)
+		var snap := _snap_to_guide(
+			snap_to, pos, distance, guide['start'], guide['end'])
 		if snap != Vector2.INF:
 			snap_to = snap
 	
 	for guide in v_guides:
-		# the guide is place on outside the viewport, 
-		# so use `relative_position`, this get form canvas when released.
-		# when place the guide.
-		# guide is cross the canvas, so one of croodinate is uesless.
-		# for horizontal is y, vertical is x,
-		var s1 := Vector2(guide.relative_position.x, 0)
-		var s2 := Vector2(guide.relative_position.x, canvas_size.y)
-		var snap := _snap_to_guide(snap_to, pos, distance, s1, s2)
+		var snap := _snap_to_guide(
+			snap_to, pos, distance, guide['start'], guide['end'])
 		if snap != Vector2.INF:
 			if snap_to != Vector2.INF:
 				snap_to.x = snap.x
