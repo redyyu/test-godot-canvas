@@ -3,7 +3,6 @@ class_name Selection extends Sprite2D
 
 signal selected(rect)
 
-var marching_ants_outline := preload('MarchingAntsOutline.gdshader')
 
 var size := Vector2i.ONE:
 	set(val):
@@ -28,14 +27,17 @@ var points :PackedVector2Array = []
 var is_pressed := false
 
 
-func _init():
-	centered = false
-	var shader_material = ShaderMaterial.new()
-	shader_material.shader = marching_ants_outline
-	material = shader_material
-	
+# DO IT on stage.
+#var marching_ants_outline := preload('MarchingAntsOutline.gdshader')
+#func _init():
+#	var shader_material = ShaderMaterial.new()
+#	shader_material.shader = marching_ants_outline
+#	material = shader_material
+
 
 func _ready():
+	visible = false
+	centered = false
 	refresh_material()
 
 
@@ -92,10 +94,14 @@ func get_rect_from_points(pts) -> Rect2i:
 	return Rect2i(pts[0], pts[pts.size()-1] - pts[0]).abs()
 
 
+func check_visible(points) -> bool:
+	visible = true if points.size() > 1 else false
+	return visible
+
 # Rectangle
 
 func selecting_rectangle(sel_points :Array):
-	if sel_points.size() < 2:
+	if not check_visible(sel_points):
 		return
 	_current_draw = _draw_rectangle
 	points = sel_points
@@ -106,7 +112,7 @@ func selected_rectangle(sel_points :Array,
 						replace := false,
 						subtract := false,
 						intersect := false):
-	if sel_points.size() < 2:
+	if not check_visible(sel_points):
 		return
 	var sel_rect := get_rect_from_points(sel_points)
 	selection_map.select_rect(sel_rect, replace, subtract, intersect)
@@ -117,7 +123,7 @@ func selected_rectangle(sel_points :Array,
 # Ellipse
 
 func selecting_ellipse(sel_points :Array):
-	if sel_points.size() < 2:
+	if not check_visible(sel_points):
 		return
 	_current_draw = _draw_ellipse
 	points = sel_points
@@ -128,7 +134,7 @@ func selected_ellipse(sel_points :Array,
 					  replace := false,
 					  subtract := false,
 					  intersect := false):
-	if sel_points.size() < 2:
+	if not check_visible(sel_points):
 		return
 	var sel_rect := get_rect_from_points(sel_points)
 	selection_map.select_ellipse(sel_rect, replace, subtract, intersect)
@@ -139,7 +145,7 @@ func selected_ellipse(sel_points :Array,
 # Polygon
 
 func selecting_polygon(sel_points :Array):
-	if sel_points.size() < 2:
+	if not check_visible(sel_points):
 		return
 	_current_draw = _draw_polyline
 	points = sel_points
@@ -150,7 +156,7 @@ func selected_polygon(sel_points :Array,
 					  replace := false,
 					  subtract := false,
 					  intersect := false):
-	if sel_points.size() < 2:
+	if not check_visible(sel_points):
 		return
 	selection_map.select_polygon(sel_points, replace, subtract, intersect)
 	update_selection()
@@ -160,7 +166,7 @@ func selected_polygon(sel_points :Array,
 # Lasso
 
 func selecting_lasso(sel_points :Array):
-	if sel_points.size() < 2:
+	if not check_visible(sel_points):
 		return
 	_current_draw = _draw_polyline
 	points = sel_points
@@ -171,7 +177,7 @@ func selected_lasso(sel_points :Array,
 					replace := false,
 					subtract := false,
 					intersect := false):
-	if sel_points.size() < 2:
+	if not check_visible(sel_points):
 		return
 	selection_map.select_polygon(sel_points, replace, subtract, intersect)
 	update_selection()
@@ -181,13 +187,11 @@ func selected_lasso(sel_points :Array,
 # Draw selecting lines
 
 func _draw():
-	if points.size() < 2:
-		return
-	
-	_current_draw.call()
-	# switch in `selection_` func.
-	# try not use state, so many states in proejcts already.
-	# also there is internal useage for this class only.
+	if points.size() > 1:
+		_current_draw.call()	
+		# switch in `selection_` func.
+		# try not use state, so many states in proejcts already.
+		# also there is internal useage for this class only.
 
 
 var _current_draw = _draw_nothing

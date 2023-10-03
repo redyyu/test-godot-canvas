@@ -72,6 +72,9 @@ material = SubResource("ShaderMaterial_88miq")
 centered = false
 script = ExtResource("7_u15up")
 
+[node name="CropRect" type="Node2D" parent="Viewport/Canvas"]
+script = ExtResource("11_x8d2w")
+
 [node name="Grid" type="Node2D" parent="Viewport"]
 script = ExtResource("6_qakk7")
 
@@ -89,11 +92,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-
-[node name="CropRect" type="ColorRect" parent="Viewport"]
-offset_right = 40.0
-offset_bottom = 40.0
-script = ExtResource("11_x8d2w")
 
 [node name="HRuler" type="Button" parent="."]
 visible = false

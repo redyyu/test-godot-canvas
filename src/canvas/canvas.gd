@@ -21,7 +21,6 @@ var size :Vector2i :
 		else:
 			return Vector2i.ZERO
 
-var selection := Selection.new()
 var selected_rect: Rect2i :
 	get: return selection.selected_rect
 
@@ -37,8 +36,6 @@ var dynamics_stroke_width := Dynamics.NONE
 var dynamics_stroke_alpha := Dynamics.NONE
 
 var snapper := Snapper.new()
-var indicator := Indicator.new()
-var crop_rect := CropRect.new()
 
 var is_pressed := false
 
@@ -53,6 +50,10 @@ var state := Artboard.NONE:
 	set(val):
 		state = val
 		indicator.hide_indicator()  # not all state need indicator
+
+@onready var indicator :Indicator = $Indicator
+@onready var selection :Selection = $Selection
+@onready var crop_rect :CropRect = $CropRect
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -81,10 +82,6 @@ func _ready():
 #
 #	selection.gizmo_hovered.connect(_on_selection_gizmo_hovered)
 #	selection.gizmo_unhovered.connect(_on_selection_gizmo_unhovered)
-	
-	add_child(selection)
-	add_child(indicator)
-	add_child(crop_rect)
 	
 	# attach selection to selector
 	rect_selector.selection = selection
