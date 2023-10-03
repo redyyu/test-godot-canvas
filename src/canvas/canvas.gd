@@ -3,6 +3,18 @@ class_name Canvas extends Node2D
 signal cursor_changed(cursor)
 signal selection_changed(rect)
 signal operating(operate_state, operater, is_finished)
+signal crop_canvas(rect)
+
+
+var state := Artboard.NONE:
+	set(val):
+		state = val
+		indicator.hide_indicator()  # not all state need indicator
+		if state == Artboard.CROP:
+			selection.deselect()
+			crop_rect.start_crop()
+			gizmo_sizer.launch(crop_rect.cropped_rect)
+			
 
 var pencil := PencilDrawer.new()
 var brush := BrushDrawer.new()
@@ -38,22 +50,19 @@ var dynamics_stroke_alpha := Dynamics.NONE
 var snapper := Snapper.new()
 
 var is_pressed := false
+var frozen := false # temporary prevent canvas operations.
 
 var zoom := Vector2.ONE :
 	set(val):
 		zoom = val
 		selection.zoom_ratio = (zoom.x + zoom.y) / 2
-
-var frozen := false # temporary prevent canvas operations.
-
-var state := Artboard.NONE:
-	set(val):
-		state = val
-		indicator.hide_indicator()  # not all state need indicator
+		crop_rect.zoom_ratio = selection.zoom_ratio
+		gizmo_sizer.zoom_ratio = crop_rect.zoom_ratio
 
 @onready var indicator :Indicator = $Indicator
 @onready var selection :Selection = $Selection
 @onready var crop_rect :CropRect = $CropRect
+@onready var gizmo_sizer :GizmoSizer = $GizmoSizer
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -79,9 +88,6 @@ func _ready():
 #	onion_past.blue_red_color = Color.RED
 #	onion_future.type = onion_future.FUTURE
 #	onion_future.blue_red_color = Color.BLUE
-#
-#	selection.gizmo_hovered.connect(_on_selection_gizmo_hovered)
-#	selection.gizmo_unhovered.connect(_on_selection_gizmo_unhovered)
 	
 	# attach selection to selector
 	rect_selector.selection = selection
@@ -94,6 +100,10 @@ func _ready():
 	brush.mask = selection.mask
 	eraser.mask = selection.mask
 	selection.mask = selection.mask
+	
+	gizmo_sizer.hovered.connect(_on_gizmo_sizer_hovered)
+	gizmo_sizer.changed.connect(_on_gizmo_sizer_changed)
+	gizmo_sizer.applied.connect(_on_gizmo_sizer_applied)
 
 
 func attach_project(proj):
@@ -208,24 +218,19 @@ func process_selection_lasso(event, selector):
 			operating.emit(state, selector, true)
 
 
-func process_cropping(event):
-	if event is InputEventMouseMotion:
-		var pos = snapper.snap_position(get_local_mouse_position(), true)
-		if is_pressed:
-			if selection.has_selected():
-				selection.deselect()
-			crop_rect.crop_move(pos)
-			operating.emit(state, crop_rect, false)
-		elif crop_rect.is_cropping:
-			crop_rect.crop_end(pos)
-	elif event is InputEventMouseButton:
-		if crop_rect.is_cropping and event.double_click:
-			var pos = get_local_mouse_position()
-			if crop_rect.has_point(pos):
-				crop_rect.apply_crop()
-			else:
-				crop_rect.cancel_crop()
-			operating.emit(state, crop_rect, true)
+#func process_cropping(event):
+#	if event is InputEventMouseMotion and is_pressed:
+#		var pos = snapper.snap_position(get_local_mouse_position(), true)
+#		move_current_gizmo(pos)
+#		operating.emit(state, crop_rect, false)
+#	elif event is InputEventMouseButton:
+#		if crop_rect.is_cropping and event.double_click:
+#			var pos = get_local_mouse_position()
+#			if crop_rect.has_point(pos):
+#				crop_rect.apply_crop()
+#			else:
+#				crop_rect.cancel_crop()
+#			operating.emit(state, crop_rect, true)
 
 
 func _input(event :InputEvent):
@@ -243,7 +248,8 @@ func _input(event :InputEvent):
 		Artboard.ERASE:
 			process_drawing_or_erasing(event, eraser)
 		Artboard.CROP:
-			process_cropping(event)
+#			process_cropping(event)
+			pass
 		Artboard.SELECT_RECTANGLE:
 			process_selection(event, rect_selector)
 		Artboard.SELECT_ELLIPSE:
@@ -269,7 +275,7 @@ func _draw():
 			draw_texture(tex, Vector2.ZERO, modulate_color)
 
 
-func get_relative_mouse_position():
+func get_relative_mouse_position(): # other node need mouse location of canvas.
 	var mpos = get_local_mouse_position()
 	return Vector2i(round(mpos.x), round(mpos.y))
 
@@ -280,12 +286,16 @@ func _on_selection_updated(sel_rect :Rect2i):
 
 
 # gizmo
-func _on_selection_gizmo_hovered(gizmo):
-	cursor_changed.emit(gizmo.cursor)
+func _on_gizmo_sizer_applied(rect):
+	crop_canvas.emit(rect)
+	
+	
+func _on_gizmo_sizer_changed(rect, _gizmo):
+	crop_rect.cropped_rect = rect
 
 
-func _on_selection_gizmo_unhovered(_gizmo):
-	cursor_changed.emit(null)
+func _on_gizmo_sizer_hovered(gizmo):
+	cursor_changed.emit(gizmo.cursor if gizmo else null)
 
 
 # snapping

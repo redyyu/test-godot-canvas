@@ -64,14 +64,14 @@ func _input(event: InputEvent):
 	elif event is InputEventMouseMotion and is_pressed:
 		match orientation:
 			HORIZONTAL:
-				position.y = get_global_mouse_position().y
+				position.y = get_artboard_mouse_position.call().y
 			VERTICAL: 
-				position.x = get_global_mouse_position().x
+				position.x = get_artboard_mouse_position.call().x
 	
 	# mouse over 
 	elif event is InputEventMouseMotion:
 		if orientation == HORIZONTAL:
-			if abs(position.y - get_global_mouse_position().y) < 3:
+			if abs(position.y - get_artboard_mouse_position.call().y) < 3:
 				# check mouse is closet to guide.
 				if not is_hovered:
 					is_hovered = true
@@ -82,7 +82,7 @@ func _input(event: InputEvent):
 					leaved.emit(self)
 			
 		elif orientation == VERTICAL:
-			if abs(position.x - get_global_mouse_position().x) < 3:
+			if abs(position.x - get_artboard_mouse_position.call().x) < 3:
 				# check mouse is closet to guide.
 				if not is_hovered:
 					is_hovered = true
@@ -122,3 +122,7 @@ func snap_to(pos :Vector2i):
 		VERTICAL:
 			if abs(relative_position.x - pos.x) < SNAPPING_DISTANCE:
 				relative_position.x = pos.x
+
+
+var get_artboard_mouse_position = func():
+	return get_parent().get_local_mouse_position()

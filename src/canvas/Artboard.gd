@@ -131,6 +131,7 @@ func _ready():
 	
 	canvas.cursor_changed.connect(_on_canvas_change_cursor)
 	canvas.operating.connect(_on_canvas_operating)
+	canvas.crop_canvas.connect(_on_canvas_cropping)
 	
 	trans_checker.add_sibling(reference_image)
 	
@@ -157,6 +158,10 @@ func load_project(proj :Project):
 	canvas.attach_snap_to(project.size, guides, symmetry_guide, grid)
 	trans_checker.update_bounds(project.size)
 	
+
+func crop_project(rect):
+	print(rect)
+
 
 func save_to_project():
 	pass
@@ -241,6 +246,10 @@ func _on_canvas_operating(_state:int, _operator :Variant, is_finished :bool):
 		_lock_guides(true)
 
 
+func _on_canvas_cropping(rect):
+	crop_project(rect)
+
+
 func _on_canvas_change_cursor(cursor):
 	if cursor:
 		mouse_default_cursor_shape = cursor
@@ -268,6 +277,9 @@ func _on_guide_created(type):
 	guide.set_guide(type, size)
 	guides.append(guide)
 	add_child(guide)
+	guide.get_artboard_mouse_position = func():
+		# for make sure position is from artboard when guide is dragging.
+		return get_local_mouse_position()
 	guide.pressed.connect(_on_guide_pressed)
 	guide.released.connect(_on_guide_released)
 	guide.hovered.connect(_on_guide_hovered)

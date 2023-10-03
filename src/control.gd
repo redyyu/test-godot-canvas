@@ -5,7 +5,7 @@ var current_drawer :BaseDrawer
 var current_selector :BaseSelector
 
 
-@onready var artboard :SubViewportContainer = $Artboard
+@onready var artboard :SubViewportContainer = $HBoxContainer/Artboard
 
 @onready var btn_1 = $BtnMove
 @onready var btn_2 = $BtnPan

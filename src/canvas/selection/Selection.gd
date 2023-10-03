@@ -94,8 +94,8 @@ func get_rect_from_points(pts) -> Rect2i:
 	return Rect2i(pts[0], pts[pts.size()-1] - pts[0]).abs()
 
 
-func check_visible(points) -> bool:
-	visible = true if points.size() > 1 else false
+func check_visible(sel_points) -> bool:
+	visible = true if sel_points.size() > 1 else false
 	return visible
 
 # Rectangle

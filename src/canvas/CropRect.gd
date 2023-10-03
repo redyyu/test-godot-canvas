@@ -2,8 +2,7 @@ class_name CropRect extends Node2D
 # Draws the rectangle overlay for the crop tool
 # Stores the shared settings between left and right crop tools
 
-signal updated
-signal applied
+signal complete
 
 const BG_COLOR := Color(0, 0, 0, 0.66)
 const LINE_COLOR := Color.WHITE
@@ -11,7 +10,10 @@ const LINE_COLOR := Color.WHITE
 var opt_as_square := false
 
 var size := Vector2i.ZERO
-var cropped_rect = Rect2i(0, 0, 0, 0)
+var cropped_rect = Rect2i(0, 0, 0, 0) :
+	set(val):
+		cropped_rect = val
+		queue_redraw()
 
 var zoom_ratio := 1.0:
 	set(val):
@@ -32,39 +34,29 @@ func reset():
 	hide()
 
 
-func crop_start(pos :Vector2i):
+func start_crop():
 	reset()
 	is_cropping = true
-	start_position = pos
+	cropped_rect.size = size
 	show()
 
 
-func crop_move(pos :Vector2i):
-	if not is_cropping:
-		crop_start(pos)
-	
-	cropped_rect.size = abs(pos - start_position)
-	cropped_rect.position = start_position
-	if pos.x < start_position.x:
-		cropped_rect.position.x = pos.x
-	if pos.y < start_position.y:
-		cropped_rect.position.y = pos.y
-		
-	
-	queue_redraw()
-
-
-func crop_end(_pos):
-	is_cropping = false
+#func cropping_to(_rect :Vector2i):
+#	if not is_cropping:
+#		start_crop()
+#
+#	queue_redraw()
 
 
 func cancel_crop():
+	is_cropping = false
+	complete.emit(cropped_rect)
 	reset()
 
 
 func apply_crop():
-	applied.emit(cropped_rect)
-	reset()
+	is_cropping = false
+	complete.emit(cropped_rect)
 
 
 func has_point(point :Vector2i) ->bool:
@@ -112,4 +104,3 @@ func _draw() -> void:
 	draw_line(Vector2(third, cropped_rect.position.y),
 			  Vector2(third, cropped_rect.end.y),
 			  LINE_COLOR, 1.0 / zoom_ratio)
-
