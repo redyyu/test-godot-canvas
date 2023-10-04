@@ -7,14 +7,7 @@ signal crop_canvas(rect)
 
 
 var state := Artboard.NONE:
-	set(val):
-		state = val
-		indicator.hide_indicator()  # not all state need indicator
-		if state == Artboard.CROP:
-			selection.deselect()
-			crop_rect.start_crop()
-			gizmo_sizer.launch(crop_rect.cropped_rect)
-			
+	set = set_state
 
 var pencil := PencilDrawer.new()
 var brush := BrushDrawer.new()
@@ -24,7 +17,7 @@ var rect_selector := RectSelector.new()
 var ellipse_selector := EllipseSelector.new()
 var polygon_selector := PolygonSelector.new()
 var lasso_selector := LassoSelector.new()
-
+		
 var project :Project
 var size :Vector2i :
 	get:
@@ -62,6 +55,7 @@ var zoom := Vector2.ONE :
 @onready var indicator :Indicator = $Indicator
 @onready var selection :Selection = $Selection
 @onready var crop_rect :CropRect = $CropRect
+@onready var free_transformer :FreeTransformer = $FreeTransformer
 @onready var gizmo_sizer :GizmoSizer = $GizmoSizer
 
 #var mirror_view :bool = false
@@ -99,7 +93,6 @@ func _ready():
 	pencil.mask = selection.mask
 	brush.mask = selection.mask
 	eraser.mask = selection.mask
-	selection.mask = selection.mask
 	
 	gizmo_sizer.hovered.connect(_on_gizmo_sizer_hovered)
 	gizmo_sizer.changed.connect(_on_gizmo_sizer_changed)
@@ -108,16 +101,37 @@ func _ready():
 		return snapper.snap_position(pos, true)
 
 
+func set_state(val):
+	if state == val:
+		return
+	state = val
+	indicator.hide_indicator()  # not all state need indicator
+	crop_rect.cancel_crop()
+	
+	match state:
+		Artboard.CROP:
+			selection.deselect()
+			crop_rect.start_crop()
+			gizmo_sizer.launch(crop_rect.cropped_rect)
+			
+		Artboard.MOVE:
+			free_transformer.lanuch(project.current_cel.get_image(), 
+							 		selection.selected_rect)
+
+
 func attach_project(proj):
 	project = proj
 	
-	if project.current_cel is PixelCel:
-		pencil.image = project.current_cel.image
-		brush.image = project.current_cel.image
-		eraser.image = project.current_cel.image
-	
 	selection.size = project.size
 	crop_rect.size = project.size
+	
+	attach_current_cel()
+	
+	
+func attach_current_cel():
+	pencil.attach_image(project.current_cel.get_image())
+	brush.attach_image(project.current_cel.get_image())
+	eraser.attach_image(project.current_cel.get_image())
 
 
 func prepare_pressure(pressure:float) -> float:

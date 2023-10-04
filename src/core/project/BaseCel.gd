@@ -25,11 +25,17 @@ func get_image_texture() -> Texture2D:
 	return image_texture
 
 
-# The content methods deal with the unique content of each cel type. For example, an Image for
-# PixelLayers, or a Dictionary of settings for a procedural layer type, and null for Groups.
-# Can be used for linking/unlinking cels, copying, and deleting content
+# The content methods deal with the unique content of each cel type. 
+# For example, an Image for PixelLayers, or a Dictionary of settings 
+# for a procedural layer type, and null for Groups.
+# Can be used for linking/unlinking cels, copying, and deleting content.
 func get_content():
 	return null
+
+
+# get visual image of this cel
+func get_image():
+	return Image.new()
 
 
 func set_content(_content, _texture: ImageTexture = null):

@@ -23,6 +23,15 @@ func image_changed(value: Image):
 		image_texture.set_image(image)
 
 
+func get_image():
+	# for pixel cel it is same with `get_content`,
+	# the reason make two same func is for future other type Cel class.
+	# generally, `get_image` is for get the visual of this cel,
+	# ex., for a 3DCel, content might be 3D mesh, 
+	# but still need a image to rendering.
+	return image
+
+
 func get_content():
 	return image
 

@@ -1,7 +1,7 @@
 extends Control
 
 var current_color := Color.WHITE
-var current_drawer :BaseDrawer
+var current_drawer :PixelDrawer
 var current_selector :BaseSelector
 
 

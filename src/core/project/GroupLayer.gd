@@ -31,7 +31,7 @@ func blend_children(frame: Frame, layers :Array[BaseLayer], size:Vector2i,
 			image.blend_rect(layer.blend_children(frame, origin), 
 							 blend_rect,
 							 origin)
-		else:
+		elif layer is PixelLayer:
 			var cel := frame.cels[layer.index]
 			var cel_image := Image.new()
 			cel_image.copy_from(cel.get_image())
