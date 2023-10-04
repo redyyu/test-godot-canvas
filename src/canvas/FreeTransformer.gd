@@ -10,8 +10,7 @@ var transform_texture := ImageTexture.new()
 var transform_image := Image.new() :
 	set(val):
 		transform_image = val
-		if not transform_image.is_empty():
-			transform_texture.set_image(transform_image)
+		update_texture()
 
 var canvas_size := Vector2i.ZERO
 var line_color := Color.REBECCA_PURPLE
@@ -81,11 +80,19 @@ func apply():
 		transform_image.resize(transform_rect.size.x, 
 							   transform_rect.size.y,
 							   Image.INTERPOLATE_NEAREST)
+		# DO NOT just fill rect, selection might have different shapes.
 		var img_rect = Rect2i(Vector2i.ZERO, transform_rect.size)
-		image.fill_rect(transform_rect, Color.TRANSPARENT)
-		image.blit_rect(transform_image, img_rect, transform_rect.position)
+		image.blit_rect_mask(transform_image, transform_image,
+							 img_rect, transform_rect.position)
 		changed.emit(transform_rect)
 	reset()
+
+
+func update_texture():
+	if transform_image.is_empty():
+		transform_texture = ImageTexture.new()
+	else:
+		transform_texture.set_image(transform_image)
 
 
 func update_transform_rect(rect :Rect2i):

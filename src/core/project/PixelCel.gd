@@ -14,7 +14,8 @@ func _init(_width :int, _height :int):
 	height = _height
 	
 	image = Image.create(width, height, true, Image.FORMAT_RGBA8)
-	image_texture = ImageTexture.create_from_image(image)
+#	image_texture = ImageTexture.create_from_image(image)
+#	# image's setter will take care of it.
 	
 
 func image_changed(value: Image):
@@ -62,5 +63,8 @@ func copy_content():
 
 
 func update_texture():
-	image_texture.set_image(image)
+	if image.is_empty():
+		image_texture = ImageTexture.new()
+	else:
+		image_texture.set_image(image)
 	super.update_texture()

@@ -5,7 +5,7 @@ class_name BaseCel extends RefCounted
 
 signal texture_changed
 
-var image_texture :Texture2D = ImageTexture.new(): 
+var image_texture := ImageTexture.new(): 
 	get = get_image_texture
 
 	
@@ -21,7 +21,7 @@ func _init(_width :int, _height :int):
 	pass
 
 
-func get_image_texture() -> Texture2D:
+func get_image_texture() -> ImageTexture:
 	return image_texture
 
 
