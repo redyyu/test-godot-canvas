@@ -4,8 +4,14 @@ const MODULATE_COLOR := Color(1, 1, 1, 0.66)
 
 var image := Image.new()
 var canvas_size := Vector2i.ZERO
-var transform_rect := Rect2i(Vector2i.ZERO, Vector2.ZERO)
+var line_color := Color.REBECCA_PURPLE
 
+var transform_rect := Rect2i(Vector2i.ZERO, Vector2.ZERO):
+	set(val):
+		transform_rect = val
+		queue_redraw()
+
+var zoom_ratio := 1.0
 
 func lanuch(src_img :Image, src_rect :Rect2i):
 	if src_rect.has_area():
@@ -26,3 +32,4 @@ func _draw():
 	if has_image() and transform_rect.has_area():
 		var texture = ImageTexture.create_from_image(image)
 		draw_texture_rect(texture, transform_rect, false, MODULATE_COLOR)
+		draw_rect(transform_rect, line_color, false, 1.0 / zoom_ratio)

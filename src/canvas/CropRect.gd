@@ -16,9 +16,7 @@ var cropped_rect = Rect2i(0, 0, 0, 0) :
 		cropped_rect = val
 		queue_redraw()
 
-var zoom_ratio := 1.0:
-	set(val):
-		zoom_ratio = val
+var zoom_ratio := 1.0
 
 var start_position := Vector2i.ZERO
 var is_cropping := false
@@ -67,23 +65,23 @@ func _draw() -> void:
 	# Background
 	var total_rect = Rect2i(Vector2.ZERO, size)
 	
-	if cropped_rect.position.y > 1 and size.x > 1:
+	if cropped_rect.position.y > 0 and size.x > 0:
 		var top_rect = total_rect.intersection(
 			Rect2i(0, 0, size.x, cropped_rect.position.y))
 		draw_rect(top_rect, BG_COLOR)
 	
-	if (size.x - cropped_rect.end.x) > 1 and cropped_rect.size.y > 1:
+	if (size.x - cropped_rect.end.x) > 0 and cropped_rect.size.y > 0:
 		var right_rect = total_rect.intersection(
 			Rect2i(cropped_rect.end.x, cropped_rect.position.y, 
 				   size.x - cropped_rect.end.x, cropped_rect.size.y))
 		draw_rect(right_rect, BG_COLOR)
 	
-	if size.x > 1 and size.y - cropped_rect.end.y > 1:
+	if size.x > 0 and (size.y - cropped_rect.end.y) > 0:
 		var bottom_rect = total_rect.intersection(
 			Rect2i(0, cropped_rect.end.y, size.x, size.y - cropped_rect.end.y))
 		draw_rect(bottom_rect, BG_COLOR)	
 		
-	if cropped_rect.position.x > 1 and cropped_rect.size.y > 1:
+	if cropped_rect.position.x > 0 and cropped_rect.size.y > 0:
 		var left_rect = total_rect.intersection(
 			Rect2i(0, cropped_rect.position.y, 
 				   cropped_rect.position.x, cropped_rect.size.y))

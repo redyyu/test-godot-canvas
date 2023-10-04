@@ -7,7 +7,10 @@ signal crop_canvas(rect)
 
 
 var state := Artboard.NONE:
-	set = set_state
+	set(val):
+		# allow change without really changed val, trigger funcs in setter.
+		state = val
+		spread_state()
 
 var pencil := PencilDrawer.new()
 var brush := BrushDrawer.new()
@@ -43,14 +46,10 @@ var dynamics_stroke_alpha := Dynamics.NONE
 var snapper := Snapper.new()
 
 var is_pressed := false
-var frozen := false # temporary prevent canvas operations.
+var frozen := false # temporary prevent canvas operations. for parents mostlly.
 
 var zoom := Vector2.ONE :
-	set(val):
-		zoom = val
-		selection.zoom_ratio = (zoom.x + zoom.y) / 2
-		crop_rect.zoom_ratio = selection.zoom_ratio
-		gizmo_sizer.zoom_ratio = crop_rect.zoom_ratio
+	set = set_zoom_ratio
 
 @onready var indicator :Indicator = $Indicator
 @onready var selection :Selection = $Selection
@@ -101,10 +100,16 @@ func _ready():
 		return snapper.snap_position(pos, true)
 
 
-func set_state(val):
-	if state == val:
-		return
-	state = val
+func attach_project(proj):
+	project = proj
+	
+	selection.size = project.size
+	crop_rect.size = project.size
+	
+	spread_state()
+
+
+func spread_state():  # triggered when state changing.
 	indicator.hide_indicator()  # not all state need indicator
 	gizmo_sizer.dismiss()  # launch again will not effect the pos.
 	
@@ -114,26 +119,28 @@ func set_state(val):
 	if state == Artboard.CROP:
 		selection.deselect()
 		crop_rect.start_crop()
+		gizmo_sizer.restore_colors()
 		gizmo_sizer.launch(crop_rect.cropped_rect)
 	elif state == Artboard.MOVE:
 		free_transformer.lanuch(project.current_cel.get_image(), 
 						 		selection.selected_rect)
+		gizmo_sizer.gizmo_color = free_transformer.line_color
 		gizmo_sizer.launch(free_transformer.transform_rect)
+	elif state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
+		pencil.attach_image(project.current_cel.get_image())
+		brush.attach_image(project.current_cel.get_image())
+		eraser.attach_image(project.current_cel.get_image())
 
 
-func attach_project(proj):
-	project = proj
-	
-	selection.size = project.size
-	crop_rect.size = project.size
-	
-	attach_current_cel()
-	
-	
-func attach_current_cel():
-	pencil.attach_image(project.current_cel.get_image())
-	brush.attach_image(project.current_cel.get_image())
-	eraser.attach_image(project.current_cel.get_image())
+func set_zoom_ratio(val):
+	if zoom == val:
+		return
+	zoom = val
+	var zoom_ratio = (zoom.x + zoom.y) / 2
+	selection.zoom_ratio = zoom_ratio
+	crop_rect.zoom_ratio = zoom_ratio
+	free_transformer.zoom_ratio = zoom_ratio
+	gizmo_sizer.zoom_ratio = zoom_ratio
 
 
 func prepare_pressure(pressure:float) -> float:
@@ -236,21 +243,6 @@ func process_selection_lasso(event, selector):
 			operating.emit(state, selector, true)
 
 
-#func process_cropping(event):
-#	if event is InputEventMouseMotion and is_pressed:
-#		var pos = snapper.snap_position(get_local_mouse_position(), true)
-#		move_current_gizmo(pos)
-#		operating.emit(state, crop_rect, false)
-#	elif event is InputEventMouseButton:
-#		if crop_rect.is_cropping and event.double_click:
-#			var pos = get_local_mouse_position()
-#			if crop_rect.has_point(pos):
-#				crop_rect.apply_crop()
-#			else:
-#				crop_rect.cancel_crop()
-#			operating.emit(state, crop_rect, true)
-
-
 func _input(event :InputEvent):
 	if not project.current_cel or frozen:
 		return
@@ -266,7 +258,6 @@ func _input(event :InputEvent):
 		Artboard.ERASE:
 			process_drawing_or_erasing(event, eraser)
 		Artboard.CROP:
-#			process_cropping(event)
 			pass
 		Artboard.SELECT_RECTANGLE:
 			process_selection(event, rect_selector)
@@ -343,3 +334,4 @@ var snap_to_grid_boundary :bool :
 var snap_to_symmetry_guide :bool :
 	get: return snapper.snap_to_symmetry_guide
 	set(val): snapper.snap_to_symmetry_guide = val
+

@@ -82,6 +82,7 @@ script = ExtResource("9_2sc0w")
 
 [node name="GizmoSizer" type="Node2D" parent="Viewport/Canvas"]
 script = ExtResource("9_8gpsg")
+gizmo_line_width = 2.0
 
 [node name="Grid" type="Node2D" parent="Viewport"]
 script = ExtResource("6_qakk7")

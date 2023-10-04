@@ -17,6 +17,7 @@ enum {
 
 var state := Artboard.NONE :
 	set(val):
+		# allow change without really changed val, trigger funcs in setter.
 		state = val
 		canvas.state = state
 		camera.state = state

@@ -5,6 +5,32 @@ signal pressed(gizmo)
 signal changed(rect)
 signal applied(rect)
 
+@export var gizmo_color := Color(0.2, 0.2, 0.2, 1):
+	set(val):
+		gizmo_color = val
+		for gizmo in gizmos:
+			gizmo.color = gizmo_color
+			
+@export var gizmo_bgcolor := Color.WHITE :
+	set(val):
+		gizmo_bgcolor = val
+		for gizmo in gizmos:
+			gizmo.bgcolor = gizmo_bgcolor
+			
+@export var gizmo_line_width := 1.0:
+	set(val):
+		gizmo_line_width = val
+		for gizmo in gizmos:
+			gizmo.line_width = gizmo_line_width
+
+@export var gizmo_size := Vector2(10, 10) :
+	set(val):
+		gizmo_size = val
+		for gizmo in gizmos:
+			gizmo.default_size = gizmo_size
+
+var stored_color := gizmo_color
+var stored_bgcolor := gizmo_bgcolor
 
 var zoom_ratio := 1.0:
 	set(val):
@@ -20,8 +46,6 @@ var bound_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO) :
 var gizmos :Array[Gizmo] = []
 
 var pressed_gizmo :Variant = null
-var has_gizmo_pressed :bool :
-	get: return pressed_gizmo is Gizmo
 
 var is_dragging := false
 var drag_offset := Vector2i.ZERO
@@ -38,9 +62,21 @@ func _ready():
 	gizmos.append(Gizmo.new(Gizmo.BOTTOM_LEFT))
 	gizmos.append(Gizmo.new(Gizmo.MIDDLE_LEFT))
 	for gizmo in gizmos:
+		gizmo.color = gizmo_color
+		gizmo.bgcolor = gizmo_bgcolor
+		gizmo.default_size = gizmo_size
+		gizmo.line_width = gizmo_line_width
 		gizmo.hovered.connect(_on_gizmo_hovered)
 		gizmo.pressed.connect(_on_gizmo_pressed)
 		add_child(gizmo)
+
+
+func restore_colors():
+	if stored_color != gizmo_color:
+		gizmo_color = stored_color
+
+	if stored_bgcolor != gizmo_bgcolor:
+		gizmo_bgcolor = stored_bgcolor
 
 
 func launch(rect :Rect2i):
@@ -127,7 +163,7 @@ func move_gizmo_to(gizmo:Gizmo, pos :Vector2i):
 	
 	for gzm in gizmos:
 		set_gizmo_place(gzm)
-		
+
 	changed.emit(bound_rect)
 
 
@@ -154,6 +190,10 @@ func set_gizmo_place(gizmo):
 			gizmo.position = Vector2(gpos) + Vector2(0, gsize.y / 2)
 
 
+func has_gizmo_pressed() -> bool:
+	return pressed_gizmo is Gizmo
+
+
 func _input(event :InputEvent):
 	# TODO: the way handle the events might not support touch / tablet. 
 	# since I have no device to try. leave it for now.
@@ -162,15 +202,17 @@ func _input(event :InputEvent):
 		return
 
 	if event is InputEventMouseMotion:
-		var pos := get_global_mouse_position()
-		if has_gizmo_pressed:
+		var pos := get_local_mouse_position()
+		if has_gizmo_pressed():
 			move_gizmo_to(pressed_gizmo,  get_snapping.call(pos))
 			# it is in a sub viewport, and without any influence with layout.
 			# so `get_global_mouse_position()` should work.
-		elif is_dragging:
+		elif bound_rect.has_point(pos) and is_dragging:
 			drag_to(pos)
+		else:
+			is_dragging = false
 	elif event is InputEventMouseButton:
-		var pos := get_global_mouse_position()
+		var pos := get_local_mouse_position()
 		if bound_rect.has_point(pos):
 			if event.double_click:
 				applied.emit(bound_rect)
@@ -236,10 +278,25 @@ class Gizmo extends Node2D :
 
 	var pivot := TOP_LEFT
 
-	var color := Color(0.2, 0.2, 0.2, 1)
-	var bgcolor := Color.WHITE
+	var color := Color(0.2, 0.2, 0.2, 1) :
+		set(val):
+			color = val
+			queue_redraw()
+			
+	var bgcolor := Color.WHITE :
+		set(val):
+			bgcolor = val
+			queue_redraw()
+			
+	var line_width := 1.0 :
+		set(val):
+			line_width = val
+			queue_redraw()
 
-	var default_size := Vector2(12, 12)
+	var default_size := Vector2(10, 10) :
+		set(val):
+			default_size = val
+			queue_redraw()
 
 	var size :Vector2 :
 		get: return default_size / zoom_ratio
@@ -312,8 +369,8 @@ class Gizmo extends Node2D :
 	func _draw():
 		if not visible:
 			return
-		draw_rect(rectangle, color if is_hover else bgcolor)
-		draw_rect(rectangle, color, false, 1 / zoom_ratio)
+		draw_rect(rectangle, color if is_hover or is_pressed else bgcolor)
+		draw_rect(rectangle, color, false, line_width / zoom_ratio)
 
 
 	func _input(event :InputEvent):
@@ -334,6 +391,7 @@ class Gizmo extends Node2D :
 						pressed.emit(self)
 					else:
 						pressed.emit(null)
+					queue_redraw()
 			else:
 				if is_hover:
 					is_hover = false
@@ -343,3 +401,4 @@ class Gizmo extends Node2D :
 					# for release outside
 					is_pressed = false
 					pressed.emit(null)
+					queue_redraw()
