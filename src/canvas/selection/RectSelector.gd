@@ -1,4 +1,4 @@
-class_name RectSelector extends BaseSelector
+class_name RectSelector extends PixelSelector
 
 func select_move(pos :Vector2i):
 	super.select_move(pos)

@@ -1,4 +1,4 @@
-class_name LassoSelector extends BaseSelector
+class_name LassoSelector extends PixelSelector
 
 
 func select_move(pos :Vector2i):

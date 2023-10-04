@@ -1,4 +1,4 @@
-class_name EllipseSelector extends BaseSelector
+class_name EllipseSelector extends PixelSelector
 
 func select_move(pos :Vector2i):
 	super.select_move(pos)

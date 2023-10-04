@@ -1,4 +1,4 @@
-class_name PolygonSelector extends BaseSelector
+class_name PolygonSelector extends PixelSelector
 
 
 func select_move(pos :Vector2i):
