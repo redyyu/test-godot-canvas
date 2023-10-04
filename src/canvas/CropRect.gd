@@ -48,12 +48,13 @@ func cancel():
 	reset()
 
 
-func apply():
+func apply(reset:=false):
 	if cropped_rect.has_area():
 		applied.emit(cropped_rect)
 	else:
 		canceled.emit(cropped_rect)
-	reset()
+	if reset:
+		reset()
 
 
 func has_point(point :Vector2i) ->bool:

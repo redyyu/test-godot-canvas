@@ -2,9 +2,10 @@ class_name FreeTransformer extends Node2D
 
 signal changed(rect)
 
-const MODULATE_COLOR := Color(1, 1, 1, 0.66)
+const MODULATE_COLOR := Color(1, 1, 1, 0.33)
 
 var image := Image.new()
+var _image := image.duplicate()  # a backup image for cancel.
 
 var transform_texture := ImageTexture.new()
 var transform_image := Image.new() :
@@ -27,13 +28,18 @@ var is_transforming :bool :
 	get: return (not transform_image.is_empty() and
 				 transform_rect.has_area())
 
+var is_fading := false :
+	set(val):
+		is_fading = val
+		queue_redraw()
+
 
 func _ready():
 	visible = false
 
 
 func reset():
-	transform_rect =  Rect2i(Vector2i.ZERO, Vector2.ZERO)
+	transform_rect = Rect2i(Vector2i.ZERO, Vector2.ZERO)
 	transform_texture = ImageTexture.new()
 	transform_image = Image.new()
 	image = Image.new()
@@ -44,6 +50,7 @@ func reset():
 func lanuch(img :Image, mask :Image):
 	if not is_transforming:
 		image = img
+		_image.copy_from(image)
 		if mask.is_empty() or mask.is_invisible():
 			transform_rect = image.get_used_rect()
 			if transform_rect.has_area():
@@ -72,10 +79,12 @@ func lanuch(img :Image, mask :Image):
 
 
 func cancel():
+	image.copy_from(_image)
+	changed.emit(transform_rect)
 	reset()
 
 
-func apply():
+func apply(reset := false):
 	if is_transforming:
 		transform_image.resize(transform_rect.size.x, 
 							   transform_rect.size.y,
@@ -85,7 +94,8 @@ func apply():
 		image.blit_rect_mask(transform_image, transform_image,
 							 img_rect, transform_rect.position)
 		changed.emit(transform_rect)
-	reset()
+	if reset:
+		reset()
 
 
 func update_texture():
@@ -107,5 +117,5 @@ func _draw():
 #		texture = ImageTexture.create_from_image(image)
 		# DO NOT `var a new texture here, may got blank texture. do it before.
 		draw_texture_rect(transform_texture, transform_rect, 
-						  false, MODULATE_COLOR)
+						  false, MODULATE_COLOR if is_fading else Color.WHITE)
 		draw_rect(transform_rect, line_color, false, 1.0 / zoom_ratio)

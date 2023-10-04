@@ -4,6 +4,8 @@ signal hovered(gizmo)
 signal pressed(gizmo)
 signal changed(rect)
 signal applied(rect)
+signal dragging_changed(dragging)
+signal activation_changed(activated)
 
 @export var gizmo_color := Color(0.2, 0.2, 0.2, 1):
 	set(val):
@@ -46,8 +48,24 @@ var bound_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO) :
 var gizmos :Array[Gizmo] = []
 
 var pressed_gizmo :Variant = null
+var last_position :Variant = null # prevent same with mouse pos from beginning.
 
-var is_dragging := false
+
+var is_dragging := false :
+	set(val):
+		is_dragging = val
+		dragging_changed.emit(is_dragging)
+var is_activated := false :
+	get: return is_activated or opt_auto_activate
+	set(val):
+		is_activated = val
+		activate_gizmos()
+
+var opt_auto_activate := false :
+	set(val):
+		opt_auto_activate = val
+		activate_gizmos()
+
 var drag_offset := Vector2i.ZERO
 
 
@@ -82,6 +100,7 @@ func restore_colors():
 func launch(rect :Rect2i):
 	if rect.has_area():
 		bound_rect = rect
+		activate_gizmos()
 		visible = true
 
 
@@ -90,6 +109,11 @@ func dismiss():
 
 
 func drag_to(pos :Vector2i):
+	if last_position == pos:
+		return
+	# use to prevent running while already stop.
+	last_position = pos
+	
 	pos -= drag_offset  # DO calculate drag_offset just pressed, NOT here.
 
 	# convert to local pos from the rect zero pos. 
@@ -127,7 +151,12 @@ func drag_to(pos :Vector2i):
 	changed.emit(bound_rect)
 
 
-func move_gizmo_to(gizmo:Gizmo, pos :Vector2i):
+func scale_to(gizmo:Gizmo, pos :Vector2i):
+	if last_position == pos:
+		return
+	# use to prevent running while already stop.
+	last_position = pos
+		
 	match gizmo.pivot:
 		Gizmo.TOP_LEFT: 
 			if pos.x < bound_rect.end.x and pos.y < bound_rect.end.y:
@@ -190,6 +219,12 @@ func set_gizmo_place(gizmo):
 			gizmo.position = Vector2(gpos) + Vector2(0, gsize.y / 2)
 
 
+func activate_gizmos():
+	for gizmo in gizmos:
+		gizmo.visible = is_activated
+	activation_changed.emit(is_activated)
+
+
 func has_gizmo_pressed() -> bool:
 	return pressed_gizmo is Gizmo
 
@@ -206,7 +241,7 @@ func _input(event :InputEvent):
 		if has_gizmo_pressed():
 			if is_dragging:  # prevent the dragging zone is hit.
 				is_dragging = false
-			move_gizmo_to(pressed_gizmo,  get_snapping.call(pos))
+			scale_to(pressed_gizmo, get_snapping.call(pos))
 			# it is in a sub viewport, and without any influence with layout.
 			# so `get_global_mouse_position()` should work.
 		elif is_dragging:
@@ -221,12 +256,21 @@ func _input(event :InputEvent):
 		if bound_rect.has_point(pos):
 			if event.double_click:
 				applied.emit(bound_rect)
+				is_activated = false
 			else:
-				is_dragging = event.pressed
-				if is_dragging:
-					drag_offset = Vector2i(pos) - bound_rect.position
-		elif is_dragging:
-			is_dragging = false
+				if is_activated:
+					is_dragging = event.pressed
+					if is_dragging: 
+						drag_offset = Vector2i(pos) - bound_rect.position
+				elif event.pressed: 
+					is_activated = true
+		else:
+			if event.pressed and not has_gizmo_pressed():
+				is_activated = false
+
+			if is_dragging:
+				is_dragging = false
+
 
 
 func _on_gizmo_hovered(gizmo):

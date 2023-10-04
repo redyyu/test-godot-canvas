@@ -93,6 +93,7 @@ func _ready():
 	gizmo_sizer.hovered.connect(_on_gizmo_sizer_hovered)
 	gizmo_sizer.changed.connect(_on_gizmo_sizer_changed)
 	gizmo_sizer.applied.connect(_on_gizmo_sizer_applied)
+	gizmo_sizer.dragging_changed.connect(_on_gizmo_sizer_dragging_changed)
 	gizmo_sizer.get_snapping = func(pos) -> Vector2i:
 		return snapper.snap_position(pos, true)
 		
@@ -117,9 +118,10 @@ func set_state(val):  # triggered when state changing.
 	gizmo_sizer.dismiss()  # launch again will not effect the pos.
 	
 	if state == Artboard.CROP:
-		free_transformer.apply()
+		free_transformer.cancel()
 		crop_rect.launch()
 		gizmo_sizer.restore_colors()
+		gizmo_sizer.opt_auto_activate = true
 		gizmo_sizer.launch(crop_rect.cropped_rect)
 		selection.deselect()
 	elif state == Artboard.MOVE:
@@ -127,19 +129,20 @@ func set_state(val):  # triggered when state changing.
 		free_transformer.lanuch(project.current_cel.get_image(), 
 						 		selection.mask)
 		gizmo_sizer.gizmo_color = free_transformer.line_color
+		gizmo_sizer.opt_auto_activate = false
 		gizmo_sizer.launch(free_transformer.transform_rect)
 		# selection must clear after transform setted, 
 		# free_transform still need it once.
 		selection.deselect() 
 	elif state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
-		free_transformer.apply()
+		free_transformer.apply(true)
 		crop_rect.cancel()
 		pencil.attach_image(project.current_cel.get_image())
 		brush.attach_image(project.current_cel.get_image())
 		eraser.attach_image(project.current_cel.get_image())
 		# DO NOT clear selection here, drawer can draw by selection.
 	elif state not in [Artboard.DRAG, Artboard.ZOOM]:
-		free_transformer.apply()
+		free_transformer.apply(true)
 		crop_rect.cancel()
 
 
@@ -322,12 +325,17 @@ func _on_gizmo_sizer_applied(rect):
 			
 	
 func _on_gizmo_sizer_changed(rect):
+	operating.emit(state, true)
 	match state:
 		Artboard.CROP:
 			crop_rect.cropped_rect = rect
 		Artboard.MOVE:
 			free_transformer.transform_rect = rect
 
+
+func _on_gizmo_sizer_dragging_changed(dragging):
+	free_transformer.is_fading = dragging
+	
 
 func _on_gizmo_sizer_hovered(gizmo):
 	cursor_changed.emit(gizmo.cursor if gizmo else null)
