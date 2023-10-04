@@ -17,7 +17,7 @@ var selected_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 var mask :SelectionMap :
 	get: return selection_map
 
-var zoom_ratio := 1.0:
+var zoom_ratio := 1.0 :
 	set(val):
 		zoom_ratio = val
 		refresh_material()

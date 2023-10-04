@@ -19,8 +19,7 @@ func _init(_width :int, _height :int):
 
 func image_changed(value: Image):
 	image = value
-	if !image.is_empty():
-		image_texture.set_image(image)
+	update_texture()
 
 
 func get_image():

@@ -32,7 +32,7 @@ signal applied(rect)
 var stored_color := gizmo_color
 var stored_bgcolor := gizmo_bgcolor
 
-var zoom_ratio := 1.0:
+var zoom_ratio := 1.0 :
 	set(val):
 		zoom_ratio = val
 		for gizmo in gizmos:
@@ -204,15 +204,20 @@ func _input(event :InputEvent):
 	if event is InputEventMouseMotion:
 		var pos := get_local_mouse_position()
 		if has_gizmo_pressed():
+			if is_dragging:  # prevent the dragging zone is hit.
+				is_dragging = false
 			move_gizmo_to(pressed_gizmo,  get_snapping.call(pos))
 			# it is in a sub viewport, and without any influence with layout.
 			# so `get_global_mouse_position()` should work.
-		elif bound_rect.has_point(pos) and is_dragging:
+		elif is_dragging:
 			drag_to(pos)
-		else:
-			is_dragging = false
+			# DO NOT check `bound_rect.has_point(pos)` here,
+			# that will got bad experience when hit a snap point.
+			# when hit a snap point and move faster, it will unexcpet stop.
+
 	elif event is InputEventMouseButton:
 		var pos := get_local_mouse_position()
+		# its in subviewport local mouse position should be work.
 		if bound_rect.has_point(pos):
 			if event.double_click:
 				applied.emit(bound_rect)
@@ -220,7 +225,7 @@ func _input(event :InputEvent):
 				is_dragging = event.pressed
 				if is_dragging:
 					drag_offset = Vector2i(pos) - bound_rect.position
-		else:
+		elif is_dragging:
 			is_dragging = false
 
 
@@ -310,7 +315,7 @@ class Gizmo extends Node2D :
 	var pivot_offset :Vector2:
 		get = _get_pivot_pos
 
-	var zoom_ratio := 1.0:
+	var zoom_ratio := 1.0 :
 		set(val):
 			zoom_ratio = val
 			queue_redraw()

@@ -16,42 +16,44 @@ var cropped_rect = Rect2i(0, 0, 0, 0) :
 		cropped_rect = val
 		queue_redraw()
 
-var zoom_ratio := 1.0
+var zoom_ratio := 1.0 :
+	set(val):
+		zoom_ratio = val
+		queue_redraw()
 
 var start_position := Vector2i.ZERO
 var is_cropping := false
 
 
 func _ready():
-	hide()
+	visible = false
 	
 
 func reset():
+	visible = false
 	is_cropping = false
 	cropped_rect.position = Vector2i.ZERO
 	cropped_rect.size = size
-	hide()
 
 
-func start_crop():
+func launch():
 	if not is_cropping:
 		reset()
 	is_cropping = true
-	show()
+	visible = true
 
 
-func cancel_crop():
-	is_cropping = false
+func cancel():
 	canceled.emit(cropped_rect)
 	reset()
 
 
-func apply_crop():
-	is_cropping = false
+func apply():
 	if cropped_rect.has_area():
 		applied.emit(cropped_rect)
 	else:
 		canceled.emit(cropped_rect)
+	reset()
 
 
 func has_point(point :Vector2i) ->bool:

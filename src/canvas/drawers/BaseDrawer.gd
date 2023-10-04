@@ -20,6 +20,10 @@ func can_draw(_pos :Vector2i):
 	pass
 
 
+func reset():
+	pass
+
+
 func draw_start(_pos: Vector2i):
 	is_drawing = true
 

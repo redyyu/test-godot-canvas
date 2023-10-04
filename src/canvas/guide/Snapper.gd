@@ -1,6 +1,6 @@
 class_name Snapper extends RefCounted
 
-const SNAPPING_DISTANCE := 12.0
+const SNAPPING_DISTANCE := 10
 
 var canvas_size := Vector2i.ZERO
 

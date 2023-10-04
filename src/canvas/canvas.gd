@@ -2,15 +2,12 @@ class_name Canvas extends Node2D
 
 signal cursor_changed(cursor)
 signal selection_changed(rect)
-signal operating(operate_state, operater, is_finished)
+signal operating(operate_state, is_finished)
 signal crop_canvas(rect)
 
 
 var state := Artboard.NONE:
-	set(val):
-		# allow change without really changed val, trigger funcs in setter.
-		state = val
-		spread_state()
+	set = set_state
 
 var pencil := PencilDrawer.new()
 var brush := BrushDrawer.new()
@@ -98,6 +95,8 @@ func _ready():
 	gizmo_sizer.applied.connect(_on_gizmo_sizer_applied)
 	gizmo_sizer.get_snapping = func(pos) -> Vector2i:
 		return snapper.snap_position(pos, true)
+		
+	free_transformer.changed.connect(_on_transformer_changed)
 
 
 func attach_project(proj):
@@ -106,30 +105,42 @@ func attach_project(proj):
 	selection.size = project.size
 	crop_rect.size = project.size
 	
-	spread_state()
+	set_state(state)  # trigger state changing to init settings.
 
 
-func spread_state():  # triggered when state changing.
+func set_state(val):  # triggered when state changing.
+	# allow change without really changed val, trigger funcs in setter.
+	state = val
+	is_pressed = false
+	
 	indicator.hide_indicator()  # not all state need indicator
 	gizmo_sizer.dismiss()  # launch again will not effect the pos.
 	
-	if not state in [Artboard.ZOOM, Artboard.DRAG, Artboard.CROP]:
-		crop_rect.cancel_crop()
-	
 	if state == Artboard.CROP:
-		selection.deselect()
-		crop_rect.start_crop()
+		free_transformer.apply()
+		crop_rect.launch()
 		gizmo_sizer.restore_colors()
 		gizmo_sizer.launch(crop_rect.cropped_rect)
+		selection.deselect()
 	elif state == Artboard.MOVE:
+		crop_rect.cancel()
 		free_transformer.lanuch(project.current_cel.get_image(), 
-						 		selection.selected_rect)
+						 		selection.mask)
 		gizmo_sizer.gizmo_color = free_transformer.line_color
 		gizmo_sizer.launch(free_transformer.transform_rect)
+		# selection must clear after transform setted, 
+		# free_transform still need it once.
+		selection.deselect() 
 	elif state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
+		free_transformer.apply()
+		crop_rect.cancel()
 		pencil.attach_image(project.current_cel.get_image())
 		brush.attach_image(project.current_cel.get_image())
 		eraser.attach_image(project.current_cel.get_image())
+		# DO NOT clear selection here, drawer can draw by selection.
+	elif state not in [Artboard.DRAG, Artboard.ZOOM]:
+		free_transformer.apply()
+		crop_rect.cancel()
 
 
 func set_zoom_ratio(val):
@@ -192,13 +203,13 @@ func process_drawing_or_erasing(event, drawer):
 					drawer.set_stroke_alpha_dynamics() # back to default
 			drawer.draw_move(pos)
 			project.current_cel.update_texture()
-			operating.emit(state, drawer, false)
+			operating.emit(state, false)
 			queue_redraw()
 				
 		elif drawer.is_drawing:
 			drawer.draw_end(pos)
 			project.current_cel.update_texture()
-			operating.emit(state, drawer, true)
+			operating.emit(state, true)
 			queue_redraw()
 
 
@@ -207,10 +218,10 @@ func process_selection(event, selector):
 		var pos = snapper.snap_position(get_local_mouse_position(), true)
 		if is_pressed:
 			selector.select_move(pos)
-			operating.emit(state, selector, false)
+			operating.emit(state, false)
 		elif selector.is_operating:
 			selector.select_end(pos)
-			operating.emit(state, selector, true)
+			operating.emit(state, true)
 
 
 func process_selection_polygon(event, selector):
@@ -218,18 +229,18 @@ func process_selection_polygon(event, selector):
 		var pos = snapper.snap_position(get_local_mouse_position(), true)
 		if is_pressed and not event.double_click:
 			selector.select_move(pos)
-			operating.emit(state, selector, false)
+			operating.emit(state, false)
 		elif selector.is_selecting and event.double_click:
 			selector.select_end(pos)
-			operating.emit(state, selector, true)
+			operating.emit(state, true)
 	elif event is InputEventMouseMotion and selector.is_moving:
 		var pos = snapper.snap_position(get_local_mouse_position(), true)
 		if is_pressed:
 			selector.select_move(pos)
-			operating.emit(state, selector, false)
+			operating.emit(state, false)
 		else:
 			selector.select_end(pos)
-			operating.emit(state, selector, true)
+			operating.emit(state, true)
 			
 
 func process_selection_lasso(event, selector):
@@ -237,10 +248,10 @@ func process_selection_lasso(event, selector):
 		var pos = snapper.snap_position(get_local_mouse_position(), true)
 		if is_pressed:
 			selector.select_move(pos)
-			operating.emit(state, selector, false)
+			operating.emit(state, false)
 		elif selector.is_operating:
 			selector.select_end(pos)
-			operating.emit(state, selector, true)
+			operating.emit(state, true)
 
 
 func _input(event :InputEvent):
@@ -294,13 +305,28 @@ func _on_selection_updated(sel_rect :Rect2i):
 	selection_changed.emit(sel_rect)
 
 
+# transform
+func _on_transformer_changed(_rect :Rect2i):
+	project.current_cel.update_texture()
+	operating.emit(state, true)
+	queue_redraw()
+
+
 # gizmo
 func _on_gizmo_sizer_applied(rect):
-	crop_canvas.emit(rect)
-	
+	match state:
+		Artboard.CROP:
+			crop_canvas.emit(rect)
+		Artboard.MOVE:
+			pass
+			
 	
 func _on_gizmo_sizer_changed(rect):
-	crop_rect.cropped_rect = rect
+	match state:
+		Artboard.CROP:
+			crop_rect.cropped_rect = rect
+		Artboard.MOVE:
+			free_transformer.transform_rect = rect
 
 
 func _on_gizmo_sizer_hovered(gizmo):
