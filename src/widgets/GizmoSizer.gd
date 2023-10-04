@@ -44,8 +44,9 @@ func _ready():
 
 
 func launch(rect :Rect2i):
-	bound_rect = rect
-	visible = true
+	if rect.has_area():
+		bound_rect = rect
+		visible = true
 
 
 func dismiss():
@@ -238,12 +239,17 @@ class Gizmo extends Node2D :
 	var color := Color(0.2, 0.2, 0.2, 1)
 	var bgcolor := Color.WHITE
 
-	var default_size := Vector2(10, 10)
+	var default_size := Vector2(12, 12)
 
 	var size :Vector2 :
 		get: return default_size / zoom_ratio
+		
 	var rectangle :Rect2 :
 		get: return Rect2(- pivot_offset, size)
+		
+	var touch :Rect2 :
+		get: return Rect2(-size, size * 2)
+		
 	var pivot_offset :Vector2:
 		get = _get_pivot_pos
 
@@ -316,7 +322,7 @@ class Gizmo extends Node2D :
 		
 		if event is InputEventMouse:
 			var pos = get_local_mouse_position()
-			var hover = rectangle.has_point(pos)
+			var hover = touch.has_point(pos)
 			if hover:
 				if not is_hover:
 					is_hover = true

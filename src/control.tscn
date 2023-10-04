@@ -22,7 +22,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="Panel" parent="HBoxContainer"]
-custom_minimum_size = Vector2(100, 0)
+custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 
 [node name="Artboard" parent="HBoxContainer" instance=ExtResource("1_wuu8o")]

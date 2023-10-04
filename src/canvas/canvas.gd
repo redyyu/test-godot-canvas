@@ -106,17 +106,19 @@ func set_state(val):
 		return
 	state = val
 	indicator.hide_indicator()  # not all state need indicator
-	crop_rect.cancel_crop()
+	gizmo_sizer.dismiss()  # launch again will not effect the pos.
 	
-	match state:
-		Artboard.CROP:
-			selection.deselect()
-			crop_rect.start_crop()
-			gizmo_sizer.launch(crop_rect.cropped_rect)
-			
-		Artboard.MOVE:
-			free_transformer.lanuch(project.current_cel.get_image(), 
-							 		selection.selected_rect)
+	if not state in [Artboard.ZOOM, Artboard.DRAG, Artboard.CROP]:
+		crop_rect.cancel_crop()
+	
+	if state == Artboard.CROP:
+		selection.deselect()
+		crop_rect.start_crop()
+		gizmo_sizer.launch(crop_rect.cropped_rect)
+	elif state == Artboard.MOVE:
+		free_transformer.lanuch(project.current_cel.get_image(), 
+						 		selection.selected_rect)
+		gizmo_sizer.launch(free_transformer.transform_rect)
 
 
 func attach_project(proj):

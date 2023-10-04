@@ -63,7 +63,7 @@ func reset():
 	is_moving = false
 
 
-func select_start(pos :Vector2i):
+func select_start(_pos :Vector2i):
 	pass
 	
 

@@ -2,7 +2,8 @@ class_name CropRect extends Node2D
 # Draws the rectangle overlay for the crop tool
 # Stores the shared settings between left and right crop tools
 
-signal complete
+signal canceled(rect)
+signal applied(rect)
 
 const BG_COLOR := Color(0, 0, 0, 0.66)
 const LINE_COLOR := Color.WHITE
@@ -30,33 +31,29 @@ func _ready():
 func reset():
 	is_cropping = false
 	cropped_rect.position = Vector2i.ZERO
-	cropped_rect.size = Vector2i.ZERO
+	cropped_rect.size = size
 	hide()
 
 
 func start_crop():
-	reset()
+	if not is_cropping:
+		reset()
 	is_cropping = true
-	cropped_rect.size = size
 	show()
-
-
-#func cropping_to(_rect :Vector2i):
-#	if not is_cropping:
-#		start_crop()
-#
-#	queue_redraw()
 
 
 func cancel_crop():
 	is_cropping = false
-	complete.emit(cropped_rect)
+	canceled.emit(cropped_rect)
 	reset()
 
 
 func apply_crop():
 	is_cropping = false
-	complete.emit(cropped_rect)
+	if cropped_rect.has_area():
+		applied.emit(cropped_rect)
+	else:
+		canceled.emit(cropped_rect)
 
 
 func has_point(point :Vector2i) ->bool:
@@ -68,28 +65,28 @@ func _draw() -> void:
 		return
 		
 	# Background
-	var total_rect = Rect2(Vector2.ZERO, size)
+	var total_rect = Rect2i(Vector2.ZERO, size)
 	
 	if cropped_rect.position.y > 1 and size.x > 1:
 		var top_rect = total_rect.intersection(
-			Rect2(0, 0, size.x, cropped_rect.position.y))
+			Rect2i(0, 0, size.x, cropped_rect.position.y))
 		draw_rect(top_rect, BG_COLOR)
 	
 	if (size.x - cropped_rect.end.x) > 1 and cropped_rect.size.y > 1:
 		var right_rect = total_rect.intersection(
-			Rect2(cropped_rect.end.x, cropped_rect.position.y, 
-				  size.x - cropped_rect.end.x, cropped_rect.size.y))
+			Rect2i(cropped_rect.end.x, cropped_rect.position.y, 
+				   size.x - cropped_rect.end.x, cropped_rect.size.y))
 		draw_rect(right_rect, BG_COLOR)
 	
 	if size.x > 1 and size.y - cropped_rect.end.y > 1:
 		var bottom_rect = total_rect.intersection(
-			Rect2(0, cropped_rect.end.y, size.x, size.y - cropped_rect.end.y))
+			Rect2i(0, cropped_rect.end.y, size.x, size.y - cropped_rect.end.y))
 		draw_rect(bottom_rect, BG_COLOR)	
 		
 	if cropped_rect.position.x > 1 and cropped_rect.size.y > 1:
 		var left_rect = total_rect.intersection(
-			Rect2(0, cropped_rect.position.y, 
-				  cropped_rect.position.x, cropped_rect.size.y))
+			Rect2i(0, cropped_rect.position.y, 
+				   cropped_rect.position.x, cropped_rect.size.y))
 		draw_rect(left_rect, BG_COLOR)
 
 	
