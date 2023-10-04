@@ -104,6 +104,8 @@ func _ready():
 	gizmo_sizer.hovered.connect(_on_gizmo_sizer_hovered)
 	gizmo_sizer.changed.connect(_on_gizmo_sizer_changed)
 	gizmo_sizer.applied.connect(_on_gizmo_sizer_applied)
+	gizmo_sizer.get_snapping = func(pos) -> Vector2i:
+		return snapper.snap_position(pos, true)
 
 
 func attach_project(proj):
@@ -290,7 +292,7 @@ func _on_gizmo_sizer_applied(rect):
 	crop_canvas.emit(rect)
 	
 	
-func _on_gizmo_sizer_changed(rect, _gizmo):
+func _on_gizmo_sizer_changed(rect):
 	crop_rect.cropped_rect = rect
 
 

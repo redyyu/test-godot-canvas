@@ -68,17 +68,30 @@ func _draw() -> void:
 		return
 		
 	# Background
-	draw_rect(Rect2(0, 0, size.x, cropped_rect.position.y), BG_COLOR)
-	draw_rect(Rect2(cropped_rect.end.x, 
-					cropped_rect.position.y, 
-					size.x - cropped_rect.end.x, 
-					cropped_rect.size.y), BG_COLOR)
-	draw_rect(Rect2(0, cropped_rect.end.y, 
-					size.x, 
-					size.y - cropped_rect.end.y), BG_COLOR)
-	draw_rect(Rect2(0, cropped_rect.position.y,
-					cropped_rect.position.x,
-					cropped_rect.size.y), BG_COLOR)
+	var total_rect = Rect2(Vector2.ZERO, size)
+	
+	if cropped_rect.position.y > 1 and size.x > 1:
+		var top_rect = total_rect.intersection(
+			Rect2(0, 0, size.x, cropped_rect.position.y))
+		draw_rect(top_rect, BG_COLOR)
+	
+	if (size.x - cropped_rect.end.x) > 1 and cropped_rect.size.y > 1:
+		var right_rect = total_rect.intersection(
+			Rect2(cropped_rect.end.x, cropped_rect.position.y, 
+				  size.x - cropped_rect.end.x, cropped_rect.size.y))
+		draw_rect(right_rect, BG_COLOR)
+	
+	if size.x > 1 and size.y - cropped_rect.end.y > 1:
+		var bottom_rect = total_rect.intersection(
+			Rect2(0, cropped_rect.end.y, size.x, size.y - cropped_rect.end.y))
+		draw_rect(bottom_rect, BG_COLOR)	
+		
+	if cropped_rect.position.x > 1 and cropped_rect.size.y > 1:
+		var left_rect = total_rect.intersection(
+			Rect2(0, cropped_rect.position.y, 
+				  cropped_rect.position.x, cropped_rect.size.y))
+		draw_rect(left_rect, BG_COLOR)
+
 	
 	# Rect:
 	draw_rect(cropped_rect, LINE_COLOR, false, 1.0 / zoom_ratio)

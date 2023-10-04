@@ -2,7 +2,7 @@ class_name GizmoSizer extends Node2D
 
 signal hovered(gizmo)
 signal pressed(gizmo)
-signal changed(rect, gizmo)
+signal changed(rect)
 signal applied(rect)
 
 
@@ -20,8 +20,11 @@ var bound_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO) :
 var gizmos :Array[Gizmo] = []
 
 var pressed_gizmo :Variant = null
-var has_pressed :bool :
+var has_gizmo_pressed :bool :
 	get: return pressed_gizmo is Gizmo
+
+var is_dragging := false
+var drag_offset := Vector2i.ZERO
 
 
 func _ready():
@@ -49,7 +52,45 @@ func dismiss():
 	visible = false
 
 
-func move_to(gizmo:Gizmo, pos :Vector2i):
+func drag_to(pos :Vector2i):
+	pos -= drag_offset  # DO calculate drag_offset just pressed, NOT here.
+
+	# convert to local pos from the rect zero pos. 
+	# DO NOT use get_local_mouse_position, because bound_rect is not zero pos.
+	var pos_corners := []
+	pos_corners.append({
+		'position': pos,
+		'offset': Vector2i.ZERO,
+	})
+	pos_corners.append({
+		'position': Vector2i(pos.x + bound_rect.size.x, pos.y),
+		'offset': Vector2i(bound_rect.size.x, 0)
+	})
+	pos_corners.append({
+		'position': pos + bound_rect.size,
+		'offset': bound_rect.size
+	})
+	pos_corners.append({
+		'position': Vector2i(pos.x, pos.y + bound_rect.size.y),
+		'offset': Vector2i(0, bound_rect.size.y)
+	})
+	
+	var snap_pos = pos
+	for corner in pos_corners:
+		snap_pos = get_snapping.call(corner['position'])
+		if snap_pos != corner['position']:
+			pos = snap_pos - corner['offset']
+			break
+	
+	bound_rect.position = pos
+	
+	for gzm in gizmos:
+		set_gizmo_place(gzm)
+	
+	changed.emit(bound_rect)
+
+
+func move_gizmo_to(gizmo:Gizmo, pos :Vector2i):
 	match gizmo.pivot:
 		Gizmo.TOP_LEFT: 
 			if pos.x < bound_rect.end.x and pos.y < bound_rect.end.y:
@@ -86,7 +127,7 @@ func move_to(gizmo:Gizmo, pos :Vector2i):
 	for gzm in gizmos:
 		set_gizmo_place(gzm)
 		
-	changed.emit(bound_rect, gizmo)
+	changed.emit(bound_rect)
 
 
 func set_gizmo_place(gizmo):
@@ -119,13 +160,25 @@ func _input(event :InputEvent):
 	if not visible:
 		return
 
-	if event is InputEventMouseMotion and has_pressed:
-		move_to(pressed_gizmo, get_global_mouse_position())
-		# it is in a sub viewport, and without any influence with layout.
-		# so `get_global_mouse_position()` should work.
-	elif event is InputEventMouseButton and event.double_click:
-		if bound_rect.has_point(get_global_mouse_position()):
-			applied.emit(bound_rect)
+	if event is InputEventMouseMotion:
+		var pos := get_global_mouse_position()
+		if has_gizmo_pressed:
+			move_gizmo_to(pressed_gizmo,  get_snapping.call(pos))
+			# it is in a sub viewport, and without any influence with layout.
+			# so `get_global_mouse_position()` should work.
+		elif is_dragging:
+			drag_to(pos)
+	elif event is InputEventMouseButton:
+		var pos := get_global_mouse_position()
+		if bound_rect.has_point(pos):
+			if event.double_click:
+				applied.emit(bound_rect)
+			else:
+				is_dragging = event.pressed
+				if is_dragging:
+					drag_offset = Vector2i(pos) - bound_rect.position
+		else:
+			is_dragging = false
 
 
 func _on_gizmo_hovered(gizmo):
@@ -135,6 +188,10 @@ func _on_gizmo_hovered(gizmo):
 func _on_gizmo_pressed(gizmo):
 	hovered.emit(gizmo)
 	pressed_gizmo = gizmo
+
+
+var get_snapping = func(pos) -> Vector2i:
+	return pos
 
 
 # Use custom draw_rect and input event to replace
