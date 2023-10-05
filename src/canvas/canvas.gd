@@ -93,7 +93,7 @@ func _ready():
 	gizmo_sizer.hovered.connect(_on_gizmo_sizer_hovered)
 	gizmo_sizer.changed.connect(_on_gizmo_sizer_changed)
 	gizmo_sizer.applied.connect(_on_gizmo_sizer_applied)
-	gizmo_sizer.dragging_changed.connect(_on_gizmo_sizer_dragging_changed)
+	gizmo_sizer.dragged.connect(_on_gizmo_sizer_dragged)
 	gizmo_sizer.get_snapping = func(pos) -> Vector2i:
 		return snapper.snap_position(pos, true)
 		
@@ -321,7 +321,7 @@ func _on_gizmo_sizer_applied(rect):
 		Artboard.CROP:
 			crop_canvas.emit(rect)
 		Artboard.MOVE:
-			pass
+			free_transformer.apply(false)
 			
 	
 func _on_gizmo_sizer_changed(rect):
@@ -333,8 +333,14 @@ func _on_gizmo_sizer_changed(rect):
 			free_transformer.transform_rect = rect
 
 
-func _on_gizmo_sizer_dragging_changed(dragging):
-	free_transformer.is_fading = dragging
+func _on_gizmo_sizer_activated(activated):
+	if state == Artboard.MOVE:
+		free_transformer.
+
+
+func _on_gizmo_sizer_dragged(dragging):
+	if state == Artboard.MOVE:
+		free_transformer.is_fading = dragging
 	
 
 func _on_gizmo_sizer_hovered(gizmo):

@@ -41,8 +41,6 @@ var camera_zoom :Vector2 :
 var camera_origin :Vector2 :
 	get: return Vector2(size * 0.5 - camera_offset * camera_zoom)
 
-var reference_image := ReferenceImage.new()
-
 var guides :Array[Guide] = []
 var guides_locked := false :
 	set(val):
@@ -109,7 +107,7 @@ var snap_to_symmetry_guide :bool :
 @onready var camera :Camera2D = $Viewport/Camera
 @onready var canvas :Node2D = $Viewport/Canvas
 @onready var trans_checker :ColorRect = $Viewport/TransChecker
-
+@onready var reference_image :ReferenceImage = $Viewport/ReferenceImage
 @onready var h_ruler :Button = $HRuler
 @onready var v_ruler :Button = $VRuler
 
@@ -133,8 +131,6 @@ func _ready():
 	canvas.cursor_changed.connect(_on_canvas_change_cursor)
 	canvas.operating.connect(_on_canvas_operating)
 	canvas.crop_canvas.connect(_on_canvas_cropping)
-	
-	trans_checker.add_sibling(reference_image)
 	
 	mouse_guide.set_guide(size)
 	symmetry_guide.set_guide(size)

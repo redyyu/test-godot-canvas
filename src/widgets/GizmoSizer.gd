@@ -4,8 +4,8 @@ signal hovered(gizmo)
 signal pressed(gizmo)
 signal changed(rect)
 signal applied(rect)
-signal dragging_changed(dragging)
-signal activation_changed(activated)
+signal dragged(dragging)
+signal activated(activated)
 
 @export var gizmo_color := Color(0.2, 0.2, 0.2, 1):
 	set(val):
@@ -54,16 +54,19 @@ var last_position :Variant = null # prevent same with mouse pos from beginning.
 var is_dragging := false :
 	set(val):
 		is_dragging = val
-		dragging_changed.emit(is_dragging)
+		dragged.emit(is_dragging)
+		
 var is_activated := false :
 	get: return is_activated or opt_auto_activate
 	set(val):
 		is_activated = val
+		activated.emit(is_activated)
 		activate_gizmos()
 
 var opt_auto_activate := false :
 	set(val):
 		opt_auto_activate = val
+		activated.emit(is_activated)
 		activate_gizmos()
 
 var drag_offset := Vector2i.ZERO
@@ -222,7 +225,6 @@ func set_gizmo_place(gizmo):
 func activate_gizmos():
 	for gizmo in gizmos:
 		gizmo.visible = is_activated
-	activation_changed.emit(is_activated)
 
 
 func has_gizmo_pressed() -> bool:
