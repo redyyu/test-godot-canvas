@@ -10,9 +10,9 @@
 [ext_resource type="Script" path="res://src/canvas/CanvasCamera.gd" id="5_ghk1k"]
 [ext_resource type="Script" path="res://src/canvas/guide/Grid.gd" id="6_qakk7"]
 [ext_resource type="Script" path="res://src/canvas/selection/Selection.gd" id="7_u15up"]
-[ext_resource type="Script" path="res://src/canvas/FreeTransformer.gd" id="9_2sc0w"]
 [ext_resource type="Script" path="res://src/canvas/selection/Cropper.gd" id="9_sqwq2"]
 [ext_resource type="Shader" path="res://src/shaders/MarchingAntsOutline.gdshader" id="9_y3e15"]
+[ext_resource type="Script" path="res://src/canvas/Mover.gd" id="10_s3sno"]
 [ext_resource type="Script" path="res://src/canvas/guide/SymmetryGuide.gd" id="10_xpo1w"]
 [ext_resource type="Script" path="res://src/canvas/guide/Ruler.gd" id="12_o861q"]
 [ext_resource type="Script" path="res://src/canvas/guide/MouseGuide.gd" id="13_xksjp"]
@@ -84,7 +84,7 @@ script = ExtResource("7_u15up")
 script = ExtResource("9_sqwq2")
 
 [node name="Mover" type="Node2D" parent="Viewport/Canvas"]
-script = ExtResource("9_2sc0w")
+script = ExtResource("10_s3sno")
 
 [node name="Grid" type="Node2D" parent="Viewport"]
 script = ExtResource("6_qakk7")

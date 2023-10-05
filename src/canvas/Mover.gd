@@ -41,9 +41,8 @@ var zoom_ratio := 1.0 :
 		sizer.zoom_ratio = zoom_ratio
 		queue_redraw()
 
-var is_transforming :bool :
-	get: return (not move_image.is_empty() and
-				 move_rect.has_area())
+var is_moving :bool :
+	get: return not move_image.is_empty() and move_rect.has_area()
 
 var is_dragging := false :
 	set(val):
@@ -91,7 +90,7 @@ func reset():
 	
 
 func lanuch(img :Image, mask :Image):
-	if not is_transforming:
+	if not is_moving:
 		image = img  # DO NOT copy_form, image must change runtime.
 		image_backup.copy_from(image)
 		image_mask.copy_from(mask)
@@ -144,7 +143,7 @@ func cancel():
 
 func apply(use_reset := false):
 	is_activated = false
-	if is_transforming:
+	if is_moving:
 		move_image.resize(move_rect.size.x, 
 							   move_rect.size.y,
 							   Image.INTERPOLATE_NEAREST)
@@ -185,7 +184,7 @@ func _input(event):
 
 func _draw():
 	if visible and move_rect:
-		if is_transforming:
+		if is_moving:
 	#		texture = ImageTexture.create_from_image(image)
 			# DO NOT new a texture here, may got blank texture. do it before.
 			draw_texture_rect(move_texture, move_rect, false,
@@ -219,7 +218,7 @@ func _on_sizer_drag_ended():
 func inject_rect(rect :Rect2i):
 	sizer.refresh(rect)
 	# pass to sizer only, sizer will take care of many things, suck as pivot.
-	# wait sizer finish the job, it will emit a event to free_transform
+	# wait sizer finish the job, it will emit a event to Mover.
 
 
 func inject_sizer_snapping(call_snapping:Callable):

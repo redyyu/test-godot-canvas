@@ -1,7 +1,9 @@
 class_name Canvas extends Node2D
 
 signal cursor_updated(cursor)
-signal selection_updated(rect)
+signal select_updated(rect)
+signal move_updated(rect)
+signal crop_updated(rect)
 signal crop_applied(rect)
 
 signal operating(operate_state, is_finished)
@@ -86,7 +88,7 @@ func _ready():
 	ellipse_selector.selection = selection
 	polygon_selector.selection = selection
 	lasso_selector.selection = selection
-	selection.selected.connect(_on_selection_updated)
+	selection.selected.connect(_on_select_updated)
 	
 	pencil.mask = selection.mask
 	brush.mask = selection.mask
@@ -95,11 +97,12 @@ func _ready():
 	var snapper_weight_hook = func(pos) -> Vector3i:
 		return snapper.snap_position_weight(pos, true)
 	
+	cropper.updated.connect(_on_crop_updated)
 	cropper.applied.connect(_on_crop_applied)
 	cropper.cursor_updated.connect(_on_curosr_updated)
 	cropper.inject_sizer_snapping(snapper_weight_hook)
 	
-	mover.updated.connect(_on_transformer_updated)
+	mover.updated.connect(_on_move_updated)
 	mover.cursor_updated.connect(_on_curosr_updated)
 	mover.inject_sizer_snapping(snapper_weight_hook)
 
@@ -128,8 +131,8 @@ func set_state(val):  # triggered when state changing.
 		cropper.cancel()
 		mover.lanuch(project.current_cel.get_image(), 
 						 		selection.mask)
-		# selection must clear after transform setted, 
-		# free_transform still need it once.
+		# selection must clear after mover setted, 
+		# mover still need it once.
 		selection.deselect() 
 	elif state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
 		mover.apply(true)
@@ -298,20 +301,24 @@ func _on_curosr_updated(cursor):
 	
 
 # selection
-func _on_selection_updated(rect :Rect2i):
-	selection_updated.emit(rect)
+func _on_select_updated(rect :Rect2i):
+	select_updated.emit(rect)
 
 
 # crop
+func _on_crop_updated(rect :Rect2i):
+	crop_updated.emit(rect)
+	
+	
 func _on_crop_applied(rect :Rect2i):
 	crop_applied.emit(rect)
 
 
-# transform
-func _on_transformer_updated(_rect :Rect2i):
+# move
+func _on_move_updated(rect :Rect2i):
+	move_updated.emit(rect)
 	project.current_cel.update_texture()
 	queue_redraw()
-
 
 # snapping
 

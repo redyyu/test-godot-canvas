@@ -2,8 +2,9 @@ class_name Cropper extends Node2D
 # Draws the rectangle overlay for the crop tool
 # Stores the shared settings between left and right crop tools
 
-signal canceled(rect)
+signal updated(rect)
 signal applied(rect)
+signal canceled(rect)
 signal cursor_updated(cursor)
 
 const BG_COLOR := Color(0, 0, 0, 0.66)
@@ -144,6 +145,7 @@ func _on_sizer_press_updated(_gizmo, status):
 
 func _on_sizer_updated(rect):
 	cropped_rect = rect
+	updated.emit(rect)
 	
 
 func _on_sizer_drag_started():
@@ -158,7 +160,7 @@ func _on_sizer_drag_ended():
 func inject_rect(rect :Rect2i):
 	sizer.refresh(rect)
 	# pass to sizer only, sizer will take care of many things, suck as pivot.
-	# wait sizer finish the job, it will emit a event to free_transform
+	# wait sizer finish the job, it will emit a event to Cropper.
 
 
 func inject_sizer_snapping(call_snapping:Callable):

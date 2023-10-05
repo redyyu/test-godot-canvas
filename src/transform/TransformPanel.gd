@@ -20,10 +20,10 @@ var current_rect :Rect2i:
 
 
 func _ready():
-	input_width.value_updated.connect(_on_input_size_updated)
-	input_height.value_updated.connect(_on_input_size_updated)
-	input_x.value_updated.connect(_on_input_pos_updated)
-	input_y.value_updated.connect(_on_input_pos_updated)
+	input_width.value_changed.connect(_on_input_size_updated)
+	input_height.value_changed.connect(_on_input_size_updated)
+	input_x.value_changed.connect(_on_input_pos_updated)
+	input_y.value_changed.connect(_on_input_pos_updated)
 	opt_pivot.pivot_updated.connect(_on_pivot_updated)
 
 

@@ -1,8 +1,9 @@
 class_name Artboard extends SubViewportContainer
 
-signal selection_updated(rect)
-signal transform_updated(rect)
+
+signal move_updated(rect)
 signal crop_updated(rect)
+signal select_updated(rect)
 
 
 enum {
@@ -133,10 +134,13 @@ func _ready():
 	camera.zoomed.connect(_on_camera_updated)
 	camera.press_updated.connect(_on_camera_pressing)
 	
+	canvas.move_updated.connect(_on_canvas_change_cursor)
+	canvas.crop_updated.connect(_on_canvas_change_cursor)
+	canvas.select_updated.connect(_on_select_updated)
+	
+	canvas.crop_applied.connect(_on_canvas_cropped)
 	canvas.cursor_updated.connect(_on_canvas_change_cursor)
-	canvas.selection_updated.connect(_on_selection_updated)
 	canvas.operating.connect(_on_canvas_operating)
-	canvas.crop_applied.connect(_on_canvas_cropping)
 	
 	mouse_guide.set_guide(size)
 	symmetry_guide.set_guide(size)
@@ -254,7 +258,7 @@ func _on_canvas_operating(_state:int, is_finished :bool):
 		_lock_guides(true)
 
 
-func _on_canvas_cropping(rect):
+func _on_canvas_cropped(rect):
 	crop_project(rect)
 
 
@@ -274,8 +278,8 @@ func _on_mouse_exited():
 
 
 # data transmiton
-func _on_selection_updated(rect :Rect2i):
-	selection_updated.emit(rect)
+func _on_select_updated(rect :Rect2i):
+	select_updated.emit(rect)
 
 
 # guides
@@ -366,17 +370,6 @@ func inject_pivot_point(pivot_id):
 	canvas.polygon_selector.pivot = pivot_id
 	canvas.lasso_selector.pivot = pivot_id
 	
-	canvas.free_transform.pivot = pivot_id
+	canvas.mover.pivot = pivot_id
 	canvas.crop_rect.pivot = pivot_id
-	
-	if state in [SELECT_RECTANGLE, 
-				 SELECT_ELLIPSE,
-				 SELECT_POLYGON,
-				 SELECT_LASSO]:
-		selection_updated.emit(canvas.selection.selected_rect)
-		
-	elif state == MOVE:
-		transform_updated.emit(canvas.free_transform.transform_rect)
-		
-	elif state == CROP:
-		crop_updated.emit(canvas.cropper.cropped_rect)
+
