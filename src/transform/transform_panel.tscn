@@ -1,0 +1,102 @@
+[gd_scene load_steps=3 format=3 uid="uid://kdbaytc0h8gy"]
+
+[ext_resource type="Script" path="res://src/transform/TransformPanel.gd" id="1_rjbfa"]
+[ext_resource type="Script" path="res://src/transform/PivotSelector.gd" id="2_urtqy"]
+
+[node name="TransformPanel" type="Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_rjbfa")
+
+[node name="column" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="row" type="HBoxContainer" parent="column"]
+layout_mode = 2
+
+[node name="position" type="VBoxContainer" parent="column/row"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="InputPosX" type="SpinBox" parent="column/row/position"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(85, 30)
+layout_mode = 2
+max_value = 12000.0
+prefix = "X"
+custom_arrow_step = 10.0
+
+[node name="InputPosY" type="SpinBox" parent="column/row/position"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(85, 30)
+layout_mode = 2
+max_value = 12000.0
+prefix = "Y"
+custom_arrow_step = 10.0
+
+[node name="size" type="VBoxContainer" parent="column/row"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="InputWidth" type="SpinBox" parent="column/row/size"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(85, 30)
+layout_mode = 2
+max_value = 12000.0
+value = 1.0
+prefix = "W"
+custom_arrow_step = 10.0
+
+[node name="InputHeight" type="SpinBox" parent="column/row/size"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(85, 30)
+layout_mode = 2
+max_value = 12000.0
+value = 1.0
+prefix = "H"
+custom_arrow_step = 10.0
+
+[node name="row2" type="HBoxContainer" parent="column"]
+layout_mode = 2
+alignment = 1
+
+[node name="Control" type="Control" parent="column/row2"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+script = ExtResource("2_urtqy")
+
+[node name="Button" type="Button" parent="column/row2/Control"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="OptPivot" type="OptionButton" parent="column"]
+layout_mode = 2
+item_count = 9
+selected = 0
+popup/item_0/text = "TOP LEFT"
+popup/item_0/id = 0
+popup/item_1/text = "TOP CENTER"
+popup/item_1/id = 1
+popup/item_2/text = "TOP RIGHT"
+popup/item_2/id = 2
+popup/item_3/text = "MIDDLE RIGHT"
+popup/item_3/id = 3
+popup/item_4/text = "BOTTOM_RIGHT"
+popup/item_4/id = 4
+popup/item_5/text = "BOTTOM CENTER"
+popup/item_5/id = 5
+popup/item_6/text = "BOTTOM LEFT"
+popup/item_6/id = 6
+popup/item_7/text = "MIDDLE LEFT"
+popup/item_7/id = 7
+popup/item_8/text = "CENTER"
+popup/item_8/id = 8

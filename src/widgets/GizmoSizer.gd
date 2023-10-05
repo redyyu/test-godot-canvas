@@ -15,7 +15,9 @@ enum Pivot {
 	BOTTOM_CENTER,
 	BOTTOM_LEFT,
 	MIDDLE_LEFT,
+	CENTER,
 }
+var pivot := Pivot.TOP_LEFT
 
 @export var gizmo_color := Color(0.2, 0.2, 0.2, 1):
 	set(val):
@@ -51,6 +53,11 @@ var bound_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO) :
 	set = update_bound_rect
 
 var gizmos :Array[Gizmo] = []
+
+var relative_position :Vector2i :  # with pivot, for display on panel
+	get:
+		var _offset = get_pivot_offset(bound_rect.size)
+		return bound_rect.position + _offset
 
 var pressed_gizmo :Variant = null
 var last_position :Variant = null # prevent same with mouse pos from beginning.
@@ -230,6 +237,43 @@ func set_gizmo_place(gizmo):
 			gizmo.position = Vector2(gpos) + Vector2(0, gsize.y)
 		Pivot.MIDDLE_LEFT:
 			gizmo.position = Vector2(gpos) + Vector2(0, gsize.y / 2)
+
+
+func get_pivot_offset(to_size:Vector2i) -> Vector2i:
+	var _offset = Vector2i.ZERO
+	match pivot:
+		Pivot.TOP_LEFT:
+			pass
+			
+		Pivot.TOP_CENTER:
+			_offset.x = to_size.x / 2.0
+
+		Pivot.TOP_RIGHT:
+			_offset.x = to_size.x
+
+		Pivot.MIDDLE_RIGHT:
+			_offset.x = to_size.x
+			_offset.y = to_size.y / 2.0
+
+		Pivot.BOTTOM_RIGHT:
+			_offset.x = to_size.x
+			_offset.y = to_size.y
+
+		Pivot.BOTTOM_CENTER:
+			_offset.x = to_size.x / 2.0
+			_offset.y = to_size.y
+
+		Pivot.BOTTOM_LEFT:
+			_offset.y = to_size.y
+
+		Pivot.MIDDLE_LEFT:
+			_offset.y = to_size.y / 2.0
+		
+		Pivot.CENTER:
+			_offset.x = to_size.x / 2.0
+			_offset.y = to_size.y / 2.0
+			
+	return _offset
 
 
 func _input(event :InputEvent):

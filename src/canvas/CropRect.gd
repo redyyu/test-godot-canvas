@@ -10,7 +10,9 @@ const BG_COLOR := Color(0, 0, 0, 0.66)
 const LINE_COLOR := Color.WHITE
 
 var sizer := GizmoSizer.new()
-
+var relative_position :Vector2i :
+	get: return sizer.relative_position
+	
 var size := Vector2i.ZERO
 var cropped_rect = Rect2i(0, 0, 0, 0) :
 	set(val):

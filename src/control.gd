@@ -31,13 +31,13 @@ var current_selector :BaseSelector
 @onready var slider_stroke_width = $StrokeWidthSlider
 @onready var slider_stroke_space = $StrokeSpaceSlider
 
-@onready var spin_sel_width = $SelWidth
-@onready var spin_sel_height = $SelHeight
+@onready var spin_input_width = $InputWidth
+@onready var spin_input_height = $InputHeight
 
-@onready var spin_sel_x = $SelPosX
-@onready var spin_sel_y = $SelPosY
+@onready var spin_input_x = $InputPosX
+@onready var spin_input_y = $InputPosY
 
-@onready var opt_sel_pivot = $OptSelectionPivot
+@onready var opt_pivot = $OptPivot
 
 
 func _ready():
@@ -70,12 +70,12 @@ func _ready():
 	slider_stroke_width.value_changed.connect(_on_stroke_width_changed)
 	slider_stroke_space.value_changed.connect(_on_stroke_space_changed)
 	
-	spin_sel_width.value_changed.connect(_on_sel_size_changed.bind(spin_sel_width))
-	spin_sel_height.value_changed.connect(_on_sel_size_changed.bind(spin_sel_height))
-	spin_sel_x.value_changed.connect(_on_sel_pos_changed.bind(spin_sel_x))
-	spin_sel_y.value_changed.connect(_on_sel_pos_changed.bind(spin_sel_y))
+	spin_input_width.value_changed.connect(_on_input_size_changed.bind(spin_input_width))
+	spin_input_height.value_changed.connect(_on_input_size_changed.bind(spin_input_height))
+	spin_input_x.value_changed.connect(_on_input_pos_changed.bind(spin_input_x))
+	spin_input_y.value_changed.connect(_on_input_pos_changed.bind(spin_input_y))
 	
-	opt_sel_pivot.item_selected.connect(_on_sel_pivot_changed)
+	opt_pivot.item_selected.connect(_on_pivot_changed)
 	
 	artboard.snap_to_guide = true
 	artboard.snap_to_symmetry_guide = true
@@ -90,12 +90,12 @@ func _ready():
 #	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
 	
 	
-	spin_sel_x.editable = false
-	spin_sel_y.editable = false
-	spin_sel_width.editable = false
-	spin_sel_height.editable = false
-	spin_sel_width.value = artboard.canvas.size.x
-	spin_sel_height.value = artboard.canvas.size.y
+	spin_input_x.editable = false
+	spin_input_y.editable = false
+	spin_input_width.editable = false
+	spin_input_height.editable = false
+	spin_input_width.value = artboard.canvas.size.x
+	spin_input_height.value = artboard.canvas.size.y
 
 #	var image = Image.new()
 #	if image.load('res://test.png') == OK:
@@ -192,7 +192,7 @@ func _on_btn_pressed(btn):
 		current_selector.opt_from_center = btn_center_selector.button_pressed
 		current_selector.opt_as_square = btn_square_selector.button_pressed
 		current_selector.mode = opt_selection_mode.selected
-		current_selector.pivot = opt_sel_pivot.selected
+		current_selector.pivot = opt_pivot.selected
 
 
 func _on_stroke_dynamics(index):
@@ -221,52 +221,9 @@ func _on_stroke_space_changed(val):
 		current_drawer.stroke_spacing = Vector2i(val, val)
 
 
-var trigger_sel_input := false
-
-func _on_sel_size_changed(val, spin):
-	if current_selector and trigger_sel_input:
-		print(spin.name, ' Selection SIZE: ', val)
-		var rsize = Vector2i(spin_sel_width.value, spin_sel_height.value)
-		current_selector.resize_to(rsize)
-
-
-func _on_sel_pos_changed(val, spin):
-	if current_selector and trigger_sel_input:
-		print(spin.name, ' Selection POS: ', val)
-		var rpos = Vector2i(spin_sel_x.value, spin_sel_y.value)
-		current_selector.move_to(rpos)
-
-
-func _on_sel_pivot_changed(val):
-	if current_selector:
-		current_selector.pivot = val
-		trigger_sel_input = false
-		spin_sel_x.value = current_selector.relative_position.x
-		spin_sel_y.value = current_selector.relative_position.y
-		trigger_sel_input = true
-
-
-func _on_selection_changed(rect):
-#	print(rect.position)
-	trigger_sel_input = false
-	if current_selector:
-		spin_sel_x.value = current_selector.relative_position.x
-		spin_sel_y.value = current_selector.relative_position.y
-	spin_sel_width.value = rect.size.x
-	spin_sel_height.value = rect.size.y
-	if rect.size.x and rect.size.y:
-		spin_sel_x.editable = true
-		spin_sel_y.editable = true
-		spin_sel_width.editable = true
-		spin_sel_height.editable = true
-	else:
-		spin_sel_x.editable = false
-		spin_sel_y.editable = false
-		spin_sel_width.editable = false
-		spin_sel_height.editable = false
-	trigger_sel_input = true
-	
-
 func _on_selection_mode(val):
 	if current_selector:
 		current_selector.mode = val
+
+
+
