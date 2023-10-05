@@ -232,3 +232,12 @@ suffix = "px"
 
 [node name="TransformPanel" parent="." instance=ExtResource("4_mmkau")]
 layout_mode = 0
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 733.0
+offset_top = 554.0
+offset_right = 733.0
+offset_bottom = 554.0
+grow_horizontal = 1
+grow_vertical = 1

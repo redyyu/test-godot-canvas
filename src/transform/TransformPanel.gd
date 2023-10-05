@@ -12,19 +12,19 @@ var current_rect :Rect2i:
 		current_rect = val
 		update_info(current_rect)
 
-@onready var opt_pivot := $OptPivot
-@onready var input_width := $InputWidth
-@onready var input_height := $InputHeight
-@onready var input_x := $InputPosX
-@onready var input_y := $InputPosY
+@onready var opt_pivot := %OptPivot
+@onready var input_width := %InputWidth
+@onready var input_height := %InputHeight
+@onready var input_x := %InputPosX
+@onready var input_y := %InputPosY
 
 
 func _ready():
-	print(current_rect)
 	input_width.value_changed.connect(_on_input_size_changed)
 	input_height.value_changed.connect(_on_input_size_changed)
 	input_x.value_changed.connect(_on_input_pos_changed)
 	input_y.value_changed.connect(_on_input_pos_changed)
+	opt_pivot.pivot_changed.connect(_on_pivot_changed)
 
 
 func update_info(rect):

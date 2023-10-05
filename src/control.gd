@@ -31,16 +31,9 @@ var current_selector :BaseSelector
 @onready var slider_stroke_width = $StrokeWidthSlider
 @onready var slider_stroke_space = $StrokeSpaceSlider
 
-@onready var spin_input_width = $InputWidth
-@onready var spin_input_height = $InputHeight
-
-@onready var spin_input_x = $InputPosX
-@onready var spin_input_y = $InputPosY
-
-@onready var opt_pivot = $OptPivot
-
 
 func _ready():
+		
 	g.current_project = Project.new(Vector2i(400, 300))
 	artboard.load_project(g.current_project)
 	
@@ -70,13 +63,6 @@ func _ready():
 	slider_stroke_width.value_changed.connect(_on_stroke_width_changed)
 	slider_stroke_space.value_changed.connect(_on_stroke_space_changed)
 	
-	spin_input_width.value_changed.connect(_on_input_size_changed.bind(spin_input_width))
-	spin_input_height.value_changed.connect(_on_input_size_changed.bind(spin_input_height))
-	spin_input_x.value_changed.connect(_on_input_pos_changed.bind(spin_input_x))
-	spin_input_y.value_changed.connect(_on_input_pos_changed.bind(spin_input_y))
-	
-	opt_pivot.item_selected.connect(_on_pivot_changed)
-	
 	artboard.snap_to_guide = true
 	artboard.snap_to_symmetry_guide = true
 	
@@ -86,29 +72,15 @@ func _ready():
 	artboard.show_grid_state = Grid.NONE
 	artboard.show_symmetry_guide_state = SymmetryGuide.CROSS_AXIS
 
-	artboard.canvas.selection_changed.connect(_on_selection_changed)
 #	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
-	
-	
-	spin_input_x.editable = false
-	spin_input_y.editable = false
-	spin_input_width.editable = false
-	spin_input_height.editable = false
-	spin_input_width.value = artboard.canvas.size.x
-	spin_input_height.value = artboard.canvas.size.y
+
 
 #	var image = Image.new()
 #	if image.load('res://test.png') == OK:
 #		artboard.canvas.reference_image.set_image(image)
 #		artboard.canvas.reference_image.scale = Vector2(0.2, 0.2)
 #		artboard.canvas.reference_image.offset = Vector2(250, 100)
-#
-#	var color_1 = Color.RED
-#	var color_2 = Color.GREEN
-##	color_1.a *= 1.0
-#	color_2.a = 0.5
-#	color_1.a = 0.5
-#	$ColorRect.color = color_2.blend(color_1)
+
 	
 
 func _on_btn_pressed(btn):
@@ -192,7 +164,6 @@ func _on_btn_pressed(btn):
 		current_selector.opt_from_center = btn_center_selector.button_pressed
 		current_selector.opt_as_square = btn_square_selector.button_pressed
 		current_selector.mode = opt_selection_mode.selected
-		current_selector.pivot = opt_pivot.selected
 
 
 func _on_stroke_dynamics(index):
