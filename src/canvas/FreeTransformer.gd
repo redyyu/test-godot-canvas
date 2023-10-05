@@ -46,12 +46,12 @@ var is_dragging := false :
 var is_scaling := false
 var is_activated := false :
 	set(val):
-		is_activated = val
-		print('fuck', val)
-		if is_activated:
-			sizer.hire()
-		else:
-			sizer.dismiss()
+		if is_activated != val:
+			is_activated = val
+			if is_activated:
+				sizer.hire()
+			else:
+				sizer.dismiss()
 
 
 func _init():
@@ -75,11 +75,11 @@ func reset():
 	image = Image.new()
 	image_mask = Image.new()
 	image_backup = Image.new()
-	visible = false
 	is_activated = false
 	is_dragging = false
 	is_scaling = false
 	sizer.dismiss()
+	visible = false
 	queue_redraw()
 	
 
