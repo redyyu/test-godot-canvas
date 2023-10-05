@@ -14,11 +14,14 @@ var grid :Grid
 var guides :Array[Guide]
 var symmetry_guide :SymmetryGuide
 
+var _weight := 0  # weight of the snapped times. reset when snap start or end.
+
 
 func snap_position(pos: Vector2, snap_to_edge := false) -> Vector2:
-	
+	_weight = 0  # reset wieght any way.
+
 	var to_guides :Array = []
-	
+
 	if snap_to_edge:  # sometime no need snap to edge, ex., draw or erasing.
 		to_guides.append_array([
 			{
@@ -97,12 +100,19 @@ func snap_position(pos: Vector2, snap_to_edge := false) -> Vector2:
 #	if snap_to_perspective_guides:
 #		snap_to_pos = process_snap_to_perspective_guides(pos, vanishing_points)
 
-
 	if snap_to_pos != Vector2.INF:
 		pos = snap_to_pos.floor()
-
+	
 	return pos
 
+
+func snap_position_weight(pos: Vector2, snap_to_edge := false) -> Vector3:
+	_weight = 0 # reset _weight from start
+	pos = snap_position(pos, snap_to_edge)
+	var result = Vector3(pos.x, pos.y, _weight)
+	_weight = 0 # reset _weight from end
+	return result
+	
 
 func process_snap_to_grid_boundary(pos :Vector2,
 								   grid_size:Vector2,
@@ -134,6 +144,7 @@ func process_snap_to_grid_boundary(pos :Vector2,
 
 	var grid_point := _get_closest_point_to_grid(pos, distance, grid_pos)
 	if grid_point != Vector2.INF:
+		_weight += 1
 		snap_to = grid_point.floor()
 	return snap_to
 
@@ -162,6 +173,7 @@ func process_snap_to_grid_center(pos :Vector2,
 		if vec.distance_to(pos) < grid_center.distance_to(pos):
 			grid_center = vec
 	if grid_center.distance_to(pos) <= distance:
+		_weight += 1
 		snap_to = grid_center.floor()
 	return snap_to
 
@@ -181,6 +193,7 @@ func process_snap_to_guides(pos :Vector2,
 		var snap := _snap_to_guide(
 			snap_to, pos, distance, guide['start'], guide['end'])
 		if snap != Vector2.INF:
+			_weight += 1
 			snap_to = snap
 	
 	for guide in v_guides:
@@ -188,8 +201,10 @@ func process_snap_to_guides(pos :Vector2,
 			snap_to, pos, distance, guide['start'], guide['end'])
 		if snap != Vector2.INF:
 			if snap_to != Vector2.INF:
+				_weight += 1
 				snap_to.x = snap.x
 			else:
+				_weight += 1
 				snap_to = snap
 
 	return snap_to
@@ -214,9 +229,9 @@ func process_snap_to_perspective_guide(pos, vanishing_points):
 											   SNAPPING_DISTANCE,
 											   s1,
 											   s2)
-				if tmp_snap == Vector2.INF:
-					continue
-				snap_to = tmp_snap
+				if tmp_snap != Vector2.INF:
+					_weight += 1
+					snap_to = tmp_snap
 	return snap_to
 
 

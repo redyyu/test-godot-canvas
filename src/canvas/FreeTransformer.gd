@@ -174,7 +174,7 @@ func update_transform_rect(rect :Rect2i):
 
 
 func inject_sizer_snapping(call_snapping:Callable):
-	sizer.get_snapping = call_snapping
+	sizer.get_snapping_weight = call_snapping
 
 
 func _input(event):

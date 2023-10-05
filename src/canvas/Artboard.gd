@@ -324,7 +324,7 @@ func _on_guide_released(guide):
 				guides.erase(guide)
 				guide.queue_free()
 				mouse_default_cursor_shape = Control.CURSOR_ARROW
-			elif selected_rect.size != Vector2i.ZERO:
+			elif selected_rect.has_area():
 				guide.snap_to(selected_rect.position)
 				guide.snap_to(selected_rect.position + selected_rect.size)
 		VERTICAL:
@@ -334,7 +334,7 @@ func _on_guide_released(guide):
 				guides.erase(guide)
 				guide.queue_free()
 				mouse_default_cursor_shape = Control.CURSOR_ARROW
-			elif selected_rect.size != Vector2i.ZERO:
+			elif selected_rect.has_area():
 				guide.snap_to(selected_rect.position)
 				guide.snap_to(selected_rect.position + selected_rect.size)
 	

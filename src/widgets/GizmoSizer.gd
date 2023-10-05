@@ -117,29 +117,34 @@ func drag_to(pos :Vector2i):
 	# convert to local pos from the rect zero pos. 
 	# DO NOT use get_local_mouse_position, because bound_rect is not zero pos.
 	var pos_corners := []
-	pos_corners.append({
+	pos_corners.append({ # top left corner
 		'position': pos,
 		'offset': Vector2i.ZERO,
 	})
-	pos_corners.append({
+	pos_corners.append({ # top right corner
 		'position': Vector2i(pos.x + bound_rect.size.x, pos.y),
 		'offset': Vector2i(bound_rect.size.x, 0)
 	})
-	pos_corners.append({
+	pos_corners.append({ # bottom right corner
 		'position': pos + bound_rect.size,
 		'offset': bound_rect.size
 	})
-	pos_corners.append({
+	pos_corners.append({ # bottom left corner
 		'position': Vector2i(pos.x, pos.y + bound_rect.size.y),
 		'offset': Vector2i(0, bound_rect.size.y)
 	})
 	
-	var snap_pos = pos
+	var snap_pos = null
+	var last_weight := 0
 	for corner in pos_corners:
-		snap_pos = get_snapping.call(corner['position'])
-		if snap_pos != corner['position']:
-			pos = snap_pos - corner['offset']
-			break
+		var _weight := 0
+		snap_pos = get_snapping_weight.call(corner['position'])
+		if snap_pos is Vector3i or snap_pos is Vector3:
+			_weight = snap_pos.z
+			snap_pos = Vector2i(snap_pos.x, snap_pos.y)
+		if _weight > last_weight:
+			last_weight = _weight
+			pos = Vector2i(snap_pos) - corner['offset']
 	
 	bound_rect.position = pos
 	
@@ -229,7 +234,10 @@ func _input(event :InputEvent):
 		if pressed_gizmo:
 			if is_dragging:  # prevent the dragging zone is hit.
 				is_dragging = false
-			scale_to(pressed_gizmo, get_snapping.call(pos))
+			var snap_pos = get_snapping_weight.call(pos)
+			if snap_pos is Vector3i or snap_pos is Vector3:
+				snap_pos = Vector2i(snap_pos.x, snap_pos.y)
+			scale_to(pressed_gizmo, snap_pos)
 			# it is in a sub viewport, and without any influence with layout.
 			# so `get_global_mouse_position()` should work.
 		elif is_dragging:
@@ -259,8 +267,8 @@ func _on_gizmo_press_changed(gizmo, status):
 	pressed_gizmo = gizmo if status else null
 
 
-var get_snapping = func(pos) -> Vector2i:
-	return pos
+var get_snapping_weight = func(pos) -> Vector3i:
+	return Vector3i(pos.x, pos.y, -1)
 
 
 # Use custom draw_rect and input event to replace

@@ -88,13 +88,14 @@ func _ready():
 	pencil.mask = selection.mask
 	brush.mask = selection.mask
 	eraser.mask = selection.mask
-		
+	
+	var snapper_weight_hook = func(pos) -> Vector3i:
+		return snapper.snap_position_weight(pos, true)
+	crop_rect.cursor_changed.connect(_on_curosr_changed)
+	crop_rect.inject_sizer_snapping(snapper_weight_hook)
 	free_transformer.changed.connect(_on_transformer_changed)
 	free_transformer.cursor_changed.connect(_on_curosr_changed)
-	free_transformer.inject_sizer_snapping(
-		func(pos) -> Vector2i:
-			return snapper.snap_position(pos, true)
-	)
+	free_transformer.inject_sizer_snapping(snapper_weight_hook)
 
 
 func attach_project(proj):

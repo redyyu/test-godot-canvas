@@ -60,5 +60,4 @@ func draw_pixel(position: Vector2i):
 
 func draw_start(pos: Vector2i):
 	reset()
-#	pos = snap_position(pos)
 	super.draw_start(pos)

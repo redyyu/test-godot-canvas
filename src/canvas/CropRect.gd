@@ -4,11 +4,12 @@ class_name CropRect extends Node2D
 
 signal canceled(rect)
 signal applied(rect)
+signal cursor_changed(cursor)
 
 const BG_COLOR := Color(0, 0, 0, 0.66)
 const LINE_COLOR := Color.WHITE
 
-var opt_as_square := false
+var sizer := GizmoSizer.new()
 
 var size := Vector2i.ZERO
 var cropped_rect = Rect2i(0, 0, 0, 0) :
@@ -19,36 +20,47 @@ var cropped_rect = Rect2i(0, 0, 0, 0) :
 var zoom_ratio := 1.0 :
 	set(val):
 		zoom_ratio = val
+		sizer.zoom_ratio = zoom_ratio
 		queue_redraw()
 
-var start_position := Vector2i.ZERO
 var is_cropping := false
+var is_dragging := false
 
+
+func _init():
+	sizer.gizmo_hover_changed.connect(_on_sizer_hover_changed)
+	sizer.gizmo_press_changed.connect(_on_sizer_press_changed)
+	sizer.changed.connect(_on_sizer_changed)
+	sizer.drag_started.connect(_on_sizer_drag_started)
+	sizer.drag_ended.connect(_on_sizer_drag_ended)
+	
 
 func _ready():
 	visible = false
+	add_child(sizer)
 	
 
 func reset():
 	visible = false
 	is_cropping = false
+	is_dragging = false
 	cropped_rect.position = Vector2i.ZERO
 	cropped_rect.size = size
 
 
 func launch():
-	if not is_cropping:
-		reset()
-	is_cropping = true
+	sizer.attach(cropped_rect, true)
 	visible = true
 
 
 func cancel():
+	sizer.dismiss()
 	canceled.emit(cropped_rect)
 	reset()
 
 
 func apply(use_reset:=false):
+	sizer.dismiss()
 	if cropped_rect.has_area():
 		applied.emit(cropped_rect)
 	else:
@@ -59,6 +71,10 @@ func apply(use_reset:=false):
 
 func has_point(point :Vector2i) ->bool:
 	return cropped_rect.has_point(point)
+
+
+func inject_sizer_snapping(call_snapping:Callable):
+	sizer.get_snapping_weight = call_snapping
 
 
 func _draw() -> void:
@@ -115,3 +131,22 @@ func _draw() -> void:
 	draw_line(Vector2(third, cropped_rect.position.y),
 			  Vector2(third, cropped_rect.end.y),
 			  LINE_COLOR, 1.0 / zoom_ratio)
+
+
+func _on_sizer_hover_changed(gizmo, status):
+	cursor_changed.emit(gizmo.cursor if status else null)
+
+
+func _on_sizer_press_changed(_gizmo, status):
+	is_cropping = status
+
+
+func _on_sizer_changed(rect):
+	cropped_rect = rect
+	
+
+func _on_sizer_drag_started():
+	is_dragging = true
+	
+func _on_sizer_drag_ended():
+	is_dragging = false
