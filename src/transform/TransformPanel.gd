@@ -1,8 +1,8 @@
 class_name TransformPanel extends Panel
 
-signal size_changed(to_size)
-signal position_changed(to_pos)
-signal pivot_changed(to_pivot)
+signal size_updated(to_size)
+signal position_updated(to_pos)
+signal pivot_updated(to_pivot)
 
 
 var block_input := false
@@ -20,11 +20,11 @@ var current_rect :Rect2i:
 
 
 func _ready():
-	input_width.value_changed.connect(_on_input_size_changed)
-	input_height.value_changed.connect(_on_input_size_changed)
-	input_x.value_changed.connect(_on_input_pos_changed)
-	input_y.value_changed.connect(_on_input_pos_changed)
-	opt_pivot.pivot_changed.connect(_on_pivot_changed)
+	input_width.value_updated.connect(_on_input_size_updated)
+	input_height.value_updated.connect(_on_input_size_updated)
+	input_x.value_updated.connect(_on_input_pos_updated)
+	input_y.value_updated.connect(_on_input_pos_updated)
+	opt_pivot.pivot_updated.connect(_on_pivot_updated)
 
 
 func update_info(rect):
@@ -46,18 +46,18 @@ func update_info(rect):
 	block_input = false
 	
 
-func _on_input_size_changed(_val):	
+func _on_input_size_updated(_val):	
 	if block_input:
 		return
-	size_changed.emit(Vector2i(input_width.value, input_height.value))
+	size_updated.emit(Vector2i(input_width.value, input_height.value))
 
 
-func _on_input_pos_changed(_val):
+func _on_input_pos_updated(_val):
 	if block_input:
 		return
-	position_changed.emit(Vector2i(input_x.value, input_y.value))
+	position_updated.emit(Vector2i(input_x.value, input_y.value))
 
 
-func _on_pivot_changed(val):
-	pivot_changed.emit(val)
+func _on_pivot_updated(val):
+	pivot_updated.emit(val)
 

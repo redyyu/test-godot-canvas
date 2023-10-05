@@ -1,5 +1,10 @@
 class_name Artboard extends SubViewportContainer
 
+signal selection_updated(rect)
+signal transform_updated(rect)
+signal crop_updated(rect)
+
+
 enum {
 	NONE,
 	MOVE,
@@ -124,13 +129,14 @@ func _ready():
 	mouse_exited.connect(_on_mouse_exited)
 	
 	resized.connect(_on_artboard_resized)
-	camera.dragged.connect(_on_camera_changed)
-	camera.zoomed.connect(_on_camera_changed)
-	camera.press_changed.connect(_on_camera_pressing)
+	camera.dragged.connect(_on_camera_updated)
+	camera.zoomed.connect(_on_camera_updated)
+	camera.press_updated.connect(_on_camera_pressing)
 	
-	canvas.cursor_changed.connect(_on_canvas_change_cursor)
+	canvas.cursor_updated.connect(_on_canvas_change_cursor)
+	canvas.selection_updated.connect(_on_selection_updated)
 	canvas.operating.connect(_on_canvas_operating)
-	canvas.crop_canvas.connect(_on_canvas_cropping)
+	canvas.crop_applied.connect(_on_canvas_cropping)
 	
 	mouse_guide.set_guide(size)
 	symmetry_guide.set_guide(size)
@@ -150,7 +156,7 @@ func load_project(proj :Project):
 	camera.viewport_size = viewport.size
 	camera.zoom_100()
 	
-#	camera.camera_offset_changed.connect(_on_camera_offset_changed)
+#	camera.camera_offset_updated.connect(_on_camera_offset_updated)
 	canvas.attach_project(project)
 	canvas.attach_snap_to(project.size, guides, symmetry_guide, grid)
 	trans_checker.update_bounds(project.size)
@@ -178,6 +184,8 @@ func change_state_cursor(curr_state):
 	else:
 		mouse_default_cursor_shape = Control.CURSOR_ARROW
 
+
+# place lines
 
 func place_grid():
 	if project and show_grid_state != Grid.NONE:
@@ -207,8 +215,10 @@ func place_guides():
 						guide.relative_position.x * camera_zoom.x
 
 
+# event handler
+
 func _on_artboard_resized():
-	_on_camera_changed() # do samething with camera changed.
+	_on_camera_updated() # do samething with camera changed.
 	
 	# no need to sheck show options, hiden will still be hidden,
 	# but keep the size correct, even it is not showing up.
@@ -220,7 +230,7 @@ func _on_artboard_resized():
 		guide.resize(size)
 
 
-func _on_camera_changed():
+func _on_camera_updated():
 	place_rulers()
 	place_guides()
 	place_symmetry_guides()
@@ -237,6 +247,7 @@ func _on_camera_pressing(is_pressed):
 
 
 func _on_canvas_operating(_state:int, is_finished :bool):
+	print(_state)
 	if is_finished:
 		_lock_guides(guides_locked)
 	else:
@@ -251,7 +262,7 @@ func _on_canvas_change_cursor(cursor):
 	if cursor:
 		mouse_default_cursor_shape = cursor
 	else:
-		mouse_default_cursor_shape = Control.CURSOR_ARROW
+		change_state_cursor(state)
 
 
 func _on_mouse_entered():
@@ -260,6 +271,11 @@ func _on_mouse_entered():
 
 func _on_mouse_exited():
 	camera.set_process_input(false)
+
+
+# data transmiton
+func _on_selection_updated(rect :Rect2i):
+	selection_updated.emit(rect)
 
 
 # guides
@@ -297,7 +313,7 @@ func _on_guide_hovered(guide):
 
 
 func _on_guide_leaved(_guide):
-	mouse_default_cursor_shape = Control.CURSOR_ARROW
+	change_state_cursor(state)
 	canvas.frozen = false  # unfrozen canvas anyway.
 
 
@@ -340,3 +356,27 @@ func _on_guide_released(guide):
 	
 	# make sure guides is in place
 	place_guides()
+
+
+# external injector
+
+func inject_pivot_point(pivot_id):
+	canvas.rect_selector.pivot = pivot_id
+	canvas.ellipse_selector.pivot = pivot_id
+	canvas.polygon_selector.pivot = pivot_id
+	canvas.lasso_selector.pivot = pivot_id
+	
+	canvas.free_transform.pivot = pivot_id
+	canvas.crop_rect.pivot = pivot_id
+	
+	if state in [SELECT_RECTANGLE, 
+				 SELECT_ELLIPSE,
+				 SELECT_POLYGON,
+				 SELECT_LASSO]:
+		selection_updated.emit(canvas.selection.selected_rect)
+		
+	elif state == MOVE:
+		transform_updated.emit(canvas.free_transform.transform_rect)
+		
+	elif state == CROP:
+		crop_updated.emit(canvas.cropper.cropped_rect)

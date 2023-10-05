@@ -31,6 +31,8 @@ var current_selector :BaseSelector
 @onready var slider_stroke_width = $StrokeWidthSlider
 @onready var slider_stroke_space = $StrokeSpaceSlider
 
+@onready var transform_panel = $TransformPanel
+
 
 func _ready():
 		
@@ -62,6 +64,8 @@ func _ready():
 	
 	slider_stroke_width.value_changed.connect(_on_stroke_width_changed)
 	slider_stroke_space.value_changed.connect(_on_stroke_space_changed)
+	
+	transform_panel.pivot_updated.connect(_on_pivot_updated)
 	
 	artboard.snap_to_guide = true
 	artboard.snap_to_symmetry_guide = true
@@ -197,4 +201,5 @@ func _on_selection_mode(val):
 		current_selector.mode = val
 
 
-
+func _on_pivot_updated(val):
+	artboard.set_pivot_point(val)

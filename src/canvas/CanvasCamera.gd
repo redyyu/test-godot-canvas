@@ -2,7 +2,7 @@ class_name CanvasCamera extends Camera2D
 
 signal zoomed
 signal dragged
-signal press_changed
+signal press_updated
 
 const CAMERA_SPEED_RATE = 12.0
 
@@ -59,7 +59,7 @@ func _input(event: InputEvent):
 	
 	if event is InputEventMouseButton:
 		btn_pressed = event.pressed
-		press_changed.emit(btn_pressed)
+		press_updated.emit(btn_pressed)
 		
 	match state:
 		Artboard.DRAG:

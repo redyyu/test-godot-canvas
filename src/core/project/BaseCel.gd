@@ -3,7 +3,7 @@ class_name BaseCel extends RefCounted
 # Base class for cel properties.
 # The term "cel" comes from "celluloid" (https://en.wikipedia.org/wiki/Cel).
 
-signal texture_changed
+signal texture_updated
 
 var image_texture := ImageTexture.new(): 
 	get = get_image_texture
@@ -54,10 +54,10 @@ func copy_content():
 
 
 func update_texture():
-	texture_changed.emit()
+	texture_updated.emit()
 	if link_set is Dictionary:
 		for cel in link_set.get("cels", []):
-			cel.texture_changed.emit()
+			cel.texture_updated.emit()
 
 
 func _remove():

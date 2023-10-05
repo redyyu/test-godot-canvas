@@ -1,9 +1,12 @@
 class_name Canvas extends Node2D
 
-signal cursor_changed(cursor)
-signal selection_changed(rect)
+signal cursor_updated(cursor)
+signal selection_updated(rect)
+signal crop_applied(rect)
+
 signal operating(operate_state, is_finished)
-signal crop_canvas(rect)
+# let parent to know when should block some other actions.
+# for improve useblilty.
 
 
 var state := Artboard.NONE:
@@ -50,8 +53,8 @@ var zoom := Vector2.ONE :
 
 @onready var indicator :Indicator = $Indicator
 @onready var selection :Selection = $Selection
-@onready var crop_rect :CropRect = $CropRect
-@onready var free_transformer :FreeTransformer = $FreeTransformer
+@onready var cropper :Cropper = $Cropper
+@onready var mover :Mover = $Mover
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -69,7 +72,7 @@ var zoom := Vector2.ONE :
 #@onready var selection :Node2D = $Selection
 #@onready var onion_past :Node2D = $OnionPast
 #@onready var onion_future :Node2D = $OnionFuture
-#@onready var crop_rect :CropRect = $CropRect
+#@onready var cropper :Cropper = $Cropper
 
 
 func _ready():
@@ -91,18 +94,21 @@ func _ready():
 	
 	var snapper_weight_hook = func(pos) -> Vector3i:
 		return snapper.snap_position_weight(pos, true)
-	crop_rect.cursor_changed.connect(_on_curosr_changed)
-	crop_rect.inject_sizer_snapping(snapper_weight_hook)
-	free_transformer.changed.connect(_on_transformer_changed)
-	free_transformer.cursor_changed.connect(_on_curosr_changed)
-	free_transformer.inject_sizer_snapping(snapper_weight_hook)
+	
+	cropper.applied.connect(_on_crop_applied)
+	cropper.cursor_updated.connect(_on_curosr_updated)
+	cropper.inject_sizer_snapping(snapper_weight_hook)
+	
+	mover.updated.connect(_on_transformer_updated)
+	mover.cursor_updated.connect(_on_curosr_updated)
+	mover.inject_sizer_snapping(snapper_weight_hook)
 
 
 func attach_project(proj):
 	project = proj
 	
 	selection.size = project.size
-	crop_rect.size = project.size
+	cropper.size = project.size
 	
 	set_state(state)  # trigger state changing to init settings.
 
@@ -115,26 +121,26 @@ func set_state(val):  # triggered when state changing.
 	indicator.hide_indicator()  # not all state need indicator
 	
 	if state == Artboard.CROP:
-		free_transformer.cancel()
-		crop_rect.launch()
+		mover.cancel()
+		cropper.launch()
 		selection.deselect()
 	elif state == Artboard.MOVE:
-		crop_rect.cancel()
-		free_transformer.lanuch(project.current_cel.get_image(), 
+		cropper.cancel()
+		mover.lanuch(project.current_cel.get_image(), 
 						 		selection.mask)
 		# selection must clear after transform setted, 
 		# free_transform still need it once.
 		selection.deselect() 
 	elif state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
-		free_transformer.apply(true)
-		crop_rect.cancel()
+		mover.apply(true)
+		cropper.cancel()
 		pencil.attach(project.current_cel.get_image())
 		brush.attach(project.current_cel.get_image())
 		eraser.attach(project.current_cel.get_image())
 		# DO NOT clear selection here, drawer can draw by selection.
 	elif state not in [Artboard.DRAG, Artboard.ZOOM]:
-		free_transformer.apply(true)
-		crop_rect.cancel()
+		mover.apply(true)
+		cropper.cancel()
 
 
 func set_zoom_ratio(val):
@@ -143,8 +149,8 @@ func set_zoom_ratio(val):
 	zoom = val
 	var zoom_ratio = (zoom.x + zoom.y) / 2
 	selection.zoom_ratio = zoom_ratio
-	crop_rect.zoom_ratio = zoom_ratio
-	free_transformer.zoom_ratio = zoom_ratio
+	cropper.zoom_ratio = zoom_ratio
+	mover.zoom_ratio = zoom_ratio
 
 
 func prepare_pressure(pressure:float) -> float:
@@ -196,13 +202,11 @@ func process_drawing_or_erasing(event, drawer):
 					drawer.set_stroke_alpha_dynamics() # back to default
 			drawer.draw_move(pos)
 			project.current_cel.update_texture()
-			operating.emit(state, false)
 			queue_redraw()
 				
 		elif drawer.is_drawing:
 			drawer.draw_end(pos)
 			project.current_cel.update_texture()
-			operating.emit(state, true)
 			queue_redraw()
 
 
@@ -211,10 +215,8 @@ func process_selection(event, selector):
 		var pos = snapper.snap_position(get_local_mouse_position(), true)
 		if is_pressed:
 			selector.select_move(pos)
-			operating.emit(state, false)
 		elif selector.is_operating:
 			selector.select_end(pos)
-			operating.emit(state, true)
 
 
 func process_selection_polygon(event, selector):
@@ -222,18 +224,14 @@ func process_selection_polygon(event, selector):
 		var pos = snapper.snap_position(get_local_mouse_position(), true)
 		if is_pressed and not event.double_click:
 			selector.select_move(pos)
-			operating.emit(state, false)
 		elif selector.is_selecting and event.double_click:
 			selector.select_end(pos)
-			operating.emit(state, true)
 	elif event is InputEventMouseMotion and selector.is_moving:
 		var pos = snapper.snap_position(get_local_mouse_position(), true)
 		if is_pressed:
 			selector.select_move(pos)
-			operating.emit(state, false)
 		else:
 			selector.select_end(pos)
-			operating.emit(state, true)
 			
 
 func process_selection_lasso(event, selector):
@@ -241,10 +239,8 @@ func process_selection_lasso(event, selector):
 		var pos = snapper.snap_position(get_local_mouse_position(), true)
 		if is_pressed:
 			selector.select_move(pos)
-			operating.emit(state, false)
 		elif selector.is_operating:
 			selector.select_end(pos)
-			operating.emit(state, true)
 
 
 func _input(event :InputEvent):
@@ -253,6 +249,7 @@ func _input(event :InputEvent):
 	
 	if event is InputEventMouseButton:
 		is_pressed = event.pressed
+		operating.emit(state, not is_pressed)
 
 	match state:
 		Artboard.PENCIL:
@@ -262,6 +259,8 @@ func _input(event :InputEvent):
 		Artboard.ERASE:
 			process_drawing_or_erasing(event, eraser)
 		Artboard.CROP:
+			pass
+		Artboard.MOVE:
 			pass
 		Artboard.SELECT_RECTANGLE:
 			process_selection(event, rect_selector)
@@ -294,19 +293,23 @@ func get_relative_mouse_position(): # other node need mouse location of canvas.
 
 
 # cursor
-func _on_curosr_changed(cursor):
-	cursor_changed.emit(cursor)
+func _on_curosr_updated(cursor):
+	cursor_updated.emit(cursor)
 	
 
 # selection
-func _on_selection_updated(sel_rect :Rect2i):
-	selection_changed.emit(sel_rect)
+func _on_selection_updated(rect :Rect2i):
+	selection_updated.emit(rect)
+
+
+# crop
+func _on_crop_applied(rect :Rect2i):
+	crop_applied.emit(rect)
 
 
 # transform
-func _on_transformer_changed(_rect :Rect2i):
+func _on_transformer_updated(_rect :Rect2i):
 	project.current_cel.update_texture()
-	operating.emit(state, true)
 	queue_redraw()
 
 

@@ -6,7 +6,7 @@ var width := 0
 var height := 0
 
 var image :Image :
-	set = image_changed
+	set = set_image
 
 
 func _init(_width :int, _height :int):
@@ -18,7 +18,7 @@ func _init(_width :int, _height :int):
 #	# image's setter will take care of it.
 	
 
-func image_changed(value: Image):
+func set_image(value: Image):
 	image = value
 	update_texture()
 

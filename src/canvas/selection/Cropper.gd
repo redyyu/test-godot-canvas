@@ -1,15 +1,18 @@
-class_name CropRect extends Node2D
+class_name Cropper extends Node2D
 # Draws the rectangle overlay for the crop tool
 # Stores the shared settings between left and right crop tools
 
 signal canceled(rect)
 signal applied(rect)
-signal cursor_changed(cursor)
+signal cursor_updated(cursor)
 
 const BG_COLOR := Color(0, 0, 0, 0.66)
 const LINE_COLOR := Color.WHITE
 
 var sizer := GizmoSizer.new()
+var pivot :
+	get: return sizer.pivot
+	set(val): sizer.pivot = val
 var relative_position :Vector2i :
 	get: return sizer.relative_position
 	
@@ -30,9 +33,9 @@ var is_dragging := false
 
 
 func _init():
-	sizer.gizmo_hover_changed.connect(_on_sizer_hover_changed)
-	sizer.gizmo_press_changed.connect(_on_sizer_press_changed)
-	sizer.changed.connect(_on_sizer_changed)
+	sizer.gizmo_hover_updated.connect(_on_sizer_hover_updated)
+	sizer.gizmo_press_updated.connect(_on_sizer_press_updated)
+	sizer.updated.connect(_on_sizer_updated)
 	sizer.drag_started.connect(_on_sizer_drag_started)
 	sizer.drag_ended.connect(_on_sizer_drag_ended)
 	
@@ -73,10 +76,6 @@ func apply(use_reset:=false):
 
 func has_point(point :Vector2i) ->bool:
 	return cropped_rect.has_point(point)
-
-
-func inject_sizer_snapping(call_snapping:Callable):
-	sizer.get_snapping_weight = call_snapping
 
 
 func _draw() -> void:
@@ -135,15 +134,15 @@ func _draw() -> void:
 			  LINE_COLOR, 1.0 / zoom_ratio)
 
 
-func _on_sizer_hover_changed(gizmo, status):
-	cursor_changed.emit(gizmo.cursor if status else null)
+func _on_sizer_hover_updated(gizmo, status):
+	cursor_updated.emit(gizmo.cursor if status else null)
 
 
-func _on_sizer_press_changed(_gizmo, status):
+func _on_sizer_press_updated(_gizmo, status):
 	is_cropping = status
 
 
-func _on_sizer_changed(rect):
+func _on_sizer_updated(rect):
 	cropped_rect = rect
 	
 
@@ -152,3 +151,15 @@ func _on_sizer_drag_started():
 	
 func _on_sizer_drag_ended():
 	is_dragging = false
+
+
+# external injector
+
+func inject_rect(rect :Rect2i):
+	sizer.refresh(rect)
+	# pass to sizer only, sizer will take care of many things, suck as pivot.
+	# wait sizer finish the job, it will emit a event to free_transform
+
+
+func inject_sizer_snapping(call_snapping:Callable):
+	sizer.get_snapping_weight = call_snapping

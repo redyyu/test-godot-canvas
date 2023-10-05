@@ -1,22 +1,27 @@
-class_name FreeTransformer extends Node2D
+class_name Mover extends Node2D
 
-signal changed(rect)
+signal updated(rect)
 signal applied(rect)
-signal cursor_changed(cursor)
+signal cursor_updated(cursor)
 
 
 const MODULATE_COLOR := Color(1, 1, 1, 0.33)
 
 var sizer := GizmoSizer.new()
+var pivot :
+	get: return sizer.pivot
+	set(val): sizer.pivot = val
+var relative_position :Vector2i :
+	get: return sizer.relative_position
 
 var image := Image.new()
 var image_backup := Image.new()  # a backup image for cancel.
 var image_mask := Image.new()  # pass selection mask
 
-var transform_texture := ImageTexture.new()
-var transform_image := Image.new() :
+var move_texture := ImageTexture.new()
+var move_image := Image.new() :
 	set(val):
-		transform_image = val
+		move_image = val
 		update_texture()
 
 var canvas_size := Vector2i.ZERO
@@ -25,8 +30,10 @@ var line_color := Color.REBECCA_PURPLE:
 		line_color = val
 		sizer.gizmo_color = line_color
 
-var transform_rect := Rect2i(Vector2i.ZERO, Vector2.ZERO):
-	set = update_transform_rect
+var move_rect := Rect2i(Vector2i.ZERO, Vector2.ZERO):
+	set(val):
+		move_rect = val
+		queue_redraw()
 
 var zoom_ratio := 1.0 :
 	set(val):
@@ -35,8 +42,8 @@ var zoom_ratio := 1.0 :
 		queue_redraw()
 
 var is_transforming :bool :
-	get: return (not transform_image.is_empty() and
-				 transform_rect.has_area())
+	get: return (not move_image.is_empty() and
+				 move_rect.has_area())
 
 var is_dragging := false :
 	set(val):
@@ -56,9 +63,9 @@ var is_activated := false :
 
 func _init():
 	sizer.gizmo_color = line_color
-	sizer.gizmo_hover_changed.connect(_on_sizer_hover_changed)
-	sizer.gizmo_press_changed.connect(_on_sizer_press_changed)
-	sizer.changed.connect(_on_sizer_changed)
+	sizer.gizmo_hover_updated.connect(_on_sizer_hover_updated)
+	sizer.gizmo_press_updated.connect(_on_sizer_press_updated)
+	sizer.updated.connect(_on_sizer_updated)
 	sizer.drag_started.connect(_on_sizer_drag_started)
 	sizer.drag_ended.connect(_on_sizer_drag_ended)
 
@@ -69,9 +76,9 @@ func _ready():
 
 
 func reset():
-	transform_rect = Rect2i(Vector2i.ZERO, Vector2.ZERO)
-	transform_texture = ImageTexture.new()
-	transform_image = Image.new()
+	move_rect = Rect2i(Vector2i.ZERO, Vector2.ZERO)
+	move_texture = ImageTexture.new()
+	move_image = Image.new()
 	image = Image.new()
 	image_mask = Image.new()
 	image_backup = Image.new()
@@ -89,19 +96,19 @@ func lanuch(img :Image, mask :Image):
 		image_backup.copy_from(image)
 		image_mask.copy_from(mask)
 		if image_mask.is_empty() or image_mask.is_invisible():
-			transform_rect = image.get_used_rect()
+			move_rect = image.get_used_rect()
 		else:
-			transform_rect = image_mask.get_used_rect()
-		sizer.attach(transform_rect)
-		changed.emit(transform_rect)
+			move_rect = image_mask.get_used_rect()
+		sizer.attach(move_rect)
+		updated.emit(move_rect)
 		queue_redraw()
 
 	visible = true
 
 
 func activate():
-	if not transform_rect.has_area() or is_activated:
-		# transform_rect is setted when launch or transforming.
+	if not move_rect.has_area() or is_activated:
+		# move_rect is setted when launch or transforming.
 		return
 	is_activated = true
 	# for prevent over activate. transform only active once,
@@ -110,103 +117,94 @@ func activate():
 	
 	if image_mask.is_empty() or image_mask.is_invisible():
 		# for whole image
-		transform_image = image.get_region(transform_rect)
-		image.fill_rect(transform_rect, Color.TRANSPARENT)
+		move_image = image.get_region(move_rect)
+		image.fill_rect(move_rect, Color.TRANSPARENT)
 	else:
 		# use tmp image for trigger the setter of transformer_image
-		var _tmp = Image.create(transform_rect.size.x, 
-								transform_rect.size.y,
+		var _tmp = Image.create(move_rect.size.x, 
+								move_rect.size.y,
 								false, image.get_format())
-		_tmp.blit_rect_mask(image, image_mask, transform_rect, Vector2i.ZERO)
-		transform_image = _tmp.duplicate()
+		_tmp.blit_rect_mask(image, image_mask, move_rect, Vector2i.ZERO)
+		move_image = _tmp.duplicate()
 					
 		_tmp.resize(image.get_width(), image.get_height())
 		_tmp.fill(Color.TRANSPARENT)
-#			image.fill_rect(transform_rect, Color.TRANSPARENT)
+#			image.fill_rect(move_rect, Color.TRANSPARENT)
 		# DO NOT just fill rect, selection might have different shapes.
 		image.blit_rect_mask(
-			_tmp, image_mask, transform_rect, transform_rect.position)
+			_tmp, image_mask, move_rect, move_rect.position)
 
 
 func cancel():
 	is_activated = false
 	image.copy_from(image_backup)
-	changed.emit(transform_rect)
+	updated.emit(move_rect)
 	reset()
 
 
 func apply(use_reset := false):
 	is_activated = false
 	if is_transforming:
-		transform_image.resize(transform_rect.size.x, 
-							   transform_rect.size.y,
+		move_image.resize(move_rect.size.x, 
+							   move_rect.size.y,
 							   Image.INTERPOLATE_NEAREST)
 		# DO NOT just fill rect, selection might have different shapes.
-		image.blit_rect_mask(transform_image, transform_image,
-							 Rect2i(Vector2i.ZERO, transform_rect.size),
-							 transform_rect.position)
+		image.blit_rect_mask(move_image, move_image,
+							 Rect2i(Vector2i.ZERO, move_rect.size),
+							 move_rect.position)
 		image_backup.copy_from(image)
 		# also the image mask must update, because already transformed.
 		var _mask = Image.create(image.get_width(), image.get_height(),
 								 false, image.get_format())
-		_mask.blit_rect(transform_image,
-						Rect2i(Vector2i.ZERO, transform_rect.size),
-						transform_rect.position)
+		_mask.blit_rect(move_image,
+						Rect2i(Vector2i.ZERO, move_rect.size),
+						move_rect.position)
 		image_mask.copy_from(_mask)
-		changed.emit(transform_rect)
-		applied.emit(transform_rect)
+		updated.emit(move_rect)
+		applied.emit(move_rect)
 	if use_reset:
 		reset()
 
 
 func update_texture():
-	if transform_image.is_empty():
-		transform_texture = ImageTexture.new()
+	if move_image.is_empty():
+		move_texture = ImageTexture.new()
 	else:
-		transform_texture.set_image(transform_image)
-
-
-func update_transform_rect(rect :Rect2i):
-	transform_rect = rect
-	if is_transforming:
-		changed.emit(transform_rect)
-		queue_redraw()
-
-
-func inject_sizer_snapping(call_snapping:Callable):
-	sizer.get_snapping_weight = call_snapping
+		move_texture.set_image(move_image)
 
 
 func _input(event):
 	if (event is InputEventMouseButton and event.pressed and 
 		not is_dragging and not is_scaling):
 		var pos = get_local_mouse_position()
-		if transform_rect.has_point(pos):
+		if move_rect.has_point(pos):
 			activate()
 		else:
 			apply(false)
 
 
 func _draw():
-	if visible and transform_rect:
+	if visible and move_rect:
 		if is_transforming:
 	#		texture = ImageTexture.create_from_image(image)
 			# DO NOT new a texture here, may got blank texture. do it before.
-			draw_texture_rect(transform_texture, transform_rect, false,
+			draw_texture_rect(move_texture, move_rect, false,
 							  MODULATE_COLOR if is_dragging else Color.WHITE)
-		draw_rect(transform_rect, line_color, false, 1.0 / zoom_ratio)
+		draw_rect(move_rect, line_color, false, 1.0 / zoom_ratio)
 
 
-func _on_sizer_hover_changed(gizmo, status):
-	cursor_changed.emit(gizmo.cursor if status else null)
+func _on_sizer_hover_updated(gizmo, status):
+	cursor_updated.emit(gizmo.cursor if status else null)
 
 
-func _on_sizer_press_changed(_gizmo, status):
+func _on_sizer_press_updated(_gizmo, status):
 	is_scaling = status
 
 
-func _on_sizer_changed(rect):
-	transform_rect = rect
+func _on_sizer_updated(rect):
+	move_rect = rect
+	updated.emit(move_rect)
+	
 	
 
 func _on_sizer_drag_started():
@@ -214,3 +212,16 @@ func _on_sizer_drag_started():
 	
 func _on_sizer_drag_ended():
 	is_dragging = false
+
+
+# external injector
+
+func inject_rect(rect :Rect2i):
+	sizer.refresh(rect)
+	# pass to sizer only, sizer will take care of many things, suck as pivot.
+	# wait sizer finish the job, it will emit a event to free_transform
+
+
+func inject_sizer_snapping(call_snapping:Callable):
+	sizer.get_snapping_weight = call_snapping
+	

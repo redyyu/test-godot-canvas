@@ -2,7 +2,7 @@
 
 class_name PivotSelector extends Control
 
-signal pivot_changed(pivot)
+signal pivot_updated(pivot)
 
 enum Pivot {
 	TOP_LEFT,
@@ -20,7 +20,7 @@ enum Pivot {
 	set(val):
 		pivot = val
 		set_pivots()
-		pivot_changed.emit(pivot)
+		pivot_updated.emit(pivot)
 
 @export var pivot_point_radius := 5
 @export var pivot_frame_color := Color.DIM_GRAY

@@ -1,8 +1,8 @@
 class_name GizmoSizer extends Node2D
 
-signal gizmo_hover_changed(gizmo, status)
-signal gizmo_press_changed(gizmo, status)
-signal changed(rect)
+signal gizmo_hover_updated(gizmo, status)
+signal gizmo_press_updated(gizmo, status)
+signal updated(rect)
 signal drag_started
 signal drag_ended
 
@@ -50,7 +50,10 @@ var zoom_ratio := 1.0 :
 			gizmo.zoom_ratio = zoom_ratio
 
 var bound_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO) :
-	set = update_bound_rect
+	set(val):
+		bound_rect = val
+		for gizmo in gizmos:
+			set_gizmo_place(gizmo)
 
 var gizmos :Array[Gizmo] = []
 
@@ -90,23 +93,23 @@ func _ready():
 		gizmo.bgcolor = gizmo_bgcolor
 		gizmo.default_size = gizmo_size
 		gizmo.line_width = gizmo_line_width
-		gizmo.hover_changed.connect(_on_gizmo_hover_changed)
-		gizmo.press_changed.connect(_on_gizmo_press_changed)
+		gizmo.hover_updated.connect(_on_gizmo_hover_updated)
+		gizmo.press_updated.connect(_on_gizmo_press_updated)
 		add_child(gizmo)
 
 
 func attach(rect :Rect2i, auto_hire := false):
-	if rect.has_area():
-		bound_rect = rect
+	bound_rect = rect
+	if bound_rect.has_area():
 		if auto_hire:
 			hire()
+	else:
+		dismiss()
 
 
-func update_bound_rect(val :Rect2i):
-	bound_rect = val
-	if bound_rect.has_area():
-		for gizmo in gizmos:
-			set_gizmo_place(gizmo)
+func refresh(rect :Rect2i):
+	bound_rect = rect
+	updated.emit(bound_rect)
 
 
 func hire():
@@ -168,7 +171,7 @@ func drag_to(pos :Vector2i):
 	for gzm in gizmos:
 		set_gizmo_place(gzm)
 	
-	changed.emit(bound_rect)
+	updated.emit(bound_rect)
 
 
 func scale_to(gizmo:Gizmo, pos :Vector2i):
@@ -213,7 +216,7 @@ func scale_to(gizmo:Gizmo, pos :Vector2i):
 	for gzm in gizmos:
 		set_gizmo_place(gzm)
 
-	changed.emit(bound_rect)
+	updated.emit(bound_rect)
 
 
 func set_gizmo_place(gizmo):
@@ -312,15 +315,16 @@ func _input(event :InputEvent):
 
 
 
-func _on_gizmo_hover_changed(gizmo, status):
-	gizmo_hover_changed.emit(gizmo, status)
+func _on_gizmo_hover_updated(gizmo, status):
+	gizmo_hover_updated.emit(gizmo, status)
 	
 
-func _on_gizmo_press_changed(gizmo, status):
-	gizmo_press_changed.emit(gizmo, status)
+func _on_gizmo_press_updated(gizmo, status):
+	gizmo_press_updated.emit(gizmo, status)
 	pressed_gizmo = gizmo if status else null
 
 
+# hook for snapping
 var get_snapping_weight = func(pos) -> Vector3i:
 	return Vector3i(pos.x, pos.y, -1)
 
@@ -348,8 +352,8 @@ var get_snapping_weight = func(pos) -> Vector3i:
 
 class Gizmo extends Node2D :
 	
-	signal hover_changed(gizmo, status)
-	signal press_changed(gizmo, status)
+	signal hover_updated(gizmo, status)
+	signal press_updated(gizmo, status)
 
 
 	var pivot := GizmoSizer.Pivot.TOP_LEFT
@@ -396,12 +400,12 @@ class Gizmo extends Node2D :
 	var is_hover := false :
 		set(val):
 			is_hover = val
-			hover_changed.emit(self, is_hover)
+			hover_updated.emit(self, is_hover)
 
 	var is_pressed := false:
 		set(val):
 			is_pressed = val
-			press_changed.emit(self, is_pressed)
+			press_updated.emit(self, is_pressed)
 
 
 	func _init(_pivot):
