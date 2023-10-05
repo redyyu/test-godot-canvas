@@ -6,6 +6,16 @@ signal changed(rect)
 signal drag_started
 signal drag_ended
 
+enum Pivot {
+	TOP_LEFT,
+	TOP_CENTER,
+	TOP_RIGHT,
+	MIDDLE_RIGHT,
+	BOTTOM_RIGHT,
+	BOTTOM_CENTER,
+	BOTTOM_LEFT,
+	MIDDLE_LEFT,
+}
 
 @export var gizmo_color := Color(0.2, 0.2, 0.2, 1):
 	set(val):
@@ -60,14 +70,14 @@ var drag_offset := Vector2i.ZERO
 
 func _ready():
 	visible = false
-	gizmos.append(Gizmo.new(Gizmo.TOP_LEFT))
-	gizmos.append(Gizmo.new(Gizmo.TOP_CENTER))
-	gizmos.append(Gizmo.new(Gizmo.TOP_RIGHT))
-	gizmos.append(Gizmo.new(Gizmo.MIDDLE_RIGHT))
-	gizmos.append(Gizmo.new(Gizmo.BOTTOM_RIGHT))
-	gizmos.append(Gizmo.new(Gizmo.BOTTOM_CENTER))
-	gizmos.append(Gizmo.new(Gizmo.BOTTOM_LEFT))
-	gizmos.append(Gizmo.new(Gizmo.MIDDLE_LEFT))
+	gizmos.append(Gizmo.new(Pivot.TOP_LEFT))
+	gizmos.append(Gizmo.new(Pivot.TOP_CENTER))
+	gizmos.append(Gizmo.new(Pivot.TOP_RIGHT))
+	gizmos.append(Gizmo.new(Pivot.MIDDLE_RIGHT))
+	gizmos.append(Gizmo.new(Pivot.BOTTOM_RIGHT))
+	gizmos.append(Gizmo.new(Pivot.BOTTOM_CENTER))
+	gizmos.append(Gizmo.new(Pivot.BOTTOM_LEFT))
+	gizmos.append(Gizmo.new(Pivot.MIDDLE_LEFT))
 	for gizmo in gizmos:
 		gizmo.color = gizmo_color
 		gizmo.bgcolor = gizmo_bgcolor
@@ -161,34 +171,34 @@ func scale_to(gizmo:Gizmo, pos :Vector2i):
 	last_position = pos
 		
 	match gizmo.pivot:
-		Gizmo.TOP_LEFT: 
+		Pivot.TOP_LEFT: 
 			if pos.x < bound_rect.end.x and pos.y < bound_rect.end.y:
 				bound_rect.size = bound_rect.end - pos
 				bound_rect.position = pos
-		Gizmo.TOP_CENTER: 
+		Pivot.TOP_CENTER: 
 			if pos.y < bound_rect.end.y:
 				bound_rect.size.y = bound_rect.end.y - pos.y
 				bound_rect.position.y = pos.y
-		Gizmo.TOP_RIGHT: 
+		Pivot.TOP_RIGHT: 
 			if pos.x > bound_rect.position.x and pos.y < bound_rect.end.y:
 				bound_rect.size.x = pos.x - bound_rect.position.x
 				bound_rect.size.y = bound_rect.end.y - pos.y
 				bound_rect.position.y = pos.y
-		Gizmo.MIDDLE_RIGHT:
+		Pivot.MIDDLE_RIGHT:
 			if pos.x > bound_rect.position.x:
 				bound_rect.size.x = pos.x - bound_rect.position.x
-		Gizmo.BOTTOM_RIGHT:
+		Pivot.BOTTOM_RIGHT:
 			if pos.x > bound_rect.position.x and pos.y > bound_rect.position.y:
 				bound_rect.size = pos - bound_rect.position
-		Gizmo.BOTTOM_CENTER:
+		Pivot.BOTTOM_CENTER:
 			if pos.y > bound_rect.position.y:
 				bound_rect.size.y = pos.y - bound_rect.position.y
-		Gizmo.BOTTOM_LEFT:
+		Pivot.BOTTOM_LEFT:
 			if pos.x < bound_rect.end.x and pos.y > bound_rect.position.y:
 				bound_rect.size.y = pos.y - bound_rect.position.y
 				bound_rect.size.x = bound_rect.end.x - pos.x
 				bound_rect.position.x = pos.x
-		Gizmo.MIDDLE_LEFT:
+		Pivot.MIDDLE_LEFT:
 			if pos.x < bound_rect.end.x:
 				bound_rect.size.x = bound_rect.end.x - pos.x
 				bound_rect.position.x = pos.x
@@ -204,21 +214,21 @@ func set_gizmo_place(gizmo):
 	var gsize = bound_rect.size
 	
 	match gizmo.pivot:
-		Gizmo.TOP_LEFT: 
+		Pivot.TOP_LEFT: 
 			gizmo.position = Vector2(gpos) + Vector2.ZERO
-		Gizmo.TOP_CENTER: 
+		Pivot.TOP_CENTER: 
 			gizmo.position = Vector2(gpos) + Vector2(gsize.x / 2, 0)
-		Gizmo.TOP_RIGHT: 
+		Pivot.TOP_RIGHT: 
 			gizmo.position = Vector2(gpos) + Vector2(gsize.x, 0)
-		Gizmo.MIDDLE_RIGHT:
+		Pivot.MIDDLE_RIGHT:
 			gizmo.position = Vector2(gpos) + Vector2(gsize.x, gsize.y / 2)
-		Gizmo.BOTTOM_RIGHT:
+		Pivot.BOTTOM_RIGHT:
 			gizmo.position = Vector2(gpos) + Vector2(gsize.x, gsize.y)
-		Gizmo.BOTTOM_CENTER:
+		Pivot.BOTTOM_CENTER:
 			gizmo.position = Vector2(gpos) + Vector2(gsize.x / 2, gsize.y)
-		Gizmo.BOTTOM_LEFT:
+		Pivot.BOTTOM_LEFT:
 			gizmo.position = Vector2(gpos) + Vector2(0, gsize.y)
-		Gizmo.MIDDLE_LEFT:
+		Pivot.MIDDLE_LEFT:
 			gizmo.position = Vector2(gpos) + Vector2(0, gsize.y / 2)
 
 
@@ -297,18 +307,8 @@ class Gizmo extends Node2D :
 	signal hover_changed(gizmo, status)
 	signal press_changed(gizmo, status)
 
-	enum {
-		TOP_LEFT,
-		TOP_CENTER,
-		TOP_RIGHT,
-		MIDDLE_RIGHT,
-		BOTTOM_RIGHT,
-		BOTTOM_CENTER,
-		BOTTOM_LEFT,
-		MIDDLE_LEFT,
-	}
 
-	var pivot := TOP_LEFT
+	var pivot := GizmoSizer.Pivot.TOP_LEFT
 
 	var color := Color(0.2, 0.2, 0.2, 1) :
 		set(val):
@@ -340,7 +340,7 @@ class Gizmo extends Node2D :
 		get: return Rect2(-size, size * 2)
 		
 	var pivot_offset :Vector2:
-		get = _get_pivot_pos
+		get = _get_pivot_offset
 
 	var zoom_ratio := 1.0 :
 		set(val):
@@ -364,43 +364,43 @@ class Gizmo extends Node2D :
 		pivot = _pivot
 		
 		match pivot:
-			TOP_LEFT:
+			GizmoSizer.Pivot.TOP_LEFT:
 				cursor = Control.CURSOR_FDIAGSIZE
-			TOP_CENTER:
+			GizmoSizer.Pivot.TOP_CENTER:
 				cursor = Control.CURSOR_VSIZE
-			TOP_RIGHT:
+			GizmoSizer.Pivot.TOP_RIGHT:
 				cursor = Control.CURSOR_BDIAGSIZE
-			MIDDLE_RIGHT:
+			GizmoSizer.Pivot.MIDDLE_RIGHT:
 				cursor = Control.CURSOR_HSIZE
-			BOTTOM_RIGHT:
+			GizmoSizer.Pivot.BOTTOM_RIGHT:
 				cursor = Control.CURSOR_FDIAGSIZE
-			BOTTOM_CENTER:
+			GizmoSizer.Pivot.BOTTOM_CENTER:
 				cursor = Control.CURSOR_VSIZE
-			BOTTOM_LEFT:
+			GizmoSizer.Pivot.BOTTOM_LEFT:
 				cursor = Control.CURSOR_BDIAGSIZE
-			MIDDLE_LEFT:
+			GizmoSizer.Pivot.MIDDLE_LEFT:
 				cursor = Control.CURSOR_HSIZE
 			_:
 				cursor = Control.CURSOR_POINTING_HAND
 
 
-	func _get_pivot_pos():
+	func _get_pivot_offset():
 		match pivot:
-			TOP_LEFT:
+			GizmoSizer.Pivot.TOP_LEFT:
 				return Vector2(size.x, size.y)
-			TOP_CENTER:
+			GizmoSizer.Pivot.TOP_CENTER:
 				return Vector2(size.x/2, size.y)
-			TOP_RIGHT:
+			GizmoSizer.Pivot.TOP_RIGHT:
 				return Vector2(0, size.y)
-			MIDDLE_RIGHT:
+			GizmoSizer.Pivot.MIDDLE_RIGHT:
 				return Vector2(0, size.y/2)
-			BOTTOM_RIGHT:
+			GizmoSizer.Pivot.BOTTOM_RIGHT:
 				return Vector2(0, 0)
-			BOTTOM_CENTER:
+			GizmoSizer.Pivot.BOTTOM_CENTER:
 				return Vector2(size.x/2, 0)
-			BOTTOM_LEFT:
+			GizmoSizer.Pivot.BOTTOM_LEFT:
 				return Vector2(size.x, 0)
-			MIDDLE_LEFT:
+			GizmoSizer.Pivot.MIDDLE_LEFT:
 				return Vector2(size.x, size.y/2)
 			_:
 				return Vector2.ZERO
