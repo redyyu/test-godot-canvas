@@ -101,6 +101,7 @@ func _ready():
 func attach(rect :Rect2i, auto_hire := false):
 	bound_rect = rect
 	if bound_rect.has_area():
+		updated.emit(bound_rect)
 		if auto_hire:
 			hire()
 	else:

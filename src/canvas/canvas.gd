@@ -1,11 +1,13 @@
 class_name Canvas extends Node2D
 
-signal cursor_updated(cursor)
-signal select_updated(rect)
-signal move_updated(rect)
-signal crop_updated(rect)
+
 signal crop_applied(rect)
 
+signal select_changed(rect, rel_pos, status)
+signal move_changed(rect, rel_pos, status)
+signal crop_changed(rect, rel_pos, status)
+
+signal cursor_changed(cursor)
 signal operating(operate_state, is_finished)
 # let parent to know when should block some other actions.
 # for improve useblilty.
@@ -98,12 +100,15 @@ func _ready():
 		return snapper.snap_position_weight(pos, true)
 	
 	cropper.updated.connect(_on_crop_updated)
+	cropper.cancaled.connect(_on_crop_canceled)
 	cropper.applied.connect(_on_crop_applied)
-	cropper.cursor_updated.connect(_on_curosr_updated)
+	cropper.cursor_changed.connect(_on_curosr_updated)
 	cropper.inject_sizer_snapping(snapper_weight_hook)
 	
 	mover.updated.connect(_on_move_updated)
-	mover.cursor_updated.connect(_on_curosr_updated)
+	mover.cancaled.connect(_on_move_canceled)
+	mover.applied.connect(_on_move_applied)
+	mover.cursor_changed.connect(_on_curosr_updated)
 	mover.inject_sizer_snapping(snapper_weight_hook)
 
 
@@ -297,17 +302,21 @@ func get_relative_mouse_position(): # other node need mouse location of canvas.
 
 # cursor
 func _on_curosr_updated(cursor):
-	cursor_updated.emit(cursor)
+	cursor_changed.emit(cursor)
 	
 
 # selection
-func _on_select_updated(rect :Rect2i):
-	select_updated.emit(rect)
+func _on_select_updated(rect :Rect2i, rel_pos: Vector2i):
+	select_changed.emit(rect, rel_pos, true)
 
 
 # crop
-func _on_crop_updated(rect :Rect2i):
-	crop_updated.emit(rect)
+func _on_crop_updated(rect :Rect2i, rel_pos: Vector2i):
+	crop_changed.emit(rect, rel_pos, true)
+	
+
+func _on_crop_canceled():
+	crop_changed.emit(Rect2i(), Vector2i(), false)
 	
 	
 func _on_crop_applied(rect :Rect2i):
@@ -315,10 +324,20 @@ func _on_crop_applied(rect :Rect2i):
 
 
 # move
-func _on_move_updated(rect :Rect2i):
-	move_updated.emit(rect)
+func _on_move_updated(rect :Rect2i, rel_pos: Vector2i, status :bool):
+	move_changed.emit(rect, rel_pos, status)
 	project.current_cel.update_texture()
 	queue_redraw()
+	
+
+func _on_move_canceled():
+	move_changed.emit(Rect2i, Vector2i(), false)
+	
+
+func _on_move_applied(rect :Rect2i):
+	project.current_cel.update_texture()
+	queue_redraw()
+
 
 # snapping
 

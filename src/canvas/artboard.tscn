@@ -10,7 +10,7 @@
 [ext_resource type="Script" path="res://src/canvas/CanvasCamera.gd" id="5_ghk1k"]
 [ext_resource type="Script" path="res://src/canvas/guide/Grid.gd" id="6_qakk7"]
 [ext_resource type="Script" path="res://src/canvas/selection/Selection.gd" id="7_u15up"]
-[ext_resource type="Script" path="res://src/canvas/selection/Cropper.gd" id="9_sqwq2"]
+[ext_resource type="Script" path="res://src/canvas/Cropper.gd" id="9_bvl63"]
 [ext_resource type="Shader" path="res://src/shaders/MarchingAntsOutline.gdshader" id="9_y3e15"]
 [ext_resource type="Script" path="res://src/canvas/Mover.gd" id="10_s3sno"]
 [ext_resource type="Script" path="res://src/canvas/guide/SymmetryGuide.gd" id="10_xpo1w"]
@@ -81,7 +81,7 @@ centered = false
 script = ExtResource("7_u15up")
 
 [node name="Cropper" type="Node2D" parent="Viewport/Canvas"]
-script = ExtResource("9_sqwq2")
+script = ExtResource("9_bvl63")
 
 [node name="Mover" type="Node2D" parent="Viewport/Canvas"]
 script = ExtResource("10_s3sno")

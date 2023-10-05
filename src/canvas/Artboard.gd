@@ -1,9 +1,10 @@
 class_name Artboard extends SubViewportContainer
 
 
-signal move_updated(rect)
-signal crop_updated(rect)
-signal select_updated(rect)
+signal move_updated(rect, rel_pos, status)
+signal crop_updated(rect, rel_pos, status)
+signal select_updated(rect, rel_pos, status)
+signal project_cropped(rect)
 
 
 enum {
@@ -134,8 +135,8 @@ func _ready():
 	camera.zoomed.connect(_on_camera_updated)
 	camera.press_updated.connect(_on_camera_pressing)
 	
-	canvas.move_updated.connect(_on_canvas_change_cursor)
-	canvas.crop_updated.connect(_on_canvas_change_cursor)
+	canvas.move_updated.connect(_on_move_updated)
+	canvas.crop_updated.connect(_on_crop_updated)
 	canvas.select_updated.connect(_on_select_updated)
 	
 	canvas.crop_applied.connect(_on_canvas_cropped)
@@ -154,24 +155,13 @@ func load_project(proj :Project):
 	reference_image.canvas_size = project.size
 	grid.canvas_size = project.size
 	
-#	material = CanvasItemMaterial.new()
-#	material.blend_mode = CanvasItemMaterial.BLEND_MODE_PREMULT_ALPHA
 	camera.canvas_size = project.size
 	camera.viewport_size = viewport.size
 	camera.zoom_100()
 	
-#	camera.camera_offset_updated.connect(_on_camera_offset_updated)
 	canvas.attach_project(project)
 	canvas.attach_snap_to(project.size, guides, symmetry_guide, grid)
 	trans_checker.update_bounds(project.size)
-	
-
-func crop_project(rect):
-	print(rect)
-
-
-func save_to_project():
-	pass
 
 
 func refresh_canvas():
@@ -258,10 +248,6 @@ func _on_canvas_operating(_state:int, is_finished :bool):
 		_lock_guides(true)
 
 
-func _on_canvas_cropped(rect):
-	crop_project(rect)
-
-
 func _on_canvas_change_cursor(cursor):
 	if cursor:
 		mouse_default_cursor_shape = cursor
@@ -277,10 +263,24 @@ func _on_mouse_exited():
 	camera.set_process_input(false)
 
 
-# data transmiton
-func _on_select_updated(rect :Rect2i):
-	select_updated.emit(rect)
+# selection
+func _on_select_updated(rect :Rect2i, rel_pos:Vector2i, status :bool):
+	select_updated.emit(rect, rel_pos, status)
 
+
+# cropper
+func _on_crop_updated(rect :Rect2i, rel_pos:Vector2i, status :bool):
+	crop_updated.emit(rect, rel_pos, status)
+
+
+func _on_canvas_cropped(rect :Rect2i):
+	project_cropped.emit(rect)
+
+
+# mover
+func _on_move_updated(rect :Rect2i, rel_pos:Vector2i, status:bool):
+	move_updated.emit(rect, rel_pos, status)
+	
 
 # guides
 func _lock_guides(val :bool): # do not use it in other scopes.

@@ -1,7 +1,9 @@
 class_name Mover extends Node2D
 
-signal updated(rect)
+
+signal updated(rect, rel_pos, status)
 signal applied(rect)
+signal canceled
 signal cursor_updated(cursor)
 
 
@@ -99,7 +101,6 @@ func lanuch(img :Image, mask :Image):
 		else:
 			move_rect = image_mask.get_used_rect()
 		sizer.attach(move_rect)
-		updated.emit(move_rect)
 		queue_redraw()
 
 	visible = true
@@ -132,13 +133,14 @@ func activate():
 		# DO NOT just fill rect, selection might have different shapes.
 		image.blit_rect_mask(
 			_tmp, image_mask, move_rect, move_rect.position)
+	updated.emit(move_rect, relative_position, is_activated)
 
 
 func cancel():
 	is_activated = false
 	image.copy_from(image_backup)
-	updated.emit(move_rect)
 	reset()
+	canceled.emit()
 
 
 func apply(use_reset := false):
@@ -159,7 +161,6 @@ func apply(use_reset := false):
 						Rect2i(Vector2i.ZERO, move_rect.size),
 						move_rect.position)
 		image_mask.copy_from(_mask)
-		updated.emit(move_rect)
 		applied.emit(move_rect)
 	if use_reset:
 		reset()
@@ -202,9 +203,8 @@ func _on_sizer_press_updated(_gizmo, status):
 
 func _on_sizer_updated(rect):
 	move_rect = rect
-	updated.emit(move_rect)
-	
-	
+	updated.emit(move_rect, relative_position, is_activated)
+
 
 func _on_sizer_drag_started():
 	is_dragging = true

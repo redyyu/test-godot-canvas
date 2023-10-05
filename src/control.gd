@@ -65,8 +65,6 @@ func _ready():
 	slider_stroke_width.value_changed.connect(_on_stroke_width_changed)
 	slider_stroke_space.value_changed.connect(_on_stroke_space_changed)
 	
-	transform_panel.pivot_updated.connect(_on_pivot_updated)
-	
 	artboard.snap_to_guide = true
 	artboard.snap_to_symmetry_guide = true
 	
@@ -75,8 +73,16 @@ func _ready():
 	artboard.show_guides = true
 	artboard.show_grid_state = Grid.NONE
 	artboard.show_symmetry_guide_state = SymmetryGuide.CROSS_AXIS
-
 #	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
+	
+	artboard.select_updated.connect(_on_transfrom_updated)
+	artboard.move_updated.connect(_on_transfrom_updated)
+	artboard.crop_updated.connect(_on_transfrom_updated)
+	artboard.project_cropped.connect(_on_project_cropped)
+	
+	transform_panel.pivot_updated.connect(_on_pivot_updated)
+	
+
 
 
 #	var image = Image.new()
@@ -203,3 +209,11 @@ func _on_selection_mode(val):
 
 func _on_pivot_updated(val):
 	artboard.set_pivot_point(val)
+	
+
+func _on_transfrom_updated(_rect :Rect2i, rel_pos :Vector2i, status :bool):
+	transform_panel.set_info(rel_pos, status)
+
+
+func _on_project_cropped(rect :Rect2i):
+	print('Crop Image')	

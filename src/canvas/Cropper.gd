@@ -2,9 +2,9 @@ class_name Cropper extends Node2D
 # Draws the rectangle overlay for the crop tool
 # Stores the shared settings between left and right crop tools
 
-signal updated(rect)
+signal updated(rect, rel_pos)
 signal applied(rect)
-signal canceled(rect)
+signal canceled
 signal cursor_updated(cursor)
 
 const BG_COLOR := Color(0, 0, 0, 0.66)
@@ -50,18 +50,19 @@ func reset():
 	visible = false
 	is_cropping = false
 	is_dragging = false
-	cropped_rect.position = Vector2i.ZERO
-	cropped_rect.size = size
+	cropped_rect = Rect2i()
 
 
 func launch():
+	cropped_rect.position = Vector2i.ZERO
+	cropped_rect.size = size
 	sizer.attach(cropped_rect, true)
 	visible = true
 
 
 func cancel():
 	sizer.dismiss()
-	canceled.emit(cropped_rect)
+	canceled.emit()
 	reset()
 
 
@@ -70,7 +71,7 @@ func apply(use_reset:=false):
 	if cropped_rect.has_area():
 		applied.emit(cropped_rect)
 	else:
-		canceled.emit(cropped_rect)
+		canceled.emit()
 	if use_reset:
 		reset()
 
@@ -145,7 +146,7 @@ func _on_sizer_press_updated(_gizmo, status):
 
 func _on_sizer_updated(rect):
 	cropped_rect = rect
-	updated.emit(rect)
+	updated.emit(rect, relative_position)
 	
 
 func _on_sizer_drag_started():
