@@ -1,11 +1,11 @@
 class_name GizmoSizer extends Node2D
 
-signal hovered(gizmo)
-signal pressed(gizmo)
+signal gizmo_hover_changed(gizmo, status)
+signal gizmo_press_changed(gizmo, status)
 signal changed(rect)
-signal applied(rect)
-signal dragged(dragging)
-signal activated(activated)
+signal drag_started
+signal drag_ended
+
 
 @export var gizmo_color := Color(0.2, 0.2, 0.2, 1):
 	set(val):
@@ -31,9 +31,6 @@ signal activated(activated)
 		for gizmo in gizmos:
 			gizmo.default_size = gizmo_size
 
-var stored_color := gizmo_color
-var stored_bgcolor := gizmo_bgcolor
-
 var zoom_ratio := 1.0 :
 	set(val):
 		zoom_ratio = val
@@ -41,33 +38,22 @@ var zoom_ratio := 1.0 :
 			gizmo.zoom_ratio = zoom_ratio
 
 var bound_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO) :
-	set(val):
-		bound_rect = val
-		for gizmo in gizmos:
-			set_gizmo_place(gizmo)
+	set = update_bound_rect
+
 var gizmos :Array[Gizmo] = []
 
 var pressed_gizmo :Variant = null
 var last_position :Variant = null # prevent same with mouse pos from beginning.
 
-
 var is_dragging := false :
 	set(val):
 		is_dragging = val
-		dragged.emit(is_dragging)
-		
-var is_activated := false :
-	get: return is_activated or opt_auto_activate
-	set(val):
-		is_activated = val
-		activated.emit(is_activated)
-		activate_gizmos()
-
-var opt_auto_activate := false :
-	set(val):
-		opt_auto_activate = val
-		activated.emit(is_activated)
-		activate_gizmos()
+		if visible: # emit event when showing up.
+			if is_dragging:
+				drag_started.emit()
+			else:
+				drag_ended.emit()
+	get: return is_dragging and visible
 
 var drag_offset := Vector2i.ZERO
 
@@ -87,28 +73,37 @@ func _ready():
 		gizmo.bgcolor = gizmo_bgcolor
 		gizmo.default_size = gizmo_size
 		gizmo.line_width = gizmo_line_width
-		gizmo.hovered.connect(_on_gizmo_hovered)
-		gizmo.pressed.connect(_on_gizmo_pressed)
+		gizmo.hover_changed.connect(_on_gizmo_hover_changed)
+		gizmo.press_changed.connect(_on_gizmo_press_changed)
 		add_child(gizmo)
 
 
-func restore_colors():
-	if stored_color != gizmo_color:
-		gizmo_color = stored_color
-
-	if stored_bgcolor != gizmo_bgcolor:
-		gizmo_bgcolor = stored_bgcolor
-
-
-func launch(rect :Rect2i):
+func attach(rect :Rect2i, auto_hire := false):
 	if rect.has_area():
 		bound_rect = rect
-		activate_gizmos()
-		visible = true
+		if auto_hire:
+			hire()
 
+
+func update_bound_rect(val :Rect2i):
+	bound_rect = val
+	if bound_rect.has_area():
+		for gizmo in gizmos:
+			set_gizmo_place(gizmo)
+
+
+func hire():
+	if not visible:
+		visible = true
+	
 
 func dismiss():
-	visible = false
+	if visible:
+		visible = false
+		drag_offset = Vector2i.ZERO
+		pressed_gizmo = null
+		last_position = null
+		is_dragging = false
 
 
 func drag_to(pos :Vector2i):
@@ -222,15 +217,6 @@ func set_gizmo_place(gizmo):
 			gizmo.position = Vector2(gpos) + Vector2(0, gsize.y / 2)
 
 
-func activate_gizmos():
-	for gizmo in gizmos:
-		gizmo.visible = is_activated
-
-
-func has_gizmo_pressed() -> bool:
-	return pressed_gizmo is Gizmo
-
-
 func _input(event :InputEvent):
 	# TODO: the way handle the events might not support touch / tablet. 
 	# since I have no device to try. leave it for now.
@@ -240,7 +226,7 @@ func _input(event :InputEvent):
 
 	if event is InputEventMouseMotion:
 		var pos := get_local_mouse_position()
-		if has_gizmo_pressed():
+		if pressed_gizmo:
 			if is_dragging:  # prevent the dragging zone is hit.
 				is_dragging = false
 			scale_to(pressed_gizmo, get_snapping.call(pos))
@@ -256,32 +242,21 @@ func _input(event :InputEvent):
 		var pos := get_local_mouse_position()
 		# its in subviewport local mouse position should be work.
 		if bound_rect.has_point(pos):
-			if event.double_click:
-				applied.emit(bound_rect)
-				is_activated = false
-			else:
-				if is_activated:
-					is_dragging = event.pressed
-					if is_dragging: 
-						drag_offset = Vector2i(pos) - bound_rect.position
-				elif event.pressed: 
-					is_activated = true
-		else:
-			if event.pressed and not has_gizmo_pressed():
-				is_activated = false
-
-			if is_dragging:
-				is_dragging = false
+			is_dragging = event.pressed
+			if is_dragging: 
+				drag_offset = Vector2i(pos) - bound_rect.position
+		elif is_dragging:
+			is_dragging = false
 
 
 
-func _on_gizmo_hovered(gizmo):
-	hovered.emit(gizmo)
+func _on_gizmo_hover_changed(gizmo, status):
+	gizmo_hover_changed.emit(gizmo, status)
 	
 
-func _on_gizmo_pressed(gizmo):
-	hovered.emit(gizmo)
-	pressed_gizmo = gizmo
+func _on_gizmo_press_changed(gizmo, status):
+	gizmo_press_changed.emit(gizmo, status)
+	pressed_gizmo = gizmo if status else null
 
 
 var get_snapping = func(pos) -> Vector2i:
@@ -311,10 +286,8 @@ var get_snapping = func(pos) -> Vector2i:
 
 class Gizmo extends Node2D :
 	
-	signal hovered(gizmo)
-	signal pressed(gizmo)
-
-	signal moving(gizmo, area)
+	signal hover_changed(gizmo, status)
+	signal press_changed(gizmo, status)
 
 	enum {
 		TOP_LEFT,
@@ -368,8 +341,15 @@ class Gizmo extends Node2D :
 
 	var cursor := Control.CURSOR_ARROW
 
-	var is_hover := false
-	var is_pressed := false
+	var is_hover := false :
+		set(val):
+			is_hover = val
+			hover_changed.emit(self, is_hover)
+
+	var is_pressed := false:
+		set(val):
+			is_pressed = val
+			press_changed.emit(self, is_pressed)
 
 
 	func _init(_pivot):
@@ -434,22 +414,15 @@ class Gizmo extends Node2D :
 			if hover:
 				if not is_hover:
 					is_hover = true
-					hovered.emit(self)
 					queue_redraw()  # redraw hover effect
 				if event is InputEventMouseButton:
 					is_pressed = event.pressed
-					if is_pressed:
-						pressed.emit(self)
-					else:
-						pressed.emit(null)
 					queue_redraw()
 			else:
 				if is_hover:
 					is_hover = false
-					hovered.emit(null)
 					queue_redraw()  # redraw hover effect
 				if is_pressed and event is InputEventMouseButton:
 					# for release outside
 					is_pressed = false
-					pressed.emit(null)
 					queue_redraw()

@@ -48,12 +48,12 @@ func cancel():
 	reset()
 
 
-func apply(reset:=false):
+func apply(use_reset:=false):
 	if cropped_rect.has_area():
 		applied.emit(cropped_rect)
 	else:
 		canceled.emit(cropped_rect)
-	if reset:
+	if use_reset:
 		reset()
 
 

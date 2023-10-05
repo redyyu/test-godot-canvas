@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://c08qtjj7x8pnk"]
+[gd_scene load_steps=20 format=3 uid="uid://c08qtjj7x8pnk"]
 
 [ext_resource type="Shader" path="res://src/shaders/TransparentChecker.gdshader" id="1_d8lm1"]
 [ext_resource type="Script" path="res://src/canvas/Artboard.gd" id="1_fg2jv"]
@@ -11,7 +11,6 @@
 [ext_resource type="Script" path="res://src/canvas/guide/Grid.gd" id="6_qakk7"]
 [ext_resource type="Script" path="res://src/canvas/selection/Selection.gd" id="7_u15up"]
 [ext_resource type="Script" path="res://src/canvas/FreeTransformer.gd" id="9_2sc0w"]
-[ext_resource type="Script" path="res://src/widgets/GizmoSizer.gd" id="9_8gpsg"]
 [ext_resource type="Shader" path="res://src/shaders/MarchingAntsOutline.gdshader" id="9_y3e15"]
 [ext_resource type="Script" path="res://src/canvas/guide/SymmetryGuide.gd" id="10_xpo1w"]
 [ext_resource type="Script" path="res://src/canvas/CropRect.gd" id="11_x8d2w"]
@@ -86,10 +85,6 @@ script = ExtResource("11_x8d2w")
 
 [node name="FreeTransformer" type="Node2D" parent="Viewport/Canvas"]
 script = ExtResource("9_2sc0w")
-
-[node name="GizmoSizer" type="Node2D" parent="Viewport/Canvas"]
-script = ExtResource("9_8gpsg")
-gizmo_line_width = 2.0
 
 [node name="Grid" type="Node2D" parent="Viewport"]
 script = ExtResource("6_qakk7")

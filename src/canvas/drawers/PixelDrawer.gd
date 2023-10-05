@@ -52,7 +52,7 @@ class ColorOp:
 	var strength := 1.0
 
 
-func attach_image(img :Image):
+func attach(img :Image):
 	image = img
 
 

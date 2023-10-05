@@ -52,7 +52,6 @@ var zoom := Vector2.ONE :
 @onready var selection :Selection = $Selection
 @onready var crop_rect :CropRect = $CropRect
 @onready var free_transformer :FreeTransformer = $FreeTransformer
-@onready var gizmo_sizer :GizmoSizer = $GizmoSizer
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -89,15 +88,13 @@ func _ready():
 	pencil.mask = selection.mask
 	brush.mask = selection.mask
 	eraser.mask = selection.mask
-	
-	gizmo_sizer.hovered.connect(_on_gizmo_sizer_hovered)
-	gizmo_sizer.changed.connect(_on_gizmo_sizer_changed)
-	gizmo_sizer.applied.connect(_on_gizmo_sizer_applied)
-	gizmo_sizer.dragged.connect(_on_gizmo_sizer_dragged)
-	gizmo_sizer.get_snapping = func(pos) -> Vector2i:
-		return snapper.snap_position(pos, true)
 		
 	free_transformer.changed.connect(_on_transformer_changed)
+	free_transformer.cursor_changed.connect(_on_curosr_changed)
+	free_transformer.inject_sizer_snapping(
+		func(pos) -> Vector2i:
+			return snapper.snap_position(pos, true)
+	)
 
 
 func attach_project(proj):
@@ -115,31 +112,24 @@ func set_state(val):  # triggered when state changing.
 	is_pressed = false
 	
 	indicator.hide_indicator()  # not all state need indicator
-	gizmo_sizer.dismiss()  # launch again will not effect the pos.
 	
 	if state == Artboard.CROP:
 		free_transformer.cancel()
 		crop_rect.launch()
-		gizmo_sizer.restore_colors()
-		gizmo_sizer.opt_auto_activate = true
-		gizmo_sizer.launch(crop_rect.cropped_rect)
 		selection.deselect()
 	elif state == Artboard.MOVE:
 		crop_rect.cancel()
 		free_transformer.lanuch(project.current_cel.get_image(), 
 						 		selection.mask)
-		gizmo_sizer.gizmo_color = free_transformer.line_color
-		gizmo_sizer.opt_auto_activate = false
-		gizmo_sizer.launch(free_transformer.transform_rect)
 		# selection must clear after transform setted, 
 		# free_transform still need it once.
 		selection.deselect() 
 	elif state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
 		free_transformer.apply(true)
 		crop_rect.cancel()
-		pencil.attach_image(project.current_cel.get_image())
-		brush.attach_image(project.current_cel.get_image())
-		eraser.attach_image(project.current_cel.get_image())
+		pencil.attach(project.current_cel.get_image())
+		brush.attach(project.current_cel.get_image())
+		eraser.attach(project.current_cel.get_image())
 		# DO NOT clear selection here, drawer can draw by selection.
 	elif state not in [Artboard.DRAG, Artboard.ZOOM]:
 		free_transformer.apply(true)
@@ -154,7 +144,6 @@ func set_zoom_ratio(val):
 	selection.zoom_ratio = zoom_ratio
 	crop_rect.zoom_ratio = zoom_ratio
 	free_transformer.zoom_ratio = zoom_ratio
-	gizmo_sizer.zoom_ratio = zoom_ratio
 
 
 func prepare_pressure(pressure:float) -> float:
@@ -303,6 +292,11 @@ func get_relative_mouse_position(): # other node need mouse location of canvas.
 	return Vector2i(round(mpos.x), round(mpos.y))
 
 
+# cursor
+func _on_curosr_changed(cursor):
+	cursor_changed.emit(cursor)
+	
+
 # selection
 func _on_selection_updated(sel_rect :Rect2i):
 	selection_changed.emit(sel_rect)
@@ -313,38 +307,6 @@ func _on_transformer_changed(_rect :Rect2i):
 	project.current_cel.update_texture()
 	operating.emit(state, true)
 	queue_redraw()
-
-
-# gizmo
-func _on_gizmo_sizer_applied(rect):
-	match state:
-		Artboard.CROP:
-			crop_canvas.emit(rect)
-		Artboard.MOVE:
-			free_transformer.apply(false)
-			
-	
-func _on_gizmo_sizer_changed(rect):
-	operating.emit(state, true)
-	match state:
-		Artboard.CROP:
-			crop_rect.cropped_rect = rect
-		Artboard.MOVE:
-			free_transformer.transform_rect = rect
-
-
-func _on_gizmo_sizer_activated(activated):
-	if state == Artboard.MOVE:
-		free_transformer.
-
-
-func _on_gizmo_sizer_dragged(dragging):
-	if state == Artboard.MOVE:
-		free_transformer.is_fading = dragging
-	
-
-func _on_gizmo_sizer_hovered(gizmo):
-	cursor_changed.emit(gizmo.cursor if gizmo else null)
 
 
 # snapping
