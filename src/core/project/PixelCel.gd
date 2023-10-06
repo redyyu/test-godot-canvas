@@ -2,6 +2,8 @@ class_name PixelCel extends BaseCel
 # A class for the properties of cels in PixelLayers.
 # The term "cel" comes from "celluloid" (https://en.wikipedia.org/wiki/Cel).
 
+const IMAGE_FORMAT := Image.FORMAT_RGBA8
+
 var width := 0
 var height := 0
 
@@ -13,7 +15,7 @@ func _init(_width :int, _height :int):
 	width = _width
 	height = _height
 	
-	image = Image.create(width, height, true, Image.FORMAT_RGBA8)
+	image = Image.create(width, height, true, IMAGE_FORMAT)
 #	image_texture = ImageTexture.create_from_image(image)
 #	# image's setter will take care of it.
 	

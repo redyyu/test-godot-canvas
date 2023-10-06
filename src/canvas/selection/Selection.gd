@@ -153,16 +153,8 @@ func move_to(to_pos :Vector2i, use_pivot := true):
 	update_selection()
 
 
-func resize_to(to_size :Vector2i):	
-	if to_size.x > size.x:
-		to_size.x = size.x
-	elif to_size.x < 1:
-		to_size.x = 1
-		
-	if to_size.y > size.y:
-		to_size.y = size.y
-	elif to_size.y < 1:
-		to_size.y = 1
+func resize_to(to_size :Vector2i):			
+	to_size = to_size.clamp(Vector2i.ONE, size)
 		
 	selection_map.resize_to(to_size, get_pivot_offset(to_size))
 	update_selection()

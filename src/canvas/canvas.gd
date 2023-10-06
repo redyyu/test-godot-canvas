@@ -153,8 +153,6 @@ func set_state(val):  # triggered when state changing.
 		# selection must clear after mover setted, 
 		# mover still need it once.
 		selection.deselect(true)
-	elif state == Artboard.PICK_COLOR:
-		pick_color.attach(project.current_cel.get_image())
 	elif state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
 		move_sizer.apply(true)
 		crop_sizer.cancel(true)
@@ -272,7 +270,7 @@ func process_selection_lasso(event, selector):
 
 func process_selection_magic(event, selector):
 	if event is InputEventMouseMotion:
-		var pos = get_local_mouse_position()
+		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed:
 			selector.image = project.current_cel.get_image()
 			selector.select_move(pos)
@@ -284,7 +282,18 @@ func process_color_pick(event):
 	if event is InputEventMouseButton:
 		if is_pressed:
 			var pos = get_local_mouse_position()
-			pick_color.pick(pos)
+			var image := Image.create(size.x, size.y, false, 
+									   PixelCel.IMAGE_FORMAT)
+			for i in project.layers.size():
+				if project.layers[i].is_visible_in_hierarchy():
+					var _img = project.current_frame.cels[i].get_image()
+					if _img.get_format() != image.get_format():
+						image.convert(_img.get_format())
+					var _size := Vector2i(_img.get_width(), _img.get_height())
+					var _rect := Rect2i(Vector2i.ZERO, size)
+					image.blit_rect(_img, _rect, Vector2i.ZERO)
+						
+			pick_color.pick(image, pos)
 
 
 func _input(event :InputEvent):

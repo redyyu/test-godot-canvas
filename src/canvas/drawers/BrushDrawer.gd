@@ -1,19 +1,5 @@
 class_name BrushDrawer extends PixelDrawer
 
-const NEIGHBOURS: Array[Vector2i] = [
-		Vector2i.DOWN,
-		Vector2i.RIGHT,
-		Vector2i.LEFT,
-		Vector2i.UP
-	]
-
-const CORNERS: Array[Vector2i] = [
-	Vector2i.ONE,
-	-Vector2i.ONE,
-	Vector2i(-1, 1),
-	Vector2i(1, -1)
-]
-
 # shadow_image use for pickup old color while draw, 
 # copy from image every time when draw_start.
 # to prevent old color pickup from just drawn pixel.

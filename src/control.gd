@@ -94,6 +94,7 @@ func _ready():
 	transform_panel.pivot_updated.connect(_on_pivot_updated)
 	transform_panel.size_updated.connect(_on_size_updated)
 	transform_panel.position_updated.connect(_on_position_updated)
+	
 
 
 
@@ -166,6 +167,7 @@ func _on_btn_pressed(btn):
 			
 		'BtnSelectMagic':
 			artboard.state = Artboard.SELECT_MAGIC
+			artboard.apply_select_tolerance(50)
 		
 		'ColorPicker':
 			artboard.state = Artboard.PICK_COLOR
