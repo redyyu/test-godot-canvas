@@ -144,15 +144,15 @@ func set_state(val):  # triggered when state changing.
 	indicator.hide_indicator()  # not all state need indicator
 	
 	if state == Artboard.CROP:
-		move_sizer.cancel(true)
+		move_sizer.cancel(true, true)
 		crop_sizer.launch(project.size)
-		selection.deselect()
+		selection.deselect(true)
 	elif state == Artboard.MOVE:
-		crop_sizer.cancel(true)
+		crop_sizer.cancel(true, true)
 		move_sizer.lanuch(project.current_cel.get_image(), selection.mask)
 		# selection must clear after mover setted, 
 		# mover still need it once.
-		selection.deselect() 
+		selection.deselect(true) 
 	elif state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
 		move_sizer.apply(true)
 		crop_sizer.cancel(true)

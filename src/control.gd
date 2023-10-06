@@ -79,6 +79,8 @@ func _ready():
 	artboard.project_cropped.connect(_on_project_cropped)
 	
 	transform_panel.pivot_updated.connect(_on_pivot_updated)
+	transform_panel.size_updated.connect(_on_size_updated)
+	transform_panel.position_updated.connect(_on_position_updated)
 
 
 
@@ -205,7 +207,15 @@ func _on_selection_mode(val):
 
 
 func _on_pivot_updated(val):
-	artboard.inject_pivot_point(val)
+	artboard.apply_pivot_point(val)
+	
+
+func _on_size_updated(val):
+	artboard.apply_resize(val)
+
+
+func _on_position_updated(val):
+	artboard.apply_moveto(val)
 	
 
 func _on_transfrom_changed(rect :Rect2i, rel_pos :Vector2i, status :bool):

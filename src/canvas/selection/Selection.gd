@@ -47,14 +47,15 @@ func refresh_material():
 	queue_redraw()
 
 
-func update_selection():
+func update_selection(muted := false):
 	if selection_map.is_invisible():
 		texture = null
 		selected_rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 	else:
 		texture = ImageTexture.create_from_image(selection_map)
 	selected_rect = selection_map.get_used_rect()
-	selected.emit(selected_rect)
+	if not muted:
+		selected.emit(selected_rect)
 	_current_draw = _draw_nothing
 	queue_redraw()
 
@@ -73,11 +74,11 @@ func has_point(point :Vector2i, precisely := false) -> bool:
 		return false
 
 
-func deselect():
+func deselect(muted := false):
 	points.clear()
 	selection_map.select_none()
 	_current_draw = _draw_nothing
-	update_selection()
+	update_selection(muted)
 
 
 func move_to(to_pos :Vector2i, pivot_offset :=Vector2i.ZERO):

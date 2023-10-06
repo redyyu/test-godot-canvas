@@ -138,8 +138,7 @@ func attach(rect :Rect2i, auto_activate := false):
 	else:
 		dismiss()
 	visible = true
-	updated.emit(bound_rect, relative_position, is_activated)
-	queue_redraw()
+	# NO NEED emit signal here, hire or dismiss will take care of it.
 
 
 func frozen(frozen_it := true):
@@ -164,19 +163,20 @@ func set_pivot(pivot_id):
 		updated.emit(bound_rect, relative_position, is_activated)
 
 
-func apply(use_reset := false):
+func apply(use_reset := false, muted :=false):
 	dismiss()
-	if has_area():
+	if has_area() and not muted:
 		applied.emit(bound_rect, relative_position, is_activated)
 	if use_reset:
 		reset()
 
 
-func cancel(use_reset := false):
+func cancel(use_reset := false, muted :=false):
 	dismiss()
 		
 	if use_reset:
-		canceled.emit()
+		if not muted:
+			canceled.emit()
 		reset()
 	else:
 		updated.emit(bound_rect, relative_position, is_activated)
@@ -408,7 +408,8 @@ func _input(event :InputEvent):
 		return
 			
 	if event is InputEventKey:
-		if Input.is_key_pressed(KEY_ENTER):
+		if Input.is_key_pressed(KEY_ENTER) and \
+		   event.is_command_or_control_pressed():
 			apply()
 		elif Input.is_key_pressed(KEY_ESCAPE):
 			cancel()

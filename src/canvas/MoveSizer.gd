@@ -67,14 +67,14 @@ func hire():
 	super.hire()
 
 
-func cancel(use_reset := false):
+func cancel(use_reset := false, muted := false):
 	image.copy_from(image_backup)
 	bound_rect = backup_rect
 	preview_image = Image.new()
-	super.cancel(use_reset)
+	super.cancel(use_reset, muted)
 
 
-func apply(use_reset := false):
+func apply(use_reset := false, muted := false):
 	if has_area() and has_image():
 		preview_image.resize(bound_rect.size.x, 
 							 bound_rect.size.y,
@@ -94,7 +94,7 @@ func apply(use_reset := false):
 		image_mask.copy_from(_mask)
 		preview_image = Image.new()
 
-	super.apply(use_reset)
+		super.apply(use_reset, muted)
 
 
 func has_image() -> bool:

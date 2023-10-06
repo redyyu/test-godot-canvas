@@ -267,42 +267,6 @@ func _on_mouse_exited():
 	camera.set_process_input(false)
 
 
-# selection
-func _on_select_updated(rect :Rect2i, rel_pos:Vector2i, status :bool):
-	transform_changed.emit(rect, rel_pos, status)
-	
-
-func _on_select_canceled():
-	transform_changed.emit(Rect2i(), Vector2i(), false)
-
-
-# cropper
-func _on_crop_updated(rect :Rect2i, rel_pos:Vector2i, status :bool):
-	transform_changed.emit(rect, rel_pos, status)
-
-
-func _on_crop_applied(rect :Rect2i, rel_pos:Vector2i, status :bool):
-	transform_changed.emit(rect, rel_pos, status)
-	project_cropped.emit(rect)
-
-
-func _on_crop_canceled():
-	transform_changed.emit(Rect2i(), Vector2i(), false)
-
-
-# move
-func _on_move_updated(rect :Rect2i, rel_pos:Vector2i, status:bool):
-	transform_changed.emit(rect, rel_pos, status)
-
-
-func _on_move_applied(rect :Rect2i, rel_pos:Vector2i, status:bool):
-	transform_changed.emit(rect, rel_pos, status)
-
-
-func _on_move_canceled():
-	transform_changed.emit(Rect2i(), Vector2i(), false)
-
-
 # guides
 func _lock_guides(val :bool): # do not use it in other scopes.
 	# for internal use, temporary lock guides while state switched.
@@ -387,9 +351,48 @@ func _on_guide_released(guide):
 
 
 
-# external injector
+# select
+func _on_select_updated(rect :Rect2i, rel_pos:Vector2i, status :bool):
+	transform_changed.emit(rect, rel_pos, status)
+	
 
-func inject_pivot_point(pivot_id):
+func _on_select_canceled():
+	var default_rect = Rect2i(Vector2i.ZERO, canvas.size)
+	transform_changed.emit(default_rect, Vector2i(), false)
+
+
+# crop
+func _on_crop_updated(rect :Rect2i, rel_pos:Vector2i, status :bool):
+	transform_changed.emit(rect, rel_pos, status)
+
+
+func _on_crop_applied(rect :Rect2i, rel_pos:Vector2i, status :bool):
+	transform_changed.emit(rect, rel_pos, status)
+	project_cropped.emit(rect)
+
+
+func _on_crop_canceled():
+	var default_rect = Rect2i(Vector2i.ZERO, canvas.size)
+	transform_changed.emit(default_rect, Vector2i(), false)
+
+
+# move
+func _on_move_updated(rect :Rect2i, rel_pos:Vector2i, status:bool):
+	transform_changed.emit(rect, rel_pos, status)
+
+
+func _on_move_applied(rect :Rect2i, rel_pos:Vector2i, status:bool):
+	transform_changed.emit(rect, rel_pos, status)
+
+
+func _on_move_canceled():
+	var default_rect = Rect2i(Vector2i.ZERO, canvas.size)
+	transform_changed.emit(default_rect, Vector2i(), false)
+
+
+# external
+
+func apply_pivot_point(pivot_id):
 	canvas.rect_selector.set_pivot(pivot_id)
 	canvas.ellipse_selector.set_pivot(pivot_id)
 	canvas.polygon_selector.set_pivot(pivot_id)
@@ -397,3 +400,36 @@ func inject_pivot_point(pivot_id):
 	
 	canvas.move_sizer.set_pivot(pivot_id)
 	canvas.crop_sizer.set_pivot(pivot_id)
+	
+
+func apply_resize(size_val):
+	match state:
+		SELECT_RECTANGLE:
+			canvas.rect_selector.resize_to(size_val)
+		SELECT_ELLIPSE:
+			canvas.ellipse_selector.resize_to(size_val)
+		SELECT_POLYGON:
+			canvas.polygon_selector.resize_to(size_val)
+		SELECT_LASSO:
+			canvas.rect_selector.resize_to(size_val)
+		CROP:
+			canvas.crop_sizer.resize_to(size_val)
+		MOVE:
+			canvas.move_sizer.resize_to(size_val)
+
+
+func apply_moveto(pos):
+	match state:
+		SELECT_RECTANGLE:
+			canvas.rect_selector.move_to(pos)
+		SELECT_ELLIPSE:
+			canvas.ellipse_selector.move_to(pos)
+		SELECT_POLYGON:
+			canvas.polygon_selector.move_to(pos)
+		SELECT_LASSO:
+			canvas.rect_selector.move_to(pos)
+		CROP:
+			canvas.crop_sizer.move_to(pos)
+		MOVE:
+			canvas.move_sizer.move_to(pos)
+			

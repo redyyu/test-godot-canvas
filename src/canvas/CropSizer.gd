@@ -12,9 +12,9 @@ func launch(canvas_size: Vector2i):
 	attach(rect, true)
 
 
-func cancel(use_reset := false):
+func cancel(use_reset := false, muted := false):
 	refresh(Rect2i(Vector2i.ZERO, size))
-	super.cancel(use_reset)
+	super.cancel(use_reset, muted)
 
 
 func _draw():

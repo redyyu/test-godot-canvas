@@ -24,6 +24,10 @@ func _ready():
 	input_height.editable = false
 	input_width.min_value = 1
 	input_height.min_value = 1
+	input_width.max_value = 12000
+	input_height.max_value = 12000
+	input_x.max_value = 12000
+	input_y.max_value = 12000
 	
 
 func set_rect(rect :Rect2i, use_editable := false):
@@ -39,7 +43,7 @@ func set_rect(rect :Rect2i, use_editable := false):
 	input_height.editable = use_editable
 	
 
-func _on_input_size_updated(_val):	
+func _on_input_size_updated(_val):
 	size_updated.emit(Vector2i(input_width.value, input_height.value))
 
 
