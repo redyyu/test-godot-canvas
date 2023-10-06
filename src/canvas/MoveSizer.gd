@@ -7,6 +7,8 @@ var image := Image.new()
 var image_backup := Image.new()  # a backup image for cancel.
 var image_mask := Image.new()  # pass selection mask
 
+var backup_rect := Rect2i()
+
 var preview_texture := ImageTexture.new()
 var preview_image := Image.new() :
 	set(val):
@@ -24,14 +26,17 @@ func reset():
 	
 
 func lanuch(img :Image, mask :Image):
+	frozen(false)
 	if not has_area():
 		image = img  # DO NOT copy_form, image must change runtime.
 		image_backup.copy_from(image)
 		image_mask.copy_from(mask)
 		if image_mask.is_empty() or image_mask.is_invisible():
-			attach(image.get_used_rect())
+			backup_rect = image.get_used_rect()
+			attach(backup_rect)
 		else:
-			attach(image_mask.get_used_rect())
+			backup_rect = image_mask.get_used_rect()
+			attach(backup_rect)
 
 
 func hire():
@@ -64,6 +69,8 @@ func hire():
 
 func cancel(use_reset := false):
 	image.copy_from(image_backup)
+	bound_rect = backup_rect
+	preview_image = Image.new()
 	super.cancel(use_reset)
 
 
@@ -77,6 +84,7 @@ func apply(use_reset := false):
 							 Rect2i(Vector2i.ZERO, bound_rect.size),
 							 bound_rect.position)
 		image_backup.copy_from(image)
+		backup_rect = bound_rect
 		# also the image mask must update, because already transformed.
 		var _mask = Image.create(image.get_width(), image.get_height(),
 								 false, image.get_format())
@@ -84,6 +92,7 @@ func apply(use_reset := false):
 						Rect2i(Vector2i.ZERO, bound_rect.size),
 						bound_rect.position)
 		image_mask.copy_from(_mask)
+		preview_image = Image.new()
 
 	super.apply(use_reset)
 

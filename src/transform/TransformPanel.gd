@@ -26,7 +26,6 @@ func _ready():
 
 func set_rect(rect :Rect2i, use_editable := false):
 	current_rect = rect
-	
 	block_input = true
 	input_x.value = rect.position.x
 	input_y.value = rect.position.y

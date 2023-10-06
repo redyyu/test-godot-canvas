@@ -290,6 +290,7 @@ func _on_move_updated(rect :Rect2i, rel_pos:Vector2i, status:bool):
 
 
 func _on_move_applied(rect :Rect2i, rel_pos:Vector2i, status:bool):
+	print(rect, rel_pos)
 	transform_changed.emit(rect, rel_pos, status)
 
 
@@ -328,12 +329,12 @@ func _on_guide_hovered(guide):
 		VERTICAL:
 			mouse_default_cursor_shape = Control.CURSOR_HSPLIT
 	if not guide.is_locked:
-		canvas.frozen = true  # frozen canvas if guide is not locked.
+		canvas.frozen()  # frozen canvas if guide is not locked.
 
 
 func _on_guide_leaved(_guide):
 	change_state_cursor(state)
-	canvas.frozen = false  # unfrozen canvas anyway.
+	canvas.frozen(false)  # unfrozen canvas anyway.
 
 
 func _on_guide_pressed(guide):

@@ -54,7 +54,6 @@ var dynamics_stroke_alpha := Dynamics.NONE
 var snapper := Snapper.new()
 
 var is_pressed := false
-var frozen := false # temporary prevent canvas operations. for parents mostlly.
 
 var zoom := Vector2.ONE :
 	set = set_zoom_ratio
@@ -124,6 +123,11 @@ func attach_project(proj):
 	set_state(state)  # trigger state changing to init settings.
 
 
+# temporary prevent canvas operations.
+func frozen(frozen_it := false): 
+	set_process_input(not frozen_it)
+
+
 func set_state(val):  # triggered when state changing.
 	# allow change without really changed val, trigger funcs in setter.
 	state = val
@@ -132,7 +136,7 @@ func set_state(val):  # triggered when state changing.
 	indicator.hide_indicator()  # not all state need indicator
 	
 	if state == Artboard.CROP:
-		move_sizer.cancel()
+		move_sizer.cancel(true)
 		crop_sizer.launch(project.size)
 		selection.deselect()
 	elif state == Artboard.MOVE:
@@ -148,7 +152,10 @@ func set_state(val):  # triggered when state changing.
 		brush.attach(project.current_cel.get_image())
 		eraser.attach(project.current_cel.get_image())
 		# DO NOT clear selection here, drawer can draw by selection.
-	elif state not in [Artboard.DRAG, Artboard.ZOOM]:
+	elif state in [Artboard.DRAG, Artboard.ZOOM]:
+		move_sizer.frozen()
+		crop_sizer.frozen()
+	else:
 		move_sizer.apply(true)
 		crop_sizer.cancel(true)
 
@@ -254,7 +261,7 @@ func process_selection_lasso(event, selector):
 
 
 func _input(event :InputEvent):
-	if not project.current_cel or frozen:
+	if not project.current_cel:
 		return
 	
 	if event is InputEventMouseButton:

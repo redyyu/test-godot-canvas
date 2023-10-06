@@ -6,18 +6,15 @@ var size := Vector2i.ZERO
 
 
 func launch(canvas_size: Vector2i):
+	frozen(false)
 	size = canvas_size
 	var rect := Rect2i(Vector2i.ZERO, size)
 	attach(rect, true)
 
 
 func cancel(use_reset := false):
-	var rect := Rect2i(Vector2i.ZERO, size)
-	refresh(rect)
-	updated.emit(bound_rect, relative_position, is_activated)
-	if use_reset:
-		canceled.emit()
-		reset()
+	refresh(Rect2i(Vector2i.ZERO, size))
+	super.cancel(use_reset)
 
 
 func _draw():

@@ -29,18 +29,21 @@ var pivot := Pivot.TOP_LEFT
 		gizmo_color = val
 		for gizmo in gizmos:
 			gizmo.color = gizmo_color
+		queue_redraw()
 			
 @export var gizmo_bgcolor := Color.WHITE :
 	set(val):
 		gizmo_bgcolor = val
 		for gizmo in gizmos:
 			gizmo.bgcolor = gizmo_bgcolor
+		queue_redraw()
 			
 @export var gizmo_line_width := 1.0:
 	set(val):
 		gizmo_line_width = val
 		for gizmo in gizmos:
 			gizmo.line_width = gizmo_line_width
+		queue_redraw()
 
 @export var gizmo_size := Vector2(10, 10) :
 	set(val):
@@ -48,14 +51,22 @@ var pivot := Pivot.TOP_LEFT
 		for gizmo in gizmos:
 			gizmo.default_size = gizmo_size
 			
-@export var line_width := 1.0
-@export var line_color := Color(0.2, 0.2, 0.2, 1)
+@export var line_width := 1.0 :
+	set(val):
+		line_width = val
+		queue_redraw()
+		
+@export var line_color := Color(0.2, 0.2, 0.2, 1):
+	set(val):
+		line_color = val
+		queue_redraw()
 
 var zoom_ratio := 1.0 :
 	set(val):
 		zoom_ratio = val
 		for gizmo in gizmos:
 			gizmo.zoom_ratio = zoom_ratio
+		queue_redraw()
 
 var bound_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO) :
 	set(val):
@@ -131,9 +142,16 @@ func attach(rect :Rect2i, auto_activate := false):
 	queue_redraw()
 
 
+func frozen(frozen_it := true):
+	set_process_input(not frozen_it)
+	for gizmo in gizmos:
+		gizmo.set_process_input(not frozen_it)
+	
+
 func reset():
 	visible = false
 	bound_rect = Rect2i()
+	queue_redraw()
 
 
 func refresh(rect :Rect2i):
@@ -152,9 +170,12 @@ func apply(use_reset := false):
 
 func cancel(use_reset := false):
 	dismiss()
-	canceled.emit()
+		
 	if use_reset:
+		canceled.emit()
 		reset()
+	else:
+		updated.emit(bound_rect, relative_position, is_activated)
 
 
 func hire():
