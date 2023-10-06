@@ -62,7 +62,7 @@ var zoom := Vector2.ONE :
 @onready var indicator :Indicator = $Indicator
 @onready var selection :Selection = $Selection
 @onready var crop_sizer :CropSizer = $CropSizer
-@onready var move_sizer :MoveSizer = $MoverSizer
+@onready var move_sizer :MoveSizer = $MoveSizer
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -94,26 +94,26 @@ func _ready():
 	ellipse_selector.selection = selection
 	polygon_selector.selection = selection
 	lasso_selector.selection = selection
-	selection.selected.connect(_on_select_updated)
+#	selection.selected.connect(_on_selected)
 	
 	pencil.mask = selection.mask
 	brush.mask = selection.mask
 	eraser.mask = selection.mask
 	
-	var snapper_weight_hook = func(pos) -> Vector3i:
-		return snapper.snap_position_weight(pos, true)
+	var snapping_hook = func(pos :Vector2i, wt := {}) -> Vector2i:
+		return snapper.snap_position(pos, true, wt)
 	
 	crop_sizer.updated.connect(_on_crop_updated)
 	crop_sizer.canceled.connect(_on_crop_canceled)
 	crop_sizer.applied.connect(_on_crop_applied)
 	crop_sizer.cursor_changed.connect(_on_cursor_changed)
-	crop_sizer.inject_snapping(snapper_weight_hook)
+	crop_sizer.inject_snapping(snapping_hook)
 	
 	move_sizer.updated.connect(_on_move_updated)
 	move_sizer.canceled.connect(_on_move_canceled)
 	move_sizer.applied.connect(_on_move_applied)
 	move_sizer.cursor_changed.connect(_on_cursor_changed)
-	move_sizer.inject_snapping(snapper_weight_hook)
+	move_sizer.inject_snapping(snapping_hook)
 
 
 func attach_project(proj):
@@ -309,8 +309,8 @@ func _on_cursor_changed(cursor):
 	
 
 # selection
-func _on_select_updated(rect :Rect2i, rel_pos: Vector2i):
-	select_updated.emit(rect, rel_pos, true)
+#func _on_selected(rect :Rect2i, rel_pos: Vector2i):
+#	select_updated.emit(rect, rel_pos, true)
 
 
 # crop
@@ -323,7 +323,7 @@ func _on_crop_applied(rect :Rect2i, rel_pos: Vector2i, status :bool):
 
 
 func _on_crop_canceled():
-	crop_updated.emit()
+	crop_canceled.emit()
 	
 
 # move

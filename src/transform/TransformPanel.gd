@@ -7,8 +7,7 @@ signal pivot_updated(to_pivot)
 
 var block_input := false
 
-var current_rect :Rect2i:
-	set = set_info
+var current_rect :Rect2i
 
 @onready var opt_pivot := %OptPivot
 @onready var input_width := %InputWidth
@@ -23,10 +22,9 @@ func _ready():
 	input_x.value_changed.connect(_on_input_pos_updated)
 	input_y.value_changed.connect(_on_input_pos_updated)
 	opt_pivot.pivot_updated.connect(_on_pivot_updated)
-	set_info(Rect2i())
 	
 
-func set_info(rect :Rect2i):
+func set_rect(rect :Rect2i, use_editable := false):
 	current_rect = rect
 	
 	block_input = true
@@ -34,16 +32,12 @@ func set_info(rect :Rect2i):
 	input_y.value = rect.position.y
 	input_width.value = rect.size.x
 	input_height.value = rect.size.y
-	if rect.has_area():
-		input_x.editable = true
-		input_y.editable = true
-		input_width.editable = true
-		input_height.editable = true
-	else:
-		input_x.editable = false
-		input_y.editable = false
-		input_width.editable = false
-		input_height.editable = false
+	if not rect.has_area():
+		use_editable = false
+	input_x.editable = use_editable
+	input_y.editable = use_editable
+	input_width.editable = use_editable
+	input_height.editable = use_editable
 	block_input = false
 	
 

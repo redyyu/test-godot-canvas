@@ -75,13 +75,10 @@ func _ready():
 	artboard.show_symmetry_guide_state = SymmetryGuide.CROSS_AXIS
 #	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
 	
-	artboard.select_updated.connect(_on_transfrom_updated)
-	artboard.move_updated.connect(_on_transfrom_updated)
-	artboard.crop_updated.connect(_on_transfrom_updated)
+	artboard.transform_changed.connect(_on_transfrom_changed)
 	artboard.project_cropped.connect(_on_project_cropped)
 	
 	transform_panel.pivot_updated.connect(_on_pivot_updated)
-	
 
 
 
@@ -211,9 +208,10 @@ func _on_pivot_updated(val):
 	artboard.set_pivot_point(val)
 	
 
-func _on_transfrom_updated(_rect :Rect2i, rel_pos :Vector2i, status :bool):
-	transform_panel.set_info(rel_pos, status)
+func _on_transfrom_changed(rect :Rect2i, rel_pos :Vector2i, status :bool):
+	rect.position = rel_pos
+	transform_panel.set_rect(rect, status)
 
 
 func _on_project_cropped(rect :Rect2i):
-	print('Crop Image')	
+	print('Crop Image: ', rect)	

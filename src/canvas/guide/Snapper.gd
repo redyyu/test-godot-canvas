@@ -17,7 +17,11 @@ var symmetry_guide :SymmetryGuide
 var _weight := 0  # weight of the snapped times. reset when snap start or end.
 
 
-func snap_position(pos: Vector2, snap_to_edge := false) -> Vector2:
+func snap_position(pos: Vector2, snap_to_edge := false, wt := {}) -> Vector2:
+	# `wt` is a dict, use to pass weight results.
+	# because snap is not always need a weight, 
+	# and snap is better to output a Vector2 directly.
+	
 	_weight = 0  # reset wieght any way.
 
 	var to_guides :Array = []
@@ -103,15 +107,10 @@ func snap_position(pos: Vector2, snap_to_edge := false) -> Vector2:
 	if snap_to_pos != Vector2.INF:
 		pos = snap_to_pos.floor()
 	
+	wt['weight'] = _weight
+	_weight = 0  # reset _weight
+	
 	return pos
-
-
-func snap_position_weight(pos: Vector2, snap_to_edge := false) -> Vector3:
-	_weight = 0 # reset _weight from start
-	pos = snap_position(pos, snap_to_edge)
-	var result = Vector3(pos.x, pos.y, _weight)
-	_weight = 0 # reset _weight from end
-	return result
 	
 
 func process_snap_to_grid_boundary(pos :Vector2,

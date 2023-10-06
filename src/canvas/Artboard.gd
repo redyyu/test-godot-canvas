@@ -1,9 +1,7 @@
 class_name Artboard extends SubViewportContainer
 
 
-signal move_updated(rect, rel_pos, status)
-signal crop_updated(rect, rel_pos, status)
-signal select_updated(rect, rel_pos, status)
+signal transform_changed(rect, rel_pos, status)
 signal project_cropped(rect)
 
 
@@ -135,11 +133,16 @@ func _ready():
 	camera.zoomed.connect(_on_camera_updated)
 	camera.press_updated.connect(_on_camera_pressing)
 	
-	canvas.move_changed.connect(_on_move_changed)
-	canvas.crop_changed.connect(_on_crop_changed)
-	canvas.select_changed.connect(_on_select_changed)
+	canvas.move_updated.connect(_on_move_updated)
+	canvas.move_applied.connect(_on_move_applied)
+	canvas.move_canceled.connect(_on_move_canceled)
 	
-	canvas.crop_applied.connect(_on_canvas_cropped)
+	canvas.crop_updated.connect(_on_crop_updated)
+	canvas.crop_applied.connect(_on_crop_applied)
+	canvas.crop_canceled.connect(_on_crop_canceled)
+	
+	canvas.select_updated.connect(_on_select_updated)
+
 	canvas.cursor_changed.connect(_on_canvas_cursor_changed)
 	canvas.operating.connect(_on_canvas_operating)
 	
@@ -264,23 +267,36 @@ func _on_mouse_exited():
 
 
 # selection
-func _on_select_changed(rect :Rect2i, rel_pos:Vector2i, status :bool):
-	select_updated.emit(rect, rel_pos, status)
+func _on_select_updated(rect :Rect2i, rel_pos:Vector2i, status :bool):
+	transform_changed.emit(rect, rel_pos, status)
 
 
 # cropper
-func _on_crop_changed(rect :Rect2i, rel_pos:Vector2i, status :bool):
-	crop_updated.emit(rect, rel_pos, status)
+func _on_crop_updated(rect :Rect2i, rel_pos:Vector2i, status :bool):
+	transform_changed.emit(rect, rel_pos, status)
 
 
-func _on_canvas_cropped(rect :Rect2i):
+func _on_crop_applied(rect :Rect2i, rel_pos:Vector2i, status :bool):
+	transform_changed.emit(rect, rel_pos, status)
 	project_cropped.emit(rect)
 
 
+func _on_crop_canceled():
+	transform_changed.emit(Rect2i(), Vector2i(), false)
+
+
 # mover
-func _on_move_changed(rect :Rect2i, rel_pos:Vector2i, status:bool):
-	move_updated.emit(rect, rel_pos, status)
-	
+func _on_move_updated(rect :Rect2i, rel_pos:Vector2i, status:bool):
+	transform_changed.emit(rect, rel_pos, status)
+
+
+func _on_move_applied(rect :Rect2i, rel_pos:Vector2i, status:bool):
+	transform_changed.emit(rect, rel_pos, status)
+
+
+func _on_move_canceled():
+	transform_changed.emit(Rect2i(), Vector2i(), false)
+
 
 # guides
 func _lock_guides(val :bool): # do not use it in other scopes.

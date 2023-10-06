@@ -84,7 +84,11 @@ var is_dragging := false :
 	get: return is_dragging and visible
 
 var is_scaling :bool :
-	get: return bool(pressed_gizmo)
+	get: return pressed_gizmo != null
+	set(val):
+		if not val:
+			pressed_gizmo = null
+		
 
 
 var is_activated := false
@@ -166,9 +170,10 @@ func dismiss():
 	
 	is_activated = false
 	drag_offset = Vector2i.ZERO
-	pressed_gizmo = null
 	last_position = null
 	is_dragging = false
+	is_scaling = false
+#	pressed_gizmo = null # already set to null in is_scaling setter.
 	
 	for gizmo in gizmos:
 		gizmo.visible = false
@@ -204,12 +209,12 @@ func drag_to(pos :Vector2i):
 	
 	var snap_pos = null
 	var last_weight := 0
+	var wt := {'weight': 0}
 	for corner in pos_corners:
-		snap_pos = snapping(corner['position'])
-		var _weight = snap_pos.z
+		snap_pos = snapping(corner['position'], wt)
 		snap_pos = Vector2i(snap_pos.x, snap_pos.y)
-		if _weight > last_weight:
-			last_weight = _weight
+		if wt['weight'] > last_weight:
+			last_weight = wt['weight']
 			pos = Vector2i(snap_pos) - corner['offset']
 	
 	bound_rect.position = pos
@@ -220,13 +225,15 @@ func drag_to(pos :Vector2i):
 	updated.emit(bound_rect, relative_position, is_activated)
 
 
-func scale_to(gizmo:Gizmo, pos :Vector2i):
-	if last_position == pos:
+func scale_to(pos :Vector2i):
+	pos = snapping(pos)
+
+	if last_position == pos or not pressed_gizmo:
 		return
 	# use to prevent running while already stop.
 	last_position = pos
 		
-	match gizmo.pivot:
+	match pressed_gizmo.pivot:
 		Pivot.TOP_LEFT: 
 			if pos.x < bound_rect.end.x and pos.y < bound_rect.end.y:
 				bound_rect.size = bound_rect.end - pos
@@ -356,14 +363,15 @@ func _input(event :InputEvent):
 			cancel()
 	elif event is InputEventMouseMotion:
 		var pos := get_local_mouse_position()
-		if pressed_gizmo:
+		if is_scaling:
 			if is_dragging:  # prevent the dragging zone is hit.
 				is_dragging = false
-			var snap_pos = snapping.call(pos)
-			scale_to(pressed_gizmo, Vector2i(snap_pos.x, snap_pos.y))
+			scale_to(pos)
 			# it is in a sub viewport, and without any influence with layout.
 			# so `get_global_mouse_position()` should work.
 		elif is_dragging:
+			if is_scaling:
+				is_scaling = false
 			drag_to(pos)
 			# DO NOT check `bound_rect.has_point(pos)` here,
 			# that will got bad experience when hit a snap point.
@@ -396,17 +404,12 @@ func _on_gizmo_press_updated(gizmo, status):
 
 
 # snapping
-func snapping(pos) -> Vector3i:
-	var snapped_pos = _snapping.call(pos)
-	if snapped_pos is Vector2i or snapped_pos is Vector2:
-		# pack to Vector3i, if hook is return Vector2(i)
-		var snap_weight = 1 if pos != snapped_pos else 0
-		snapped_pos = Vector3i(snapped_pos.x, snapped_pos.y, snap_weight)
-	return snapped_pos
+func snapping(pos, wt := {}) -> Vector2i:
+	return _snapping.call(pos, wt)
 
 # hook for snapping
-var _snapping = func(pos) -> Vector3i: # pass original postion if no hook.
-	return Vector3i(pos.x, pos.y, -1)
+var _snapping = func(pos) -> Vector2i: # pass original postion if no hook.
+	return pos
 
 
 func inject_snapping(callable :Callable):
