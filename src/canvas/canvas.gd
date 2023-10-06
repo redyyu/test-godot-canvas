@@ -1,7 +1,7 @@
 class_name Canvas extends Node2D
 
 
-signal select_updated(rect, rel_pos, status)
+signal select_updated(rect, rel_pos)
 signal select_canceled
 
 signal move_updated(rect, rel_pos, status)
@@ -87,25 +87,17 @@ func _ready():
 #	onion_future.blue_red_color = Color.BLUE
 	
 	# attach selection to selector
-	rect_selector.attach(selection)
-	rect_selector.updated.connect(_on_select_updated)
-	rect_selector.canceled.connect(_on_select_canceled)
-	
-	ellipse_selector.attach(selection)
-	ellipse_selector.updated.connect(_on_select_updated)
-	ellipse_selector.canceled.connect(_on_select_canceled)
-	
-	polygon_selector.attach(selection)
-	polygon_selector.updated.connect(_on_select_updated)
-	polygon_selector.canceled.connect(_on_select_canceled)
-	
-	lasso_selector.attach(selection)
-	lasso_selector.updated.connect(_on_select_updated)
-	lasso_selector.canceled.connect(_on_select_canceled)
+	rect_selector.selection = selection
+	ellipse_selector.selection = selection	
+	polygon_selector.selection = selection
+	lasso_selector.selection = selection
 	
 	pencil.mask = selection.mask
 	brush.mask = selection.mask
 	eraser.mask = selection.mask
+	
+	selection.updated.connect(_on_select_updated)
+	selection.canceled.connect(_on_select_canceled)
 	
 	var snapping_hook = func(pos :Vector2i, wt := {}) -> Vector2i:
 		return snapper.snap_position(pos, true, wt)
@@ -323,8 +315,8 @@ func _on_cursor_changed(cursor):
 	
 
 # selection
-func _on_select_updated(rect :Rect2i, rel_pos: Vector2i, status):
-	select_updated.emit(rect, rel_pos, status)
+func _on_select_updated(rect :Rect2i, rel_pos: Vector2i):
+	select_updated.emit(rect, rel_pos)
 
 
 func _on_select_canceled():

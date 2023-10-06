@@ -1,20 +1,6 @@
 class_name BaseSelector extends RefCounted
 
 
-enum Mode {
-	REPLACE,
-	ADD,
-	SUBTRACT,
-	INTERSECTION,
-}
-
-var mode := Mode.REPLACE:
-	set(val):
-		last_mode = mode
-		mode = val
-
-var last_mode := Mode.REPLACE
-
 var selection :Selection
 var selected_rect :Rect2i :
 	get: 
@@ -30,17 +16,24 @@ var size :Vector2i :
 		else:
 			return Vector2i.ZERO
 
+var mode :Selection.Mode:
+	get: 
+		if selection:
+			return selection.mode
+		else:
+			return -1
+
 var as_replace :bool :
-	get: return mode == Mode.REPLACE
+	get: return mode == Selection.Mode.REPLACE
 
 var as_add :bool :
-	get: return mode == Mode.ADD
+	get: return mode == Selection.Mode.ADD
 	
 var as_subtract :bool :
-	get: return mode == Mode.SUBTRACT
+	get: return mode == Selection.Mode.SUBTRACT
 	
 var as_intersect :bool :
-	get: return mode == Mode.INTERSECTION
+	get: return mode == Selection.Mode.INTERSECTION
 
 var opt_as_square := false
 var opt_from_center := false
@@ -52,16 +45,6 @@ var is_moving := false
 
 var is_operating :bool :
 	get: return is_selecting or is_moving
-
-
-func attach(sel):
-	if not selection:
-		selection = sel
-		selection.selected.connect(_on_selected)
-
-
-func restore_mode():
-	mode = last_mode
 
 
 func reset():
@@ -125,9 +108,3 @@ func parse_rectangle_points(sel_points:PackedVector2Array):
 	pts.append(start)
 	pts.append(end)
 	return pts
-
-
-func _on_selected(_rect :Rect2i):
-	print(_rect)
-	
-	

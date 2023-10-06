@@ -202,8 +202,7 @@ func _on_stroke_space_changed(val):
 
 
 func _on_selection_mode(val):
-	if current_selector:
-		current_selector.mode = val
+	artboard.apply_selection_mode(val)
 
 
 func _on_pivot_updated(val):

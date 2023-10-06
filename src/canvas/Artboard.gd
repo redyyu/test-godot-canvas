@@ -352,8 +352,8 @@ func _on_guide_released(guide):
 
 
 # select
-func _on_select_updated(rect :Rect2i, rel_pos:Vector2i, status :bool):
-	transform_changed.emit(rect, rel_pos, status)
+func _on_select_updated(rect :Rect2i, rel_pos:Vector2i):
+	transform_changed.emit(rect, rel_pos, true)
 	
 
 func _on_select_canceled():
@@ -391,13 +391,12 @@ func _on_move_canceled():
 
 
 # external
+func apply_selection_mode(sel_mode):
+	canvas.selection.mode = sel_mode
+	
 
 func apply_pivot_point(pivot_id):
-	canvas.rect_selector.set_pivot(pivot_id)
-	canvas.ellipse_selector.set_pivot(pivot_id)
-	canvas.polygon_selector.set_pivot(pivot_id)
-	canvas.lasso_selector.set_pivot(pivot_id)
-	
+	canvas.selection.set_pivot(pivot_id)	
 	canvas.move_sizer.set_pivot(pivot_id)
 	canvas.crop_sizer.set_pivot(pivot_id)
 	
