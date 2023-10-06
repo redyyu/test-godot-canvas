@@ -1,4 +1,4 @@
-class_name RectSelector extends PixelSelector
+class_name MagicSelector extends PixelSelector
 
 var selected_color :Color
 var image := Image.new()
@@ -12,11 +12,11 @@ var image_rect :Rect2i :
 
 func select_move(pos :Vector2i):
 	super.select_move(pos)
-	
 	if is_selecting:
 		points.clear()
 		if image_rect.has_point(pos):
 			var color := image.get_pixelv(pos)
+#			print(pos, ' ', color, ' ', image_rect)
 			for x in image.get_width():
 				for y in image.get_height():
 					var p := Vector2i(x, y)

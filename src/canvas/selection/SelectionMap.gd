@@ -114,7 +114,7 @@ func select_polygon(polygon:PackedVector2Array,
 func select_magic(points:PackedVector2Array, 
 				  replace:=false, subtract:=false, intersect:=false):
 	if is_invisible():
-		fill(SELECTED_COLOR)
+		fill_points(points, SELECTED_COLOR)
 		return
 	
 	if replace:

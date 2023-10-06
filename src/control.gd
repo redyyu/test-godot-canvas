@@ -2,7 +2,6 @@ extends Control
 
 var current_color := Color.WHITE
 var current_drawer :PixelDrawer
-var current_selector :BaseSelector
 
 
 @onready var artboard :SubViewportContainer = $HBoxContainer/Artboard
@@ -18,6 +17,8 @@ var current_selector :BaseSelector
 @onready var btn_9 = $BtnSelectPolygon
 @onready var btn_10 = $BtnSelectLasso
 @onready var btn_11 = $BtnCrop
+@onready var btn_12 = $BtnSelectMagic
+@onready var btn_13 = $ColorPicker
 
 @onready var btn_lock_guide = $BtnLockGuide
 @onready var btn_show_guide = $BtnShowGuide
@@ -32,6 +33,15 @@ var current_selector :BaseSelector
 @onready var slider_stroke_space = $StrokeSpaceSlider
 
 @onready var transform_panel = $TransformPanel
+
+
+func _init():
+	InputMap.add_action('deselect_all')
+	var evt_deselect_all := InputEventKey.new()
+	evt_deselect_all.keycode = KEY_D
+	evt_deselect_all.command_or_control_autoremap = true
+	InputMap.action_add_event('deselect_all', evt_deselect_all)
+	
 
 
 func _ready():
@@ -50,6 +60,8 @@ func _ready():
 	btn_9.pressed.connect(_on_btn_pressed.bind(btn_9))
 	btn_10.pressed.connect(_on_btn_pressed.bind(btn_10))
 	btn_11.pressed.connect(_on_btn_pressed.bind(btn_11))
+	btn_12.pressed.connect(_on_btn_pressed.bind(btn_12))
+	btn_13.pressed.connect(_on_btn_pressed.bind(btn_13))
 	
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
 	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
@@ -77,6 +89,7 @@ func _ready():
 	
 	artboard.transform_changed.connect(_on_transfrom_changed)
 	artboard.project_cropped.connect(_on_project_cropped)
+	artboard.color_picked.connect(_on_color_picked)
 	
 	transform_panel.pivot_updated.connect(_on_pivot_updated)
 	transform_panel.size_updated.connect(_on_size_updated)
@@ -141,19 +154,21 @@ func _on_btn_pressed(btn):
 			
 		'BtnSelectRect':
 			artboard.state = Artboard.SELECT_RECTANGLE
-			current_selector = artboard.canvas.rect_selector
 		
 		'BtnSelectCircle':
 			artboard.state = Artboard.SELECT_ELLIPSE
-			current_selector = artboard.canvas.ellipse_selector
 		
 		'BtnSelectPolygon':
 			artboard.state = Artboard.SELECT_POLYGON
-			current_selector = artboard.canvas.polygon_selector
 		
 		'BtnSelectLasso':
 			artboard.state = Artboard.SELECT_LASSO
-			current_selector = artboard.canvas.lasso_selector
+			
+		'BtnSelectMagic':
+			artboard.state = Artboard.SELECT_MAGIC
+		
+		'ColorPicker':
+			artboard.state = Artboard.COLOR_PICK
 		
 		'BtnCenterSelector':
 			artboard.apply_select_as_center(btn.button_pressed)
@@ -208,7 +223,11 @@ func _on_size_updated(val):
 
 func _on_position_updated(val):
 	artboard.apply_moveto(val)
-	
+
+
+func _on_color_picked(color):
+	print(color)
+		
 
 func _on_transfrom_changed(rect :Rect2i, rel_pos :Vector2i, status :bool):
 	rect.position = rel_pos

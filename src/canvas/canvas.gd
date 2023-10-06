@@ -12,6 +12,8 @@ signal crop_updated(rect, rel_pos, status)
 signal crop_applied(rect, rel_pos, status)
 signal crop_canceled
 
+signal color_picked(color)
+
 signal cursor_changed(cursor)
 signal operating(operate_state, is_finished)
 # let parent to know when should block some other actions.
@@ -29,6 +31,7 @@ var rect_selector := RectSelector.new()
 var ellipse_selector := EllipseSelector.new()
 var polygon_selector := PolygonSelector.new()
 var lasso_selector := LassoSelector.new()
+var magic_selector := MagicSelector.new()
 		
 var project :Project
 var size :Vector2i :
@@ -91,6 +94,7 @@ func _ready():
 	ellipse_selector.selection = selection	
 	polygon_selector.selection = selection
 	lasso_selector.selection = selection
+	magic_selector.selection = selection
 	
 	pencil.mask = selection.mask
 	brush.mask = selection.mask
@@ -229,7 +233,7 @@ func process_drawing_or_erasing(event, drawer):
 
 func process_selection(event, selector):
 	if event is InputEventMouseMotion:
-		var pos = snapper.snap_position(get_local_mouse_position(), true)
+		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed:
 			selector.select_move(pos)
 		elif selector.is_operating:
@@ -238,13 +242,13 @@ func process_selection(event, selector):
 
 func process_selection_polygon(event, selector):
 	if event is InputEventMouseButton:
-		var pos = snapper.snap_position(get_local_mouse_position(), true)
+		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed and not event.double_click:
 			selector.select_move(pos)
 		elif selector.is_selecting and event.double_click:
 			selector.select_end(pos)
 	elif event is InputEventMouseMotion and selector.is_moving:
-		var pos = snapper.snap_position(get_local_mouse_position(), true)
+		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed:
 			selector.select_move(pos)
 		else:
@@ -253,11 +257,36 @@ func process_selection_polygon(event, selector):
 
 func process_selection_lasso(event, selector):
 	if event is InputEventMouseMotion:
-		var pos = snapper.snap_position(get_local_mouse_position(), true)
+		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed:
 			selector.select_move(pos)
 		elif selector.is_operating:
 			selector.select_end(pos)
+
+
+func process_selection_magic(event, selector):
+	if event is InputEventMouseMotion:
+		var pos = get_local_mouse_position()
+		if is_pressed:
+			selector.image = project.current_cel.get_image()
+			selector.select_move(pos)
+		elif selector.is_operating:
+			selector.select_end(pos)
+
+
+func process_color_pick(event):
+	if event is InputEventMouseButton:
+		var pos = get_local_mouse_position()
+		if is_pressed:
+			var image :Image = project.current_cel.get_image()
+			var image_size := Vector2i(image.get_width(), image.get_height())
+			var image_rect = Rect2i(Vector2i.ZERO, image_size)
+			if image_rect.has_point(pos):
+				var color = image.get_pixelv(pos)
+				var picked_color = Color(color.r, color.g, color.b, 1)
+				color_picked.emit(picked_color)
+			
+	
 
 
 func _input(event :InputEvent):
@@ -287,6 +316,10 @@ func _input(event :InputEvent):
 			process_selection_polygon(event, polygon_selector)
 		Artboard.SELECT_LASSO:
 			process_selection_lasso(event, lasso_selector)
+		Artboard.SELECT_MAGIC:
+			process_selection_magic(event, magic_selector)
+		Artboard.COLOR_PICK:
+			process_color_pick(event)
 
 
 func _draw():

@@ -137,7 +137,7 @@ func deselect(muted := false):
 
 func move_to(to_pos :Vector2i, use_pivot := true):
 	var _offset := pivot_offset if use_pivot else Vector2i.ZERO
-		
+	
 	var target_pos := to_pos - _offset
 	var target_edge := target_pos + selected_rect.size
 	if target_pos.x < 0:
@@ -407,6 +407,10 @@ var _draw_polyline = func():
 func _input(event):
 	if event is InputEventKey:
 		var delta := 1
+		
+		if Input.is_action_pressed('deselect_all'):
+			deselect()
+			
 		
 		if Input.is_key_pressed(KEY_SHIFT):
 			delta = 10

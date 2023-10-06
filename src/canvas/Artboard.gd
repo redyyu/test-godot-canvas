@@ -4,6 +4,8 @@ class_name Artboard extends SubViewportContainer
 signal transform_changed(rect, rel_pos, status)
 signal project_cropped(rect)
 
+signal color_picked(color)
+
 
 enum {
 	NONE,
@@ -18,6 +20,8 @@ enum {
 	SELECT_ELLIPSE,
 	SELECT_POLYGON,
 	SELECT_LASSO,
+	SELECT_MAGIC,
+	COLOR_PICK,
 }
 
 var state := Artboard.NONE :
@@ -141,6 +145,8 @@ func _ready():
 	canvas.select_updated.connect(_on_select_updated)
 	canvas.select_canceled.connect(_on_select_canceled)
 
+	canvas.color_picked.connect(_on_color_picked)
+	
 	canvas.cursor_changed.connect(_on_canvas_cursor_changed)
 	canvas.operating.connect(_on_canvas_operating)
 	
@@ -349,6 +355,10 @@ func _on_guide_released(guide):
 	# make sure guides is in place
 	place_guides()
 
+
+# color pick
+func _on_color_picked(color :Color):
+	color_picked.emit(color)
 
 
 # select
