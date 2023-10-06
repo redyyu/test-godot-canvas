@@ -34,9 +34,6 @@ var state := Artboard.NONE :
 
 var project :Project
 
-var selected_rect :Rect2i:
-	get: return canvas.selected_rect
-
 var camera_offset :Vector2 :
 	get: return camera.offset
 	
@@ -142,6 +139,7 @@ func _ready():
 	canvas.crop_canceled.connect(_on_crop_canceled)
 	
 	canvas.select_updated.connect(_on_select_updated)
+	canvas.select_canceled.connect(_on_select_canceled)
 
 	canvas.cursor_changed.connect(_on_canvas_cursor_changed)
 	canvas.operating.connect(_on_canvas_operating)
@@ -212,6 +210,10 @@ func place_guides():
 						guide.relative_position.x * camera_zoom.x
 
 
+func get_selected_rect():
+	return canvas.selection.selected_rect
+
+
 # event handler
 
 func _on_artboard_resized():
@@ -268,6 +270,10 @@ func _on_mouse_exited():
 # selection
 func _on_select_updated(rect :Rect2i, rel_pos:Vector2i, status :bool):
 	transform_changed.emit(rect, rel_pos, status)
+	
+
+func _on_select_canceled():
+	transform_changed.emit(Rect2i(), Vector2i(), false)
 
 
 # cropper
@@ -284,13 +290,12 @@ func _on_crop_canceled():
 	transform_changed.emit(Rect2i(), Vector2i(), false)
 
 
-# mover
+# move
 func _on_move_updated(rect :Rect2i, rel_pos:Vector2i, status:bool):
 	transform_changed.emit(rect, rel_pos, status)
 
 
 func _on_move_applied(rect :Rect2i, rel_pos:Vector2i, status:bool):
-	print(rect, rel_pos)
 	transform_changed.emit(rect, rel_pos, status)
 
 
@@ -352,6 +357,9 @@ func _on_guide_released(guide):
 	# take canvas local mouse position as rounded.
 	# calculate to the relative position might not working precisely.
 	# otherwise position might mess-up place guide while is zoomed and snapping.
+	
+	var sel_rect = get_selected_rect()
+	
 	match guide.orientation:
 		HORIZONTAL:
 			if guide.position.y < h_ruler.size.y:
@@ -360,9 +368,9 @@ func _on_guide_released(guide):
 				guides.erase(guide)
 				guide.queue_free()
 				mouse_default_cursor_shape = Control.CURSOR_ARROW
-			elif selected_rect.has_area():
-				guide.snap_to(selected_rect.position)
-				guide.snap_to(selected_rect.position + selected_rect.size)
+			elif sel_rect.has_area():
+				guide.snap_to(sel_rect.position)
+				guide.snap_to(sel_rect.position + sel_rect.size)
 		VERTICAL:
 			if guide.position.x < v_ruler.size.x:
 				guide.pressed.disconnect(_on_guide_pressed)
@@ -370,22 +378,22 @@ func _on_guide_released(guide):
 				guides.erase(guide)
 				guide.queue_free()
 				mouse_default_cursor_shape = Control.CURSOR_ARROW
-			elif selected_rect.has_area():
-				guide.snap_to(selected_rect.position)
-				guide.snap_to(selected_rect.position + selected_rect.size)
+			elif sel_rect.has_area():
+				guide.snap_to(sel_rect.position)
+				guide.snap_to(sel_rect.position + sel_rect.size)
 	
 	# make sure guides is in place
 	place_guides()
 
 
+
 # external injector
 
 func inject_pivot_point(pivot_id):
-	canvas.rect_selector.pivot = pivot_id
-	canvas.ellipse_selector.pivot = pivot_id
-	canvas.polygon_selector.pivot = pivot_id
-	canvas.lasso_selector.pivot = pivot_id
+	canvas.rect_selector.set_pivot(pivot_id)
+	canvas.ellipse_selector.set_pivot(pivot_id)
+	canvas.polygon_selector.set_pivot(pivot_id)
+	canvas.lasso_selector.set_pivot(pivot_id)
 	
-	canvas.mover.pivot = pivot_id
-	canvas.crop_rect.pivot = pivot_id
-
+	canvas.move_sizer.set_pivot(pivot_id)
+	canvas.crop_sizer.set_pivot(pivot_id)

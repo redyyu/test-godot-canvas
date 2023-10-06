@@ -17,10 +17,7 @@ enum Pivot {
 }
 
 @export var pivot := Pivot.TOP_LEFT:
-	set(val):
-		pivot = val
-		set_pivots()
-		pivot_updated.emit(pivot)
+	set = pivot_changed
 
 @export var pivot_point_radius := 5
 @export var pivot_frame_color := Color.DIM_GRAY
@@ -50,10 +47,17 @@ func _init():
 
 
 func _ready():
-	set_pivots()
+	prepare_pivots()
 
 
-func set_pivots():
+func pivot_changed(val):
+	if pivot != val:
+		pivot = val
+		pivot_updated.emit(pivot)
+		prepare_pivots()
+	
+
+func prepare_pivots():	
 	pivot_points.clear()
 	for i in Pivot:
 		var id = Pivot[i]
@@ -103,5 +107,4 @@ func _draw():
 	draw_rect(frame_rect, line_color, false, line_weight)
 	for p in pivot_points:
 		draw_circle(p['position'], pivot_point_radius, p['color'])
-		
-	
+

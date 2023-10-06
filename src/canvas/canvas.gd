@@ -2,6 +2,7 @@ class_name Canvas extends Node2D
 
 
 signal select_updated(rect, rel_pos, status)
+signal select_canceled
 
 signal move_updated(rect, rel_pos, status)
 signal move_applied(rect, rel_pos, status)
@@ -36,9 +37,6 @@ var size :Vector2i :
 			return project.size
 		else:
 			return Vector2i.ZERO
-
-var selected_rect: Rect2i :
-	get: return selection.selected_rect
 
 const DEFAULT_PEN_PRESSURE := 1.0
 const DEFAULT_PEN_VELOCITY := 1.0
@@ -89,11 +87,21 @@ func _ready():
 #	onion_future.blue_red_color = Color.BLUE
 	
 	# attach selection to selector
-	rect_selector.selection = selection
-	ellipse_selector.selection = selection
-	polygon_selector.selection = selection
-	lasso_selector.selection = selection
-#	selection.selected.connect(_on_selected)
+	rect_selector.attach(selection)
+	rect_selector.updated.connect(_on_select_updated)
+	rect_selector.canceled.connect(_on_select_canceled)
+	
+	ellipse_selector.attach(selection)
+	ellipse_selector.updated.connect(_on_select_updated)
+	ellipse_selector.canceled.connect(_on_select_canceled)
+	
+	polygon_selector.attach(selection)
+	polygon_selector.updated.connect(_on_select_updated)
+	polygon_selector.canceled.connect(_on_select_canceled)
+	
+	lasso_selector.attach(selection)
+	lasso_selector.updated.connect(_on_select_updated)
+	lasso_selector.canceled.connect(_on_select_canceled)
 	
 	pencil.mask = selection.mask
 	brush.mask = selection.mask
@@ -315,8 +323,12 @@ func _on_cursor_changed(cursor):
 	
 
 # selection
-#func _on_selected(rect :Rect2i, rel_pos: Vector2i):
-#	select_updated.emit(rect, rel_pos, true)
+func _on_select_updated(rect :Rect2i, rel_pos: Vector2i, status):
+	select_updated.emit(rect, rel_pos, status)
+
+
+func _on_select_canceled():
+	select_canceled.emit()
 
 
 # crop

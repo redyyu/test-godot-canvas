@@ -239,35 +239,37 @@ var _draw_polyline = func():
 	draw_polyline(points, Color.WHITE, 1 / zoom_ratio)
 	
 
-func _input(_event):
-	var delta := 1
-	if Input.is_key_pressed(KEY_SHIFT):
-		delta = 10
+func _input(event):
+	if event is InputEventKey:
+		var delta := 1
 		
-	if Input.is_action_pressed('ui_up'):
-		if selected_rect.position.y < delta:
-			delta = selected_rect.position.y
-		selection_map.move_delta(-delta, VERTICAL)
-		update_selection()
-	
-	elif Input.is_action_pressed('ui_right'):
-		var right_remain := size.x - selected_rect.end.x
-		if right_remain < delta:
-			delta = right_remain
-		selection_map.move_delta(delta, HORIZONTAL)
-		update_selection()
-	
-	if Input.is_action_pressed('ui_down'):
-		var bottom_remain := size.y - selected_rect.end.y
-		if bottom_remain < delta:
-			delta = bottom_remain
-		selection_map.move_delta(delta, VERTICAL)
-		update_selection()
-	
-	elif Input.is_action_pressed('ui_left'):
-		if selected_rect.position.x < delta:
-			delta = selected_rect.position.x
-		selection_map.move_delta(-delta, HORIZONTAL)
-		update_selection()
+		if Input.is_key_pressed(KEY_SHIFT):
+			delta = 10
+			
+		if Input.is_action_pressed('ui_up'):
+			if selected_rect.position.y < delta:
+				delta = selected_rect.position.y
+			selection_map.move_delta(-delta, VERTICAL)
+			update_selection()
+		
+		elif Input.is_action_pressed('ui_right'):
+			var right_remain := size.x - selected_rect.end.x
+			if right_remain < delta:
+				delta = right_remain
+			selection_map.move_delta(delta, HORIZONTAL)
+			update_selection()
+		
+		elif Input.is_action_pressed('ui_down'):
+			var bottom_remain := size.y - selected_rect.end.y
+			if bottom_remain < delta:
+				delta = bottom_remain
+			selection_map.move_delta(delta, VERTICAL)
+			update_selection()
+		
+		elif Input.is_action_pressed('ui_left'):
+			if selected_rect.position.x < delta:
+				delta = selected_rect.position.x
+			selection_map.move_delta(-delta, HORIZONTAL)
+			update_selection()
 	
 	

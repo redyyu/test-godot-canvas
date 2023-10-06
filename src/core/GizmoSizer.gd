@@ -2,7 +2,6 @@ class_name GizmoSizer extends Node2D
 
 signal gizmo_hover_updated(gizmo, status)
 signal gizmo_press_updated(gizmo, status)
-signal drag_updated(status)
 
 signal updated(rect, rel_pos, statsu)
 signal applied(rect, rel_pos, statsu)
@@ -22,7 +21,6 @@ enum Pivot {
 	MIDDLE_LEFT,
 	CENTER,
 }
-var pivot := Pivot.TOP_LEFT
 
 @export var gizmo_color := Color(0.2, 0.2, 0.2, 1):
 	set(val):
@@ -77,10 +75,13 @@ var bound_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO) :
 
 var gizmos :Array[Gizmo] = []
 
+var pivot := Pivot.TOP_LEFT
+
+var pivot_offset :Vector2i :
+	get: return get_pivot_offset(bound_rect.size)
+	
 var relative_position :Vector2i :  # with pivot, for display on panel
-	get:
-		var _offset = get_pivot_offset(bound_rect.size)
-		return bound_rect.position + _offset
+	get: return bound_rect.position + pivot_offset
 
 var pressed_gizmo :Variant = null
 var last_position :Variant = null # prevent same with mouse pos from beginning.
@@ -90,8 +91,7 @@ var is_dragging := false :
 	set(val):
 		if is_dragging != val:
 			is_dragging = val
-			drag_updated.emit(is_dragging)
-			queue_redraw()
+			queue_redraw()  # for redraw dragging effect.
 	get: return is_dragging
 
 var is_scaling :bool :
@@ -151,13 +151,17 @@ func frozen(frozen_it := true):
 func reset():
 	visible = false
 	bound_rect = Rect2i()
-	queue_redraw()
 
 
 func refresh(rect :Rect2i):
 	bound_rect = rect
 	updated.emit(bound_rect, relative_position, is_activated)
-	queue_redraw()
+
+
+func set_pivot(pivot_id):
+	pivot = pivot_id
+	if is_activated:
+		updated.emit(bound_rect, relative_position, is_activated)
 
 
 func apply(use_reset := false):
@@ -246,6 +250,22 @@ func drag_to(pos :Vector2i):
 	updated.emit(bound_rect, relative_position, is_activated)
 
 
+func move_to(to_pos :Vector2i, use_pivot := true):
+	var _offset := pivot_offset if use_pivot else Vector2i.ZERO
+	bound_rect.position = to_pos - _offset
+	updated.emit(bound_rect, relative_position, is_activated)
+
+
+func move_delta(delta :int, orientation:Orientation):
+	var dest_pos := bound_rect.position
+	match orientation:
+		HORIZONTAL: dest_pos.x += delta
+		VERTICAL: dest_pos.y += delta
+	
+	bound_rect.position = dest_pos
+	updated.emit(bound_rect, relative_position, is_activated)
+
+
 func scale_to(pos :Vector2i):
 	pos = snapping(pos)
 
@@ -253,8 +273,9 @@ func scale_to(pos :Vector2i):
 		return
 	# use to prevent running while already stop.
 	last_position = pos
-		
+	
 	match pressed_gizmo.pivot:
+		# size > (1, 1) already limited by not allowed drag to same point.
 		Pivot.TOP_LEFT: 
 			if pos.x < bound_rect.end.x and pos.y < bound_rect.end.y:
 				bound_rect.size = bound_rect.end - pos
@@ -290,6 +311,23 @@ func scale_to(pos :Vector2i):
 	for gzm in gizmos:
 		set_gizmo_place(gzm)
 
+	updated.emit(bound_rect, relative_position, is_activated)
+
+
+func resize_to(to_size:Vector2i):
+	if to_size.x < 1:
+		to_size.x = 1
+	if to_size.y < 1:
+		to_size.y = 1
+		
+	var _offset = get_pivot_offset(to_size)
+	var coef := Vector2(_offset) / Vector2(to_size)
+	var size_diff :Vector2i = Vector2(bound_rect.size - to_size) * coef
+	var dest_pos :Vector2i = bound_rect.position + size_diff
+	
+	bound_rect.position = dest_pos
+	bound_rect.size = to_size
+	
 	updated.emit(bound_rect, relative_position, is_activated)
 
 
@@ -370,11 +408,27 @@ func _input(event :InputEvent):
 		return
 			
 	if event is InputEventKey:
-		if event.keycode == KEY_ENTER:
+		if Input.is_key_pressed(KEY_ENTER):
 			apply()
-		elif event.keycode == KEY_ESCAPE:
+		elif Input.is_key_pressed(KEY_ESCAPE):
 			cancel()
+		else:
+			var delta := 1
+			if Input.is_key_pressed(KEY_SHIFT):
+				delta = 10
+				
+			if Input.is_action_pressed('ui_up'):
+				move_delta(-delta, VERTICAL)
 			
+			elif Input.is_action_pressed('ui_right'):
+				move_delta(delta, HORIZONTAL)
+			
+			elif Input.is_action_pressed('ui_down'):
+				move_delta(delta, VERTICAL)
+			
+			elif Input.is_action_pressed('ui_left'):
+				move_delta(-delta, HORIZONTAL)
+	
 	elif event is InputEventMouseMotion:
 		var pos := get_local_mouse_position()
 		if is_scaling:

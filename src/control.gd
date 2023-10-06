@@ -205,7 +205,7 @@ func _on_selection_mode(val):
 
 
 func _on_pivot_updated(val):
-	artboard.set_pivot_point(val)
+	artboard.inject_pivot_point(val)
 	
 
 func _on_transfrom_changed(rect :Rect2i, rel_pos :Vector2i, status :bool):

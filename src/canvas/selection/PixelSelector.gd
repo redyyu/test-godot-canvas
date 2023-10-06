@@ -1,5 +1,8 @@
 class_name PixelSelector extends BaseSelector
 
+signal updated(rect, rel_pos, statsu)
+signal canceled
+
 enum Pivot {
 	TOP_LEFT,
 	TOP_CENTER,
@@ -13,11 +16,17 @@ enum Pivot {
 }
 
 var pivot := Pivot.TOP_LEFT
-
+var pivot_offset :Vector2i :
+	get: return get_pivot_offset(selected_rect.size)
+	
 var relative_position :Vector2i :  # with pivot, for display on panel
-	get:
-		var _offset = get_pivot_offset(selected_rect.size)
-		return selected_rect.position + _offset
+	get: return selected_rect.position + pivot_offset
+
+
+func set_pivot(pivot_id):
+	pivot = pivot_id
+	if is_selecting:
+		updated.emit(selected_rect, relative_position, is_selecting)
 
 
 func select_start(pos :Vector2i):
@@ -34,21 +43,20 @@ func select_start(pos :Vector2i):
 
 
 func move_to(to_pos :Vector2i, use_pivot := true):
-	var pivot_offset := get_pivot_offset(selected_rect.size) \
-		if use_pivot else Vector2i.ZERO
+	var _offset := pivot_offset if use_pivot else Vector2i.ZERO
 		
-	var target_pos := to_pos - pivot_offset
+	var target_pos := to_pos - _offset
 	var target_edge := target_pos + selected_rect.size
 	if target_pos.x < 0:
-		to_pos.x = pivot_offset.x
+		to_pos.x = _offset.x
 	if target_pos.y < 0:
-		to_pos.y = pivot_offset.y
+		to_pos.y = _offset.y
 	if target_edge.x > size.x:
 		to_pos.x -= target_edge.x - size.x
 	if target_edge.y > size.y:
 		to_pos.y -= target_edge.y - size.y
 
-	selection.move_to(to_pos, pivot_offset)
+	selection.move_to(to_pos, _offset)
 
 
 func resize_to(to_size:Vector2i):
@@ -100,3 +108,10 @@ func get_pivot_offset(to_size:Vector2i) -> Vector2i:
 			_offset.y = to_size.y / 2.0
 			
 	return _offset
+
+
+func _on_selected(rect : Rect2i):
+	if rect.has_area():
+		updated.emit(rect, relative_position, true)
+	else:
+		canceled.emit()

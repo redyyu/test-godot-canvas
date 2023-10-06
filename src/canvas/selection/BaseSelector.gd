@@ -1,5 +1,6 @@
 class_name BaseSelector extends RefCounted
 
+
 enum Mode {
 	REPLACE,
 	ADD,
@@ -20,7 +21,7 @@ var selected_rect :Rect2i :
 		if selection:
 			return selection.selected_rect
 		else:
-			return Rect2i(Vector2i.ZERO, Vector2i.ZERO)
+			return Rect2i()
 
 var size :Vector2i :
 	get: 
@@ -51,6 +52,12 @@ var is_moving := false
 
 var is_operating :bool :
 	get: return is_selecting or is_moving
+
+
+func attach(sel):
+	if not selection:
+		selection = sel
+		selection.selected.connect(_on_selected)
 
 
 func restore_mode():
@@ -118,3 +125,9 @@ func parse_rectangle_points(sel_points:PackedVector2Array):
 	pts.append(start)
 	pts.append(end)
 	return pts
+
+
+func _on_selected(_rect :Rect2i):
+	print(_rect)
+	
+	
