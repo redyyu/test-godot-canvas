@@ -120,7 +120,6 @@ func attach_project(proj):
 	project = proj
 	
 	selection.size = project.size
-	crop_sizer.size = project.size
 	
 	set_state(state)  # trigger state changing to init settings.
 
@@ -134,24 +133,24 @@ func set_state(val):  # triggered when state changing.
 	
 	if state == Artboard.CROP:
 		move_sizer.cancel()
-		crop_sizer.launch()
+		crop_sizer.launch(project.size)
 		selection.deselect()
 	elif state == Artboard.MOVE:
-		crop_sizer.cancel()
+		crop_sizer.cancel(true)
 		move_sizer.lanuch(project.current_cel.get_image(), selection.mask)
 		# selection must clear after mover setted, 
 		# mover still need it once.
 		selection.deselect() 
 	elif state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
 		move_sizer.apply(true)
-		crop_sizer.cancel()
+		crop_sizer.cancel(true)
 		pencil.attach(project.current_cel.get_image())
 		brush.attach(project.current_cel.get_image())
 		eraser.attach(project.current_cel.get_image())
 		# DO NOT clear selection here, drawer can draw by selection.
 	elif state not in [Artboard.DRAG, Artboard.ZOOM]:
 		move_sizer.apply(true)
-		crop_sizer.cancel()
+		crop_sizer.cancel(true)
 
 
 func set_zoom_ratio(val):

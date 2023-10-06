@@ -35,30 +35,31 @@ func lanuch(img :Image, mask :Image):
 
 
 func hire():
-	if not has_area() or is_activated:
+	if is_activated:
 		return
-		
-	super.hire()
-	
 	# image will not change and cancelable while in the progress.
 	# until applied or canceld.
-	if image_mask.is_empty() or image_mask.is_invisible():
-		# for whole image
-		preview_image = image.get_region(bound_rect)
-		image.fill_rect(bound_rect, Color.TRANSPARENT)
-	else:
-		# use tmp image for trigger the setter of transformer_image
-		var _tmp = Image.create(bound_rect.size.x, 
-								bound_rect.size.y,
-								false, image.get_format())
-		_tmp.blit_rect_mask(image, image_mask, bound_rect, Vector2i.ZERO)
-		preview_image = _tmp.duplicate()
-					
-		_tmp.resize(image.get_width(), image.get_height())
-		_tmp.fill(Color.TRANSPARENT)
-#			image.fill_rect(move_rect, Color.TRANSPARENT)
-		# DO NOT just fill rect, selection might have different shapes.
-		image.blit_rect_mask(_tmp, image_mask, bound_rect, bound_rect.position)
+	if not has_image():
+		if image_mask.is_empty() or image_mask.is_invisible():
+			# for whole image
+			preview_image = image.get_region(bound_rect)
+			image.fill_rect(bound_rect, Color.TRANSPARENT)
+		else:
+			# use tmp image for trigger the setter of transformer_image
+			var _tmp = Image.create(bound_rect.size.x, 
+									bound_rect.size.y,
+									false, image.get_format())
+			_tmp.blit_rect_mask(image, image_mask, bound_rect, Vector2i.ZERO)
+			preview_image = _tmp.duplicate()
+						
+			_tmp.resize(image.get_width(), image.get_height())
+			_tmp.fill(Color.TRANSPARENT)
+	#			image.fill_rect(move_rect, Color.TRANSPARENT)
+			# DO NOT just fill rect, selection might have different shapes.
+			image.blit_rect_mask(_tmp, image_mask, 
+								 bound_rect, bound_rect.position)
+	
+	super.hire()
 
 
 func cancel(use_reset := false):
@@ -67,7 +68,7 @@ func cancel(use_reset := false):
 
 
 func apply(use_reset := false):
-	if has_area():
+	if has_area() and has_image():
 		preview_image.resize(bound_rect.size.x, 
 							 bound_rect.size.y,
 							 Image.INTERPOLATE_NEAREST)
@@ -87,8 +88,8 @@ func apply(use_reset := false):
 	super.apply(use_reset)
 
 
-func has_area() -> bool:
-	return not preview_image.is_empty() and super.has_area()
+func has_image() -> bool:
+	return not preview_image.is_empty()
 
 
 func update_texture():
@@ -99,10 +100,11 @@ func update_texture():
 
 
 func _draw():
-	if has_area():
+	super._draw()
+	
+	if has_area() and has_image():
 #		texture = ImageTexture.create_from_image(image)
 		# DO NOT new a texture here, may got blank texture. do it before.
 		draw_texture_rect(preview_texture, bound_rect, false,
 						  MODULATE_COLOR if is_dragging else Color.WHITE)
-	super._draw()
 	

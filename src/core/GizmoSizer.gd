@@ -77,21 +77,23 @@ var drag_offset := Vector2i.ZERO
 
 var is_dragging := false :
 	set(val):
-		is_dragging = val
-		if visible: # emit event when showing up.
+		if is_dragging != val:
+			is_dragging = val
 			drag_updated.emit(is_dragging)
 			queue_redraw()
-	get: return is_dragging and visible
+	get: return is_dragging
 
 var is_scaling :bool :
 	get: return pressed_gizmo != null
 	set(val):
 		if not val:
 			pressed_gizmo = null
-		
 
-
-var is_activated := false
+var is_activated := false :
+	set(val):
+		is_activated = val
+		for gizmo in gizmos:
+			gizmo.visible = is_activated
 
 
 func _init():
@@ -118,11 +120,12 @@ func _ready():
 
 
 func attach(rect :Rect2i, auto_activate := false):
-	bound_rect = rect
-	if bound_rect.has_area() and auto_activate:
-		is_activated = true
+	if bound_rect == Rect2i(): # prevent multiple attach place bound rect.
+		bound_rect = rect
+	if has_area() and auto_activate:
+		hire()
 	else:
-		is_activated = false
+		dismiss()
 	visible = true
 	updated.emit(bound_rect, relative_position, is_activated)
 	queue_redraw()
@@ -155,13 +158,11 @@ func cancel(use_reset := false):
 
 
 func hire():
-	if not has_area() or is_activated:
+	if is_activated:
 		return
-	
 	is_activated = true
-	
-	for gizmo in gizmos:
-		gizmo.visible = true
+	updated.emit(bound_rect, relative_position, is_activated)
+	queue_redraw()
 	
 
 func dismiss():
@@ -174,9 +175,8 @@ func dismiss():
 	is_dragging = false
 	is_scaling = false
 #	pressed_gizmo = null # already set to null in is_scaling setter.
-	
-	for gizmo in gizmos:
-		gizmo.visible = false
+	updated.emit(bound_rect, relative_position, is_activated)
+	queue_redraw()
 
 
 func drag_to(pos :Vector2i):
@@ -333,6 +333,7 @@ func get_pivot_offset(to_size:Vector2i) -> Vector2i:
 
 
 func has_area() -> bool:
+	# ovrride it very carefully, it might interfere base class funcs.
 	return bound_rect.has_area()
 
 
@@ -346,21 +347,13 @@ func _input(event :InputEvent):
 
 	if not visible:
 		return
-	
-	if (visible and event is InputEventMouseButton and event.pressed and 
-		not is_dragging and not is_scaling):
-		var pos = get_local_mouse_position()
-		if has_point(pos):
-			hire()
-		elif is_activated and event.double_click:
-			apply()
-		else:
-			dismiss()
-	elif event is InputEventKey:
+			
+	if event is InputEventKey:
 		if event.keycode == KEY_ENTER:
 			apply()
 		elif event.keycode == KEY_ESCAPE:
 			cancel()
+			
 	elif event is InputEventMouseMotion:
 		var pos := get_local_mouse_position()
 		if is_scaling:
@@ -380,16 +373,28 @@ func _input(event :InputEvent):
 	elif event is InputEventMouseButton:
 		var pos := get_local_mouse_position()
 		# its in subviewport local mouse position should be work.
-		if bound_rect.has_point(pos):
-			is_dragging = event.pressed
-			if is_dragging: 
-				drag_offset = Vector2i(pos) - bound_rect.position
-		elif is_dragging:
-			is_dragging = false
+		if is_activated:
+			if has_point(pos):
+				is_dragging = event.pressed
+				if is_dragging:
+					drag_offset = Vector2i(pos) - bound_rect.position
+				else:
+					drag_offset = Vector2i.ZERO
+			else:
+				if event.pressed and not is_dragging and not is_scaling:
+					dismiss()
+					# NO NEED check double click here, 
+					# pressed always trigger dismiss before double click.
+				is_dragging = false
+
+		elif event.pressed and has_point(pos):
+			is_dragging = true
+			drag_offset = Vector2i(pos) - bound_rect.position
+			hire()
 
 
 func _draw():
-	if visible and has_area():
+	if has_area(): # careful has_area might be ovrride.
 		draw_rect(bound_rect, line_color, false, line_width / zoom_ratio)
 
 
@@ -495,6 +500,7 @@ class Gizmo extends Node2D :
 
 
 	func _init(_pivot):
+		visible = false
 		pivot = _pivot
 		
 		match pivot:
@@ -517,7 +523,7 @@ class Gizmo extends Node2D :
 			_:
 				cursor = Control.CURSOR_POINTING_HAND
 
-
+	
 	func _get_pivot_offset():
 		match pivot:
 			GizmoSizer.Pivot.TOP_LEFT:
@@ -539,9 +545,8 @@ class Gizmo extends Node2D :
 			_:
 				return Vector2.ZERO
 
+
 	func _draw():
-		if not visible:
-			return
 		draw_rect(rectangle, color if is_hover or is_pressed else bgcolor)
 		draw_rect(rectangle, color, false, line_width / zoom_ratio)
 
@@ -562,7 +567,6 @@ class Gizmo extends Node2D :
 					queue_redraw()  # redraw hover effect
 				if event is InputEventMouseButton:
 					is_pressed = event.pressed
-					queue_redraw()
 			else:
 				if is_hover:
 					is_hover = false
@@ -570,4 +574,3 @@ class Gizmo extends Node2D :
 				if is_pressed and event is InputEventMouseButton:
 					# for release outside
 					is_pressed = false
-					queue_redraw()

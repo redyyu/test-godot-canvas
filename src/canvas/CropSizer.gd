@@ -5,11 +5,8 @@ const MASK_COLOR := Color(0, 0, 0, 0.66)
 var size := Vector2i.ZERO
 
 
-func _ready():
-	visible = false
-
-
-func launch():
+func launch(canvas_size: Vector2i):
+	size = canvas_size
 	var rect := Rect2i(Vector2i.ZERO, size)
 	attach(rect, true)
 
@@ -17,13 +14,18 @@ func launch():
 func cancel(use_reset := false):
 	var rect := Rect2i(Vector2i.ZERO, size)
 	refresh(rect)
-	super.cancel(use_reset)
+	updated.emit(bound_rect, relative_position, is_activated)
+	if use_reset:
+		canceled.emit()
+		reset()
 
 
-func _draw() -> void:
+func _draw():
+	super._draw()
+	
 	if not has_area():
 		return
-		
+	
 	# Background
 	var total_rect = Rect2i(Vector2.ZERO, size)
 	
@@ -49,9 +51,6 @@ func _draw() -> void:
 				   bound_rect.position.x, bound_rect.size.y))
 		draw_rect(left_rect, MASK_COLOR)
 
-	
-	# Rect:
-	draw_rect(bound_rect, line_color, false, line_width / zoom_ratio)
 
 	# Horizontal rule of thirds lines:
 	var third: float = bound_rect.position.y + bound_rect.size.y * 0.333

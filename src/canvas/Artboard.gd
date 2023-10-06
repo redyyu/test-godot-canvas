@@ -244,7 +244,6 @@ func _on_camera_pressing(is_pressed):
 
 
 func _on_canvas_operating(_state:int, is_finished :bool):
-	print(_state)
 	if is_finished:
 		_lock_guides(guides_locked)
 	else:
