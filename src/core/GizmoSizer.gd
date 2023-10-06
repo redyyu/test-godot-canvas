@@ -2,8 +2,13 @@ class_name GizmoSizer extends Node2D
 
 signal gizmo_hover_updated(gizmo, status)
 signal gizmo_press_updated(gizmo, status)
-signal updated(rect)
 signal drag_updated(status)
+
+signal updated(rect, rel_pos, statsu)
+signal applied(rect, rel_pos, statsu)
+signal canceled
+
+signal cursor_changed(cursor)
 
 
 enum Pivot {
@@ -42,6 +47,9 @@ var pivot := Pivot.TOP_LEFT
 		gizmo_size = val
 		for gizmo in gizmos:
 			gizmo.default_size = gizmo_size
+			
+@export var line_width := 1.0
+@export var line_color := Color(0.2, 0.2, 0.2, 1)
 
 var zoom_ratio := 1.0 :
 	set(val):
@@ -54,6 +62,7 @@ var bound_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO) :
 		bound_rect = val
 		for gizmo in gizmos:
 			set_gizmo_place(gizmo)
+		queue_redraw()
 
 var gizmos :Array[Gizmo] = []
 
@@ -64,19 +73,28 @@ var relative_position :Vector2i :  # with pivot, for display on panel
 
 var pressed_gizmo :Variant = null
 var last_position :Variant = null # prevent same with mouse pos from beginning.
+var drag_offset := Vector2i.ZERO
 
 var is_dragging := false :
 	set(val):
 		is_dragging = val
 		if visible: # emit event when showing up.
 			drag_updated.emit(is_dragging)
+			queue_redraw()
 	get: return is_dragging and visible
 
-var drag_offset := Vector2i.ZERO
+var is_scaling :bool :
+	get: return bool(pressed_gizmo)
+
+
+var is_activated := false
+
+
+func _init():
+	visible = false
 
 
 func _ready():
-	visible = false
 	gizmos.append(Gizmo.new(Pivot.TOP_LEFT))
 	gizmos.append(Gizmo.new(Pivot.TOP_CENTER))
 	gizmos.append(Gizmo.new(Pivot.TOP_RIGHT))
@@ -95,33 +113,65 @@ func _ready():
 		add_child(gizmo)
 
 
-func attach(rect :Rect2i, auto_hire := false):
+func attach(rect :Rect2i, auto_activate := false):
 	bound_rect = rect
-	if bound_rect.has_area():
-		updated.emit(bound_rect)
-		if auto_hire:
-			hire()
+	if bound_rect.has_area() and auto_activate:
+		is_activated = true
 	else:
-		dismiss()
+		is_activated = false
+	visible = true
+	updated.emit(bound_rect, relative_position, is_activated)
+	queue_redraw()
+
+
+func reset():
+	visible = false
+	bound_rect = Rect2i()
 
 
 func refresh(rect :Rect2i):
 	bound_rect = rect
-	updated.emit(bound_rect)
+	updated.emit(bound_rect, relative_position, is_activated)
+	queue_redraw()
+
+
+func apply(use_reset := false):
+	dismiss()
+	if has_area():
+		applied.emit(bound_rect, relative_position, is_activated)
+	if use_reset:
+		reset()
+
+
+func cancel(use_reset := false):
+	dismiss()
+	canceled.emit()
+	if use_reset:
+		reset()
 
 
 func hire():
-	if not visible:
-		visible = true
+	if not has_area() or is_activated:
+		return
+	
+	is_activated = true
+	
+	for gizmo in gizmos:
+		gizmo.visible = true
 	
 
 func dismiss():
-	if visible:
-		visible = false
-		drag_offset = Vector2i.ZERO
-		pressed_gizmo = null
-		last_position = null
-		is_dragging = false
+	if not is_activated:
+		return
+	
+	is_activated = false
+	drag_offset = Vector2i.ZERO
+	pressed_gizmo = null
+	last_position = null
+	is_dragging = false
+	
+	for gizmo in gizmos:
+		gizmo.visible = false
 
 
 func drag_to(pos :Vector2i):
@@ -155,11 +205,9 @@ func drag_to(pos :Vector2i):
 	var snap_pos = null
 	var last_weight := 0
 	for corner in pos_corners:
-		var _weight := 0
-		snap_pos = get_snapping_weight.call(corner['position'])
-		if snap_pos is Vector3i or snap_pos is Vector3:
-			_weight = snap_pos.z
-			snap_pos = Vector2i(snap_pos.x, snap_pos.y)
+		snap_pos = snapping(corner['position'])
+		var _weight = snap_pos.z
+		snap_pos = Vector2i(snap_pos.x, snap_pos.y)
 		if _weight > last_weight:
 			last_weight = _weight
 			pos = Vector2i(snap_pos) - corner['offset']
@@ -169,7 +217,7 @@ func drag_to(pos :Vector2i):
 	for gzm in gizmos:
 		set_gizmo_place(gzm)
 	
-	updated.emit(bound_rect)
+	updated.emit(bound_rect, relative_position, is_activated)
 
 
 func scale_to(gizmo:Gizmo, pos :Vector2i):
@@ -214,7 +262,7 @@ func scale_to(gizmo:Gizmo, pos :Vector2i):
 	for gzm in gizmos:
 		set_gizmo_place(gzm)
 
-	updated.emit(bound_rect)
+	updated.emit(bound_rect, relative_position, is_activated)
 
 
 func set_gizmo_place(gizmo):
@@ -277,22 +325,42 @@ func get_pivot_offset(to_size:Vector2i) -> Vector2i:
 	return _offset
 
 
+func has_area() -> bool:
+	return bound_rect.has_area()
+
+
+func has_point(point :Vector2i) ->bool:
+	return bound_rect.has_point(point)
+
+
 func _input(event :InputEvent):
 	# TODO: the way handle the events might not support touch / tablet. 
 	# since I have no device to try. leave it for now.
 
 	if not visible:
 		return
-
-	if event is InputEventMouseMotion:
+	
+	if (visible and event is InputEventMouseButton and event.pressed and 
+		not is_dragging and not is_scaling):
+		var pos = get_local_mouse_position()
+		if has_point(pos):
+			hire()
+		elif is_activated and event.double_click:
+			apply()
+		else:
+			dismiss()
+	elif event is InputEventKey:
+		if event.keycode == KEY_ENTER:
+			apply()
+		elif event.keycode == KEY_ESCAPE:
+			cancel()
+	elif event is InputEventMouseMotion:
 		var pos := get_local_mouse_position()
 		if pressed_gizmo:
 			if is_dragging:  # prevent the dragging zone is hit.
 				is_dragging = false
-			var snap_pos = get_snapping_weight.call(pos)
-			if snap_pos is Vector3i or snap_pos is Vector3:
-				snap_pos = Vector2i(snap_pos.x, snap_pos.y)
-			scale_to(pressed_gizmo, snap_pos)
+			var snap_pos = snapping.call(pos)
+			scale_to(pressed_gizmo, Vector2i(snap_pos.x, snap_pos.y))
 			# it is in a sub viewport, and without any influence with layout.
 			# so `get_global_mouse_position()` should work.
 		elif is_dragging:
@@ -312,9 +380,14 @@ func _input(event :InputEvent):
 			is_dragging = false
 
 
+func _draw():
+	if visible and has_area():
+		draw_rect(bound_rect, line_color, false, line_width / zoom_ratio)
+
 
 func _on_gizmo_hover_updated(gizmo, status):
 	gizmo_hover_updated.emit(gizmo, status)
+	cursor_changed.emit(gizmo.cursor if status else null)
 	
 
 func _on_gizmo_press_updated(gizmo, status):
@@ -322,10 +395,22 @@ func _on_gizmo_press_updated(gizmo, status):
 	pressed_gizmo = gizmo if status else null
 
 
+# snapping
+func snapping(pos) -> Vector3i:
+	var snapped_pos = _snapping.call(pos)
+	if snapped_pos is Vector2i or snapped_pos is Vector2:
+		# pack to Vector3i, if hook is return Vector2(i)
+		var snap_weight = 1 if pos != snapped_pos else 0
+		snapped_pos = Vector3i(snapped_pos.x, snapped_pos.y, snap_weight)
+	return snapped_pos
+
 # hook for snapping
-var get_snapping_weight = func(pos) -> Vector3i:
+var _snapping = func(pos) -> Vector3i: # pass original postion if no hook.
 	return Vector3i(pos.x, pos.y, -1)
 
+
+func inject_snapping(callable :Callable):
+	_snapping = callable
 
 # Use custom draw_rect and input event to replace
 # what Control (such as ColorRect) should do,
@@ -459,9 +544,12 @@ class Gizmo extends Node2D :
 
 
 	func _input(event :InputEvent):
+		if not visible:
+			return
+
 		# TODO: the way handle the events might not support touch / tablet. 
 		# since I have no device to try. leave it for now.
-		
+
 		if event is InputEventMouse:
 			var pos = get_local_mouse_position()
 			var hover = touch.has_point(pos)

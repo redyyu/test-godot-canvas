@@ -140,7 +140,7 @@ func _ready():
 	canvas.select_changed.connect(_on_select_changed)
 	
 	canvas.crop_applied.connect(_on_canvas_cropped)
-	canvas.cursor_changed.connect(_on_canvas_change_cursor)
+	canvas.cursor_changed.connect(_on_canvas_cursor_changed)
 	canvas.operating.connect(_on_canvas_operating)
 	
 	mouse_guide.set_guide(size)
@@ -248,7 +248,7 @@ func _on_canvas_operating(_state:int, is_finished :bool):
 		_lock_guides(true)
 
 
-func _on_canvas_change_cursor(cursor):
+func _on_canvas_cursor_changed(cursor):
 	if cursor:
 		mouse_default_cursor_shape = cursor
 	else:

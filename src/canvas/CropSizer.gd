@@ -1,0 +1,76 @@
+class_name CropSizer extends GizmoSizer
+
+const MASK_COLOR := Color(0, 0, 0, 0.66)
+
+var size := Vector2i.ZERO
+
+
+func _ready():
+	visible = false
+
+
+func launch():
+	var rect := Rect2i(Vector2i.ZERO, size)
+	attach(rect, true)
+
+
+func cancel(use_reset := false):
+	var rect := Rect2i(Vector2i.ZERO, size)
+	refresh(rect)
+	super.cancel(use_reset)
+
+
+func _draw() -> void:
+	if not has_area():
+		return
+		
+	# Background
+	var total_rect = Rect2i(Vector2.ZERO, size)
+	
+	if bound_rect.position.y > 0 and size.x > 0:
+		var top_rect = total_rect.intersection(
+			Rect2i(0, 0, size.x, bound_rect.position.y))
+		draw_rect(top_rect, MASK_COLOR)
+	
+	if (size.x - bound_rect.end.x) > 0 and bound_rect.size.y > 0:
+		var right_rect = total_rect.intersection(
+			Rect2i(bound_rect.end.x, bound_rect.position.y, 
+				   size.x - bound_rect.end.x, bound_rect.size.y))
+		draw_rect(right_rect, MASK_COLOR)
+	
+	if size.x > 0 and (size.y - bound_rect.end.y) > 0:
+		var bottom_rect = total_rect.intersection(
+			Rect2i(0, bound_rect.end.y, size.x, size.y - bound_rect.end.y))
+		draw_rect(bottom_rect, MASK_COLOR)	
+		
+	if bound_rect.position.x > 0 and bound_rect.size.y > 0:
+		var left_rect = total_rect.intersection(
+			Rect2i(0, bound_rect.position.y, 
+				   bound_rect.position.x, bound_rect.size.y))
+		draw_rect(left_rect, MASK_COLOR)
+
+	
+	# Rect:
+	draw_rect(bound_rect, line_color, false, line_width / zoom_ratio)
+
+	# Horizontal rule of thirds lines:
+	var third: float = bound_rect.position.y + bound_rect.size.y * 0.333
+	draw_line(Vector2(bound_rect.position.x, third), 
+			  Vector2(bound_rect.end.x, third),
+			  line_color, line_width / zoom_ratio)
+			
+	third = bound_rect.position.y + bound_rect.size.y * 0.667
+	draw_line(Vector2(bound_rect.position.x, third),
+			  Vector2(bound_rect.end.x, third),
+			  line_color, line_width / zoom_ratio)
+
+	# Vertical rule of thirds lines:
+	third = bound_rect.position.x + bound_rect.size.x * 0.333
+	draw_line(Vector2(third, bound_rect.position.y),
+			  Vector2(third, bound_rect.end.y),
+			  line_color, line_width / zoom_ratio)
+			
+	third = bound_rect.position.x + bound_rect.size.x * 0.667
+	draw_line(Vector2(third, bound_rect.position.y),
+			  Vector2(third, bound_rect.end.y),
+			  line_color, line_width / zoom_ratio)

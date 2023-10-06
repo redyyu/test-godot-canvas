@@ -1,13 +1,15 @@
 class_name Canvas extends Node2D
 
 
-signal crop_applied(rect)
-
 signal select_updated(rect, rel_pos, status)
+
 signal move_updated(rect, rel_pos, status)
+signal move_applied(rect, rel_pos, status)
 signal move_canceled
-signal move_applied(rect)
-signal crop_updatedd(rect, rel_pos, status)
+
+signal crop_updated(rect, rel_pos, status)
+signal crop_applied(rect, rel_pos, status)
+signal crop_canceled
 
 signal cursor_changed(cursor)
 signal operating(operate_state, is_finished)
@@ -59,8 +61,8 @@ var zoom := Vector2.ONE :
 
 @onready var indicator :Indicator = $Indicator
 @onready var selection :Selection = $Selection
-@onready var cropper :Cropper = $Cropper
-@onready var mover :Mover = $Mover
+@onready var crop_sizer :CropSizer = $CropSizer
+@onready var move_sizer :MoveSizer = $MoverSizer
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -78,7 +80,7 @@ var zoom := Vector2.ONE :
 #@onready var selection :Node2D = $Selection
 #@onready var onion_past :Node2D = $OnionPast
 #@onready var onion_future :Node2D = $OnionFuture
-#@onready var cropper :Cropper = $Cropper
+#@onready var crop_sizer :crop_sizer = $crop_sizer
 
 
 func _ready():
@@ -101,24 +103,24 @@ func _ready():
 	var snapper_weight_hook = func(pos) -> Vector3i:
 		return snapper.snap_position_weight(pos, true)
 	
-	cropper.updated.connect(_on_crop_updated)
-	cropper.canceled.connect(_on_crop_canceled)
-	cropper.applied.connect(_on_crop_applied)
-	cropper.cursor_changed.connect(_on_cursor_changed)
-	cropper.inject_sizer_snapping(snapper_weight_hook)
+	crop_sizer.updated.connect(_on_crop_updated)
+	crop_sizer.canceled.connect(_on_crop_canceled)
+	crop_sizer.applied.connect(_on_crop_applied)
+	crop_sizer.cursor_changed.connect(_on_cursor_changed)
+	crop_sizer.inject_snapping(snapper_weight_hook)
 	
-	mover.updated.connect(_on_move_updated)
-	mover.canceled.connect(_on_move_canceled)
-	mover.applied.connect(_on_move_applied)
-	mover.cursor_changed.connect(_on_cursor_changed)
-	mover.inject_sizer_snapping(snapper_weight_hook)
+	move_sizer.updated.connect(_on_move_updated)
+	move_sizer.canceled.connect(_on_move_canceled)
+	move_sizer.applied.connect(_on_move_applied)
+	move_sizer.cursor_changed.connect(_on_cursor_changed)
+	move_sizer.inject_snapping(snapper_weight_hook)
 
 
 func attach_project(proj):
 	project = proj
 	
 	selection.size = project.size
-	cropper.size = project.size
+	crop_sizer.size = project.size
 	
 	set_state(state)  # trigger state changing to init settings.
 
@@ -131,26 +133,25 @@ func set_state(val):  # triggered when state changing.
 	indicator.hide_indicator()  # not all state need indicator
 	
 	if state == Artboard.CROP:
-		mover.cancel()
-		cropper.launch()
+		move_sizer.cancel()
+		crop_sizer.launch()
 		selection.deselect()
 	elif state == Artboard.MOVE:
-		cropper.cancel()
-		mover.lanuch(project.current_cel.get_image(), 
-						 		selection.mask)
+		crop_sizer.cancel()
+		move_sizer.lanuch(project.current_cel.get_image(), selection.mask)
 		# selection must clear after mover setted, 
 		# mover still need it once.
 		selection.deselect() 
 	elif state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
-		mover.apply(true)
-		cropper.cancel()
+		move_sizer.apply(true)
+		crop_sizer.cancel()
 		pencil.attach(project.current_cel.get_image())
 		brush.attach(project.current_cel.get_image())
 		eraser.attach(project.current_cel.get_image())
 		# DO NOT clear selection here, drawer can draw by selection.
 	elif state not in [Artboard.DRAG, Artboard.ZOOM]:
-		mover.apply(true)
-		cropper.cancel()
+		move_sizer.apply(true)
+		crop_sizer.cancel()
 
 
 func set_zoom_ratio(val):
@@ -159,8 +160,8 @@ func set_zoom_ratio(val):
 	zoom = val
 	var zoom_ratio = (zoom.x + zoom.y) / 2
 	selection.zoom_ratio = zoom_ratio
-	cropper.zoom_ratio = zoom_ratio
-	mover.zoom_ratio = zoom_ratio
+	crop_sizer.zoom_ratio = zoom_ratio
+	move_sizer.zoom_ratio = zoom_ratio
 
 
 func prepare_pressure(pressure:float) -> float:
@@ -309,37 +310,37 @@ func _on_cursor_changed(cursor):
 
 # selection
 func _on_select_updated(rect :Rect2i, rel_pos: Vector2i):
-	select_changed.emit(rect, rel_pos, true)
+	select_updated.emit(rect, rel_pos, true)
 
 
 # crop
-func _on_crop_updated(rect :Rect2i, rel_pos: Vector2i):
-	crop_changed.emit(rect, rel_pos, true)
+func _on_crop_updated(rect :Rect2i, rel_pos: Vector2i, status :bool):
+	crop_updated.emit(rect, rel_pos, status)
 	
+	
+func _on_crop_applied(rect :Rect2i, rel_pos: Vector2i, status :bool):
+	crop_applied.emit(rect, rel_pos, status)
+
 
 func _on_crop_canceled():
-	crop_changed.emit()
+	crop_updated.emit()
 	
-	
-func _on_crop_applied(rect :Rect2i):
-	crop_applied.emit(rect)
-
 
 # move
 func _on_move_updated(rect :Rect2i, rel_pos: Vector2i, status :bool):
-	move_changed.emit(rect, rel_pos, status)
+	move_updated.emit(rect, rel_pos, status)
 	project.current_cel.update_texture()
 	queue_redraw()
-	
+
+
+func _on_move_applied(rect :Rect2i, rel_pos: Vector2i, status :bool):
+	move_applied.emit(rect, rel_pos, status)
+	project.current_cel.update_texture()
+	queue_redraw()
+
 
 func _on_move_canceled():
-	move_changed.emit()
-	
-
-func _on_move_applied(rect :Rect2i):
-	move_changed.emit(rect)
-	project.current_cel.update_texture()
-	queue_redraw()
+	move_canceled.emit()
 
 
 # snapping
