@@ -21,7 +21,7 @@ var mode :Selection.Mode:
 		if selection:
 			return selection.mode
 		else:
-			return -1
+			return Selection.Mode.REPLACE
 
 var as_replace :bool :
 	get: return mode == Selection.Mode.REPLACE
