@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://kdbaytc0h8gy"]
 
 [ext_resource type="Script" path="res://src/transform/TransformPanel.gd" id="1_rjbfa"]
-[ext_resource type="Script" path="res://src/transform/PivotSelector.gd" id="2_urtqy"]
+[ext_resource type="Script" path="res://src/widgets/PivotSelector.gd" id="2_1uiln"]
 
 [node name="TransformPanel" type="Panel"]
 anchors_preset = 15
@@ -72,7 +72,7 @@ alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
-script = ExtResource("2_urtqy")
+script = ExtResource("2_1uiln")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="column/row2"]
 custom_minimum_size = Vector2(15, 0)

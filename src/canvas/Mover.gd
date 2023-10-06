@@ -2,9 +2,9 @@ class_name Mover extends Node2D
 
 
 signal updated(rect, rel_pos, status)
-signal applied(rect)
+signal applied(rect, rel_pos, status)
 signal canceled
-signal cursor_updated(cursor)
+signal cursor_changed(cursor)
 
 
 const MODULATE_COLOR := Color(1, 1, 1, 0.33)
@@ -43,9 +43,6 @@ var zoom_ratio := 1.0 :
 		sizer.zoom_ratio = zoom_ratio
 		queue_redraw()
 
-var is_moving :bool :
-	get: return not move_image.is_empty() and move_rect.has_area()
-
 var is_dragging := false :
 	set(val):
 		is_dragging = val
@@ -66,9 +63,8 @@ func _init():
 	sizer.gizmo_color = line_color
 	sizer.gizmo_hover_updated.connect(_on_sizer_hover_updated)
 	sizer.gizmo_press_updated.connect(_on_sizer_press_updated)
+	sizer.drag_updated.connect(_on_sizer_drag_updated)
 	sizer.updated.connect(_on_sizer_updated)
-	sizer.drag_started.connect(_on_sizer_drag_started)
-	sizer.drag_ended.connect(_on_sizer_drag_ended)
 
 
 func _ready():
@@ -92,7 +88,7 @@ func reset():
 	
 
 func lanuch(img :Image, mask :Image):
-	if not is_moving:
+	if not has_area():
 		image = img  # DO NOT copy_form, image must change runtime.
 		image_backup.copy_from(image)
 		image_mask.copy_from(mask)
@@ -107,7 +103,7 @@ func lanuch(img :Image, mask :Image):
 
 
 func activate():
-	if not move_rect.has_area() or is_activated:
+	if not has_area() or is_activated:
 		# move_rect is setted when launch or transforming.
 		return
 	is_activated = true
@@ -145,7 +141,7 @@ func cancel():
 
 func apply(use_reset := false):
 	is_activated = false
-	if is_moving:
+	if has_area():
 		move_image.resize(move_rect.size.x, 
 							   move_rect.size.y,
 							   Image.INTERPOLATE_NEAREST)
@@ -161,9 +157,17 @@ func apply(use_reset := false):
 						Rect2i(Vector2i.ZERO, move_rect.size),
 						move_rect.position)
 		image_mask.copy_from(_mask)
-		applied.emit(move_rect)
+		applied.emit(move_rect, relative_position, is_activated)
 	if use_reset:
 		reset()
+
+
+func has_area() -> bool:
+	return not move_image.is_empty() and move_rect.has_area()
+
+
+func has_point(point :Vector2i) ->bool:
+	return move_rect.has_point(point)
 
 
 func update_texture():
@@ -184,8 +188,8 @@ func _input(event):
 
 
 func _draw():
-	if visible and move_rect:
-		if is_moving:
+	if visible:
+		if has_area():
 	#		texture = ImageTexture.create_from_image(image)
 			# DO NOT new a texture here, may got blank texture. do it before.
 			draw_texture_rect(move_texture, move_rect, false,
@@ -194,7 +198,7 @@ func _draw():
 
 
 func _on_sizer_hover_updated(gizmo, status):
-	cursor_updated.emit(gizmo.cursor if status else null)
+	cursor_changed.emit(gizmo.cursor if status else null)
 
 
 func _on_sizer_press_updated(_gizmo, status):
@@ -206,11 +210,8 @@ func _on_sizer_updated(rect):
 	updated.emit(move_rect, relative_position, is_activated)
 
 
-func _on_sizer_drag_started():
-	is_dragging = true
-	
-func _on_sizer_drag_ended():
-	is_dragging = false
+func _on_sizer_drag_updated(status):
+	is_dragging = status
 
 
 # external injector

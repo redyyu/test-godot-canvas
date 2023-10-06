@@ -2,10 +2,10 @@ class_name Cropper extends Node2D
 # Draws the rectangle overlay for the crop tool
 # Stores the shared settings between left and right crop tools
 
-signal updated(rect, rel_pos)
+signal updated(rect, rel_pos, status)
 signal applied(rect)
 signal canceled
-signal cursor_updated(cursor)
+signal cursor_changed(cursor)
 
 const BG_COLOR := Color(0, 0, 0, 0.66)
 const LINE_COLOR := Color.WHITE
@@ -29,17 +29,21 @@ var zoom_ratio := 1.0 :
 		sizer.zoom_ratio = zoom_ratio
 		queue_redraw()
 
-var is_cropping := false
-var is_dragging := false
+var is_dragging := false :
+	set(val):
+		is_dragging = val
+		queue_redraw()
+		
+var is_scaling := false
+var is_activated := false
 
 
 func _init():
 	sizer.gizmo_hover_updated.connect(_on_sizer_hover_updated)
 	sizer.gizmo_press_updated.connect(_on_sizer_press_updated)
+	sizer.drag_updated.connect(_on_sizer_drag_updated)
 	sizer.updated.connect(_on_sizer_updated)
-	sizer.drag_started.connect(_on_sizer_drag_started)
-	sizer.drag_ended.connect(_on_sizer_drag_ended)
-	
+
 
 func _ready():
 	visible = false
@@ -48,8 +52,9 @@ func _ready():
 
 func reset():
 	visible = false
-	is_cropping = false
+	is_scaling = false
 	is_dragging = false
+	is_activated = false
 	cropped_rect = Rect2i()
 
 
@@ -76,8 +81,20 @@ func apply(use_reset:=false):
 		reset()
 
 
+func has_area() ->bool:
+	return cropped_rect.has_area()
+
+
 func has_point(point :Vector2i) ->bool:
 	return cropped_rect.has_point(point)
+
+
+func _input(event):
+	if (event is InputEventMouseButton and event.pressed and 
+		not is_dragging and not is_scaling):
+		var pos = get_local_mouse_position()
+		if has_point(pos):
+			apply(false)
 
 
 func _draw() -> void:
@@ -137,23 +154,20 @@ func _draw() -> void:
 
 
 func _on_sizer_hover_updated(gizmo, status):
-	cursor_updated.emit(gizmo.cursor if status else null)
+	cursor_changed.emit(gizmo.cursor if status else null)
 
 
 func _on_sizer_press_updated(_gizmo, status):
-	is_cropping = status
+	is_scaling = status
 
 
 func _on_sizer_updated(rect):
 	cropped_rect = rect
-	updated.emit(rect, relative_position)
+	updated.emit(rect, relative_position, is_activated)
 	
 
-func _on_sizer_drag_started():
-	is_dragging = true
-	
-func _on_sizer_drag_ended():
-	is_dragging = false
+func _on_sizer_drag_updated(status):
+	is_dragging = status
 
 
 # external injector

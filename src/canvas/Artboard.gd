@@ -135,12 +135,12 @@ func _ready():
 	camera.zoomed.connect(_on_camera_updated)
 	camera.press_updated.connect(_on_camera_pressing)
 	
-	canvas.move_updated.connect(_on_move_updated)
-	canvas.crop_updated.connect(_on_crop_updated)
-	canvas.select_updated.connect(_on_select_updated)
+	canvas.move_changed.connect(_on_move_changed)
+	canvas.crop_changed.connect(_on_crop_changed)
+	canvas.select_changed.connect(_on_select_changed)
 	
 	canvas.crop_applied.connect(_on_canvas_cropped)
-	canvas.cursor_updated.connect(_on_canvas_change_cursor)
+	canvas.cursor_changed.connect(_on_canvas_change_cursor)
 	canvas.operating.connect(_on_canvas_operating)
 	
 	mouse_guide.set_guide(size)
@@ -264,12 +264,12 @@ func _on_mouse_exited():
 
 
 # selection
-func _on_select_updated(rect :Rect2i, rel_pos:Vector2i, status :bool):
+func _on_select_changed(rect :Rect2i, rel_pos:Vector2i, status :bool):
 	select_updated.emit(rect, rel_pos, status)
 
 
 # cropper
-func _on_crop_updated(rect :Rect2i, rel_pos:Vector2i, status :bool):
+func _on_crop_changed(rect :Rect2i, rel_pos:Vector2i, status :bool):
 	crop_updated.emit(rect, rel_pos, status)
 
 
@@ -278,7 +278,7 @@ func _on_canvas_cropped(rect :Rect2i):
 
 
 # mover
-func _on_move_updated(rect :Rect2i, rel_pos:Vector2i, status:bool):
+func _on_move_changed(rect :Rect2i, rel_pos:Vector2i, status:bool):
 	move_updated.emit(rect, rel_pos, status)
 	
 

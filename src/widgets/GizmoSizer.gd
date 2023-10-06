@@ -3,8 +3,8 @@ class_name GizmoSizer extends Node2D
 signal gizmo_hover_updated(gizmo, status)
 signal gizmo_press_updated(gizmo, status)
 signal updated(rect)
-signal drag_started
-signal drag_ended
+signal drag_updated(status)
+
 
 enum Pivot {
 	TOP_LEFT,
@@ -69,10 +69,7 @@ var is_dragging := false :
 	set(val):
 		is_dragging = val
 		if visible: # emit event when showing up.
-			if is_dragging:
-				drag_started.emit()
-			else:
-				drag_ended.emit()
+			drag_updated.emit(is_dragging)
 	get: return is_dragging and visible
 
 var drag_offset := Vector2i.ZERO

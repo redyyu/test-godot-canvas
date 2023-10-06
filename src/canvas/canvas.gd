@@ -3,9 +3,11 @@ class_name Canvas extends Node2D
 
 signal crop_applied(rect)
 
-signal select_changed(rect, rel_pos, status)
-signal move_changed(rect, rel_pos, status)
-signal crop_changed(rect, rel_pos, status)
+signal select_updated(rect, rel_pos, status)
+signal move_updated(rect, rel_pos, status)
+signal move_canceled
+signal move_applied(rect)
+signal crop_updatedd(rect, rel_pos, status)
 
 signal cursor_changed(cursor)
 signal operating(operate_state, is_finished)
@@ -100,15 +102,15 @@ func _ready():
 		return snapper.snap_position_weight(pos, true)
 	
 	cropper.updated.connect(_on_crop_updated)
-	cropper.cancaled.connect(_on_crop_canceled)
+	cropper.canceled.connect(_on_crop_canceled)
 	cropper.applied.connect(_on_crop_applied)
-	cropper.cursor_changed.connect(_on_curosr_updated)
+	cropper.cursor_changed.connect(_on_cursor_changed)
 	cropper.inject_sizer_snapping(snapper_weight_hook)
 	
 	mover.updated.connect(_on_move_updated)
-	mover.cancaled.connect(_on_move_canceled)
+	mover.canceled.connect(_on_move_canceled)
 	mover.applied.connect(_on_move_applied)
-	mover.cursor_changed.connect(_on_curosr_updated)
+	mover.cursor_changed.connect(_on_cursor_changed)
 	mover.inject_sizer_snapping(snapper_weight_hook)
 
 
@@ -301,7 +303,7 @@ func get_relative_mouse_position(): # other node need mouse location of canvas.
 
 
 # cursor
-func _on_curosr_updated(cursor):
+func _on_cursor_changed(cursor):
 	cursor_changed.emit(cursor)
 	
 
@@ -316,7 +318,7 @@ func _on_crop_updated(rect :Rect2i, rel_pos: Vector2i):
 	
 
 func _on_crop_canceled():
-	crop_changed.emit(Rect2i(), Vector2i(), false)
+	crop_changed.emit()
 	
 	
 func _on_crop_applied(rect :Rect2i):
@@ -331,10 +333,11 @@ func _on_move_updated(rect :Rect2i, rel_pos: Vector2i, status :bool):
 	
 
 func _on_move_canceled():
-	move_changed.emit(Rect2i, Vector2i(), false)
+	move_changed.emit()
 	
 
 func _on_move_applied(rect :Rect2i):
+	move_changed.emit(rect)
 	project.current_cel.update_texture()
 	queue_redraw()
 
