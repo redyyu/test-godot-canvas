@@ -168,7 +168,7 @@ func _on_btn_pressed(btn):
 			artboard.state = Artboard.SELECT_MAGIC
 		
 		'ColorPicker':
-			artboard.state = Artboard.COLOR_PICK
+			artboard.state = Artboard.PICK_COLOR
 		
 		'BtnCenterSelector':
 			artboard.apply_select_as_center(btn.button_pressed)

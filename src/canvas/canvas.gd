@@ -32,6 +32,8 @@ var ellipse_selector := EllipseSelector.new()
 var polygon_selector := PolygonSelector.new()
 var lasso_selector := LassoSelector.new()
 var magic_selector := MagicSelector.new()
+
+var pick_color := PickColor.new()
 		
 var project :Project
 var size :Vector2i :
@@ -117,6 +119,8 @@ func _ready():
 	move_sizer.applied.connect(_on_move_applied)
 	move_sizer.cursor_changed.connect(_on_cursor_changed)
 	move_sizer.inject_snapping(snapping_hook)
+	
+	pick_color.color_picked.connect(_on_color_picked)
 
 
 func attach_project(proj):
@@ -148,7 +152,9 @@ func set_state(val):  # triggered when state changing.
 		move_sizer.lanuch(project.current_cel.get_image(), selection.mask)
 		# selection must clear after mover setted, 
 		# mover still need it once.
-		selection.deselect(true) 
+		selection.deselect(true)
+	elif state == Artboard.PICK_COLOR:
+		pick_color.attach(project.current_cel.get_image())
 	elif state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
 		move_sizer.apply(true)
 		crop_sizer.cancel(true)
@@ -276,17 +282,9 @@ func process_selection_magic(event, selector):
 
 func process_color_pick(event):
 	if event is InputEventMouseButton:
-		var pos = get_local_mouse_position()
 		if is_pressed:
-			var image :Image = project.current_cel.get_image()
-			var image_size := Vector2i(image.get_width(), image.get_height())
-			var image_rect = Rect2i(Vector2i.ZERO, image_size)
-			if image_rect.has_point(pos):
-				var color = image.get_pixelv(pos)
-				var picked_color = Color(color.r, color.g, color.b, 1)
-				color_picked.emit(picked_color)
-			
-	
+			var pos = get_local_mouse_position()
+			pick_color.pick(pos)
 
 
 func _input(event :InputEvent):
@@ -318,7 +316,7 @@ func _input(event :InputEvent):
 			process_selection_lasso(event, lasso_selector)
 		Artboard.SELECT_MAGIC:
 			process_selection_magic(event, magic_selector)
-		Artboard.COLOR_PICK:
+		Artboard.PICK_COLOR:
 			process_color_pick(event)
 
 
@@ -345,6 +343,11 @@ func get_relative_mouse_position(): # other node need mouse location of canvas.
 # cursor
 func _on_cursor_changed(cursor):
 	cursor_changed.emit(cursor)
+
+
+# pick color
+func _on_color_picked(color :Color):
+	color_picked.emit(color)
 	
 
 # selection

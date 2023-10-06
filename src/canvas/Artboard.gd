@@ -21,7 +21,7 @@ enum {
 	SELECT_POLYGON,
 	SELECT_LASSO,
 	SELECT_MAGIC,
-	COLOR_PICK,
+	PICK_COLOR,
 }
 
 var state := Artboard.NONE :
