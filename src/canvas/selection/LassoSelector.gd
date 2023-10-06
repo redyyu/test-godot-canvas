@@ -13,5 +13,5 @@ func select_move(pos :Vector2i):
 
 func select_end(pos):
 	if is_selecting:
-		selection.selected_lasso(points, as_replace, as_subtract, as_intersect)
+		selection.selected_lasso(points)
 	super.select_end(pos)

@@ -14,7 +14,6 @@ enum Mode {
 
 var mode := Mode.REPLACE
 
-
 enum Pivot {
 	TOP_LEFT,
 	TOP_CENTER,
@@ -54,6 +53,21 @@ var zoom_ratio := 1.0 :
 		refresh_material()
 
 var points :PackedVector2Array = []
+
+var opt_as_square := false
+var opt_from_center := false
+
+var as_replace :bool :
+	get: return mode == Selection.Mode.REPLACE
+
+var as_add :bool :
+	get: return mode == Selection.Mode.ADD
+	
+var as_subtract :bool :
+	get: return mode == Selection.Mode.SUBTRACT
+	
+var as_intersect :bool :
+	get: return mode == Selection.Mode.INTERSECTION
 
 var is_pressed := false
 
@@ -197,12 +211,55 @@ func get_pivot_offset(to_size:Vector2i) -> Vector2i:
 			_offset.x = to_size.x / 2.0
 			_offset.y = to_size.y / 2.0
 			
-	return _offset	
+	return _offset
+
+
+func parse_points(sel_points:PackedVector2Array):
+	if sel_points.size() < 2:
+		# skip parse if points is not up to 2.
+		# the _draw() will take off the rest.
+		return sel_points
+		
+	var pts :PackedVector2Array = []
+	var start := sel_points[0]
+	var end := sel_points[1]
+	var sel_size := (start - end).abs()
+	
+	if opt_as_square:
+		# Make rect 1:1 while centering it on the mouse
+		var square_size :float = max(sel_size.x, sel_size.y)
+		sel_size = Vector2(square_size, square_size)
+		end = start - sel_size if start > end else start + sel_size
+
+	if opt_from_center:
+		var _start = Vector2(start.x, start.y)
+		if start.x < end.x:
+			start.x -= sel_size.x
+			end.x += 2 * sel_size.x
+		else:
+			_start.x = end.x - 2 * sel_size.x
+			end.x = start.x + sel_size.x
+			start.x = _start.x
+			
+		if start.y < end.y:
+			start.y -= sel_size.y
+			end.y += 2 * sel_size.y
+		else:
+			_start.y = end.y - 2 * sel_size.y
+			end.y = start.y + sel_size.y
+			start.y = _start.y
+			
+
+	pts.append(start)
+	pts.append(end)
+	return pts
+
 
 
 # Rectangle
 
 func selecting_rectangle(sel_points :Array):
+	sel_points = parse_points(sel_points)
 	if not check_visible(sel_points):
 		return
 	_current_draw = _draw_rectangle
@@ -210,14 +267,13 @@ func selecting_rectangle(sel_points :Array):
 	queue_redraw()
 
 
-func selected_rectangle(sel_points :Array,
-						replace := false,
-						subtract := false,
-						intersect := false):
+func selected_rectangle(sel_points :Array):
+	sel_points = parse_points(sel_points)
 	if not check_visible(sel_points):
 		return
 	var sel_rect := get_rect_from_points(sel_points)
-	selection_map.select_rect(sel_rect, replace, subtract, intersect)
+	selection_map.select_rect(
+		sel_rect, as_replace, as_subtract, as_intersect)
 	update_selection()
 	points.clear()
 
@@ -225,6 +281,7 @@ func selected_rectangle(sel_points :Array,
 # Ellipse
 
 func selecting_ellipse(sel_points :Array):
+	sel_points = parse_points(sel_points)
 	if not check_visible(sel_points):
 		return
 	_current_draw = _draw_ellipse
@@ -232,14 +289,13 @@ func selecting_ellipse(sel_points :Array):
 	queue_redraw()
 
 
-func selected_ellipse(sel_points :Array,
-					  replace := false,
-					  subtract := false,
-					  intersect := false):
+func selected_ellipse(sel_points :Array):
+	sel_points = parse_points(sel_points)
 	if not check_visible(sel_points):
 		return
 	var sel_rect := get_rect_from_points(sel_points)
-	selection_map.select_ellipse(sel_rect, replace, subtract, intersect)
+	selection_map.select_ellipse(
+		sel_rect, as_replace, as_subtract, as_intersect)
 	update_selection()
 	points.clear()
 
@@ -254,13 +310,11 @@ func selecting_polygon(sel_points :Array):
 	queue_redraw()
 
 
-func selected_polygon(sel_points :Array,
-					  replace := false,
-					  subtract := false,
-					  intersect := false):
+func selected_polygon(sel_points :Array):
 	if not check_visible(sel_points):
 		return
-	selection_map.select_polygon(sel_points, replace, subtract, intersect)
+	selection_map.select_polygon(
+		sel_points, as_replace, as_subtract, as_intersect)
 	update_selection()
 	points.clear()
 
@@ -275,13 +329,22 @@ func selecting_lasso(sel_points :Array):
 	queue_redraw()
 
 
-func selected_lasso(sel_points :Array,
-					replace := false,
-					subtract := false,
-					intersect := false):
+func selected_lasso(sel_points :Array):
 	if not check_visible(sel_points):
 		return
-	selection_map.select_polygon(sel_points, replace, subtract, intersect)
+	selection_map.select_polygon(
+		sel_points, as_replace, as_subtract, as_intersect)
+	update_selection()
+	points.clear()
+
+
+# magic
+func selected_magic(sel_points :Array):
+	if not check_visible(sel_points):
+		return
+		
+	selection_map.select_magic(
+		sel_points, as_replace, as_subtract, as_intersect)
 	update_selection()
 	points.clear()
 

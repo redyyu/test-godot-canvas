@@ -393,7 +393,15 @@ func _on_move_canceled():
 # external
 func apply_selection_mode(sel_mode):
 	canvas.selection.mode = sel_mode
-	
+
+
+func apply_select_as_square(opt):
+	canvas.selection.opt_as_square = opt
+
+
+func apply_select_as_center(opt):
+	canvas.selection.opt_from_center = opt
+
 
 func apply_pivot_point(pivot_id):
 	canvas.selection.set_pivot(pivot_id)	

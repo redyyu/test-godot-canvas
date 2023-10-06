@@ -13,7 +13,6 @@ func select_move(pos :Vector2i):
 
 func select_end(pos):
 	if is_selecting:
-		selection.selected_polygon(
-			points, as_replace, as_subtract, as_intersect)
+		selection.selected_polygon(points)
 			
 	super.select_end(pos)

@@ -156,23 +156,16 @@ func _on_btn_pressed(btn):
 			current_selector = artboard.canvas.lasso_selector
 		
 		'BtnCenterSelector':
-			if current_selector:
-				current_selector.opt_from_center = btn.button_pressed
+			artboard.apply_select_as_center(btn.button_pressed)
 		
 		'BtnSquareSelector':
-			if current_selector:
-				current_selector.opt_as_square = btn.button_pressed
+			artboard.apply_select_as_square(btn.button_pressed)
 		
 	if current_drawer:
 		opt_stroke_dynamics.disabled = not current_drawer.allow_dyn_stroke_width
 		opt_alpha_dynamics.disabled = not current_drawer.allow_dyn_stroke_alpha
 		slider_stroke_width.value = current_drawer.stroke_width
 		slider_stroke_space.value = current_drawer.stroke_spacing.x
-	
-	if current_selector:
-		current_selector.opt_from_center = btn_center_selector.button_pressed
-		current_selector.opt_as_square = btn_square_selector.button_pressed
-		current_selector.mode = opt_selection_mode.selected
 
 
 func _on_stroke_dynamics(index):

@@ -34,7 +34,7 @@ func select_rect(rect :Rect2i,
 				 replace:=false, subtract:=false, intersect:=false):
 	if rect.size < Vector2i.ONE:
 		return
-	if is_empty() or is_invisible():
+	if is_invisible():
 		fill_rect(rect, SELECTED_COLOR)
 		return
 	
@@ -62,7 +62,7 @@ func select_ellipse(rect :Rect2i,
 		return
 	var ellipse = get_ellipse_points_filled(Vector2.ZERO, rect.size)
 	
-	if is_empty() or is_invisible():
+	if is_invisible():
 		fill_ellipse(ellipse, SELECTED_COLOR, rect.position)
 		return
 	
@@ -72,7 +72,7 @@ func select_ellipse(rect :Rect2i,
 	if intersect:
 		var tmp_map := Image.create(width, height, false, Image.FORMAT_LA8)
 		for p in ellipse:
-			p += rect.position
+			p += Vector2(rect.position)
 			if map_rect.has_point(p):
 				tmp_map.set_pixelv(p, SELECTED_COLOR)
 
@@ -90,7 +90,7 @@ func select_ellipse(rect :Rect2i,
 
 func select_polygon(polygon:PackedVector2Array, 
 					replace:=false, subtract:=false, intersect:=false):
-	if is_empty() or is_invisible():
+	if is_invisible():
 		fill_polygon(polygon, SELECTED_COLOR)
 		return
 	
@@ -109,6 +109,28 @@ func select_polygon(polygon:PackedVector2Array,
 			fill_polygon(polygon, UNSELECTED_COLOR)
 		else:
 			fill_polygon(polygon, SELECTED_COLOR)
+
+
+func select_magic(points:PackedVector2Array, 
+				  replace:=false, subtract:=false, intersect:=false):
+	if is_invisible():
+		fill(SELECTED_COLOR)
+		return
+	
+	if replace:
+		fill(UNSELECTED_COLOR)
+	
+	if intersect:
+		for x in width:
+			for y in height:
+				var pos := Vector2i(x, y)
+				if is_selected(pos) and points.has(pos):
+					select_pixel(pos, true)
+	else:
+		if subtract:
+			fill_points(points, UNSELECTED_COLOR)
+		else:
+			fill_points(points, SELECTED_COLOR)
 
 
 #func select_multipixels(sel_points :PackedVector2Array,
@@ -158,6 +180,13 @@ func fill_polygon(polygon:PackedVector2Array,
 			if map_rect.has_point(pos) and \
 			   Geometry2D.is_point_in_polygon(pos, polygon):
 				set_pixelv(pos, color)
+
+
+func fill_points(points:PackedVector2Array, color:Color):
+	
+	for pos in points:
+		if map_rect.has_point(pos):
+			set_pixelv(pos, color)
 
 # DONT NEED THIS, already replace to navtive way.
 #func get_selected_rect() ->Rect2i:

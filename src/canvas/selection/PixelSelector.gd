@@ -4,7 +4,11 @@ class_name PixelSelector extends BaseSelector
 func select_start(pos :Vector2i):
 	reset()
 	if selection.has_point(pos, true):
-		is_moving = true
+		if mode == Selection.Mode.REPLACE:
+			is_moving = true
+		else:
+			is_selecting = true
+			points.append(pos)
 	else:
 		if mode == Selection.Mode.REPLACE:
 			selection.deselect(true)
