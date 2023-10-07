@@ -51,10 +51,7 @@ func draw_pixel(position: Vector2i):
 		if mask.is_empty() or mask.is_invisible():
 			image.fill_rect(rect, drawing_color)
 		else:
-			var tmp_img = Image.create(image.get_width(), image.get_height(),
-									   false, image.get_format())
-			tmp_img.fill_rect(Rect2i(start, end - start), drawing_color)
-			image.blit_rect_mask(tmp_img, mask, rect, start)
+			draw_blit(Rect2i(start, end - start), image, mask, drawing_color)
 	else:
 		image.set_pixelv(position, drawing_color)
 

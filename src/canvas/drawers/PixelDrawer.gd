@@ -4,7 +4,7 @@ class_name PixelDrawer extends BaseDrawer
 var image := Image.new() :
 	set(img):
 		image = img
-		size = Vector2i(image.get_width(), image.get_height())
+		size = image.get_size()
 
 var draw_rect :Rect2i :
 	get: return Rect2i(Vector2i.ZERO, size)
@@ -129,6 +129,13 @@ func get_spacing_position(pos: Vector2i) -> Vector2i:
 			snap_pos = vec
 
 	return Vector2i(snap_pos)
+
+
+func draw_blit(rect, to_image, with_mask, blit_color):
+	var tmp_img = Image.create(to_image.get_width(), to_image.get_height(),
+							   false, to_image.get_format())
+	tmp_img.fill_rect(rect, blit_color)
+	image.blit_rect_mask(tmp_img, with_mask, rect, rect.position)
 
 
 func draw_pixel(pos: Vector2i):

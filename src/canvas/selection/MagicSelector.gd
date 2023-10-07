@@ -1,6 +1,5 @@
 class_name MagicSelector extends PixelSelector
 
-var selected_color :Color
 var image := Image.new()
 var image_rect :Rect2i :
 	get: 
@@ -17,14 +16,7 @@ var tolerance := 0:
 func select_move(pos :Vector2i):
 	super.select_move(pos)
 	if is_selecting:
-		points.clear()
-		if image_rect.has_point(pos):
-			var color := image.get_pixelv(pos)
-			for x in image.get_width():
-				for y in image.get_height():
-					var p := Vector2i(x, y)
-					if match_color(color, p):
-						points.append(p)
+		points = matching_points(pos)
 	elif is_moving:
 		move_to(pos)
 
@@ -35,10 +27,22 @@ func select_end(pos):
 	super.select_end(pos)
 
 
+func matching_points(pos):
+	var matched_points :PackedVector2Array = []
+	if image_rect.has_point(pos):
+		var color := image.get_pixelv(pos)
+		for x in image.get_width():
+			for y in image.get_height():
+				var p := Vector2i(x, y)
+				if match_color(color, p):
+					matched_points.append(p)
+	return matched_points
+	
+
+
 func set_tolerance(val):
 	if val != tolerance:
 		tolerance = clampi(val, 0, 100)
-
 
 
 func match_color(color :Color,  p :Vector2i):
