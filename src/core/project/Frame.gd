@@ -13,3 +13,13 @@ func append_cel(cel :BaseCel):
 func erase_cel(cel :BaseCel):
 	if cels.has(cel):
 		cels.erase(cel)
+
+
+func get_images():
+	var images := []
+	for cel in cels:
+		if cel is PixelCel:
+			var img :Image = cel.get_image()
+			if not img.is_empty() and not img.is_invisible():
+				images.append(cel.get_image())
+	return images
