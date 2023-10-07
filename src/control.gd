@@ -19,6 +19,7 @@ var current_drawer :PixelDrawer
 @onready var btn_11 = $BtnCrop
 @onready var btn_12 = $BtnSelectMagic
 @onready var btn_13 = $ColorPicker
+@onready var btn_14 = $BtnContiguous
 
 @onready var btn_lock_guide = $BtnLockGuide
 @onready var btn_show_guide = $BtnShowGuide
@@ -62,6 +63,7 @@ func _ready():
 	btn_11.pressed.connect(_on_btn_pressed.bind(btn_11))
 	btn_12.pressed.connect(_on_btn_pressed.bind(btn_12))
 	btn_13.pressed.connect(_on_btn_pressed.bind(btn_13))
+	btn_14.pressed.connect(_on_btn_pressed.bind(btn_14))
 	
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
 	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
@@ -167,7 +169,7 @@ func _on_btn_pressed(btn):
 			
 		'BtnSelectMagic':
 			artboard.state = Artboard.SELECT_MAGIC
-			artboard.apply_select_tolerance(50)
+			artboard.apply_select_tolerance(0)
 		
 		'ColorPicker':
 			artboard.state = Artboard.PICK_COLOR
@@ -177,6 +179,10 @@ func _on_btn_pressed(btn):
 		
 		'BtnSquareSelector':
 			artboard.apply_select_as_square(btn.button_pressed)
+		
+		'BtnContiguous':
+			artboard.apply_select_contiguous(btn.button_pressed)
+		
 		
 	if current_drawer:
 		opt_stroke_dynamics.disabled = not current_drawer.allow_dyn_stroke_width

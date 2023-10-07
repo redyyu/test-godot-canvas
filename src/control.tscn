@@ -200,6 +200,15 @@ offset_bottom = 529.0
 text = "Sel Center"
 alignment = 2
 
+[node name="BtnContiguous" type="CheckButton" parent="."]
+layout_mode = 0
+offset_left = 889.0
+offset_top = 458.0
+offset_right = 1029.0
+offset_bottom = 489.0
+text = "Contiguous"
+alignment = 2
+
 [node name="BtnSquareSelector" type="CheckButton" parent="."]
 layout_mode = 0
 offset_left = 852.0

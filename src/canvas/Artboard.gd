@@ -413,6 +413,12 @@ func apply_select_as_center(opt):
 	canvas.selection.opt_from_center = opt
 
 
+func apply_select_contiguous(val):
+	match state:
+		SELECT_MAGIC:
+			canvas.magic_selector.opt_contiguous = val
+			
+
 func apply_select_tolerance(val):
 	match state:
 		SELECT_MAGIC:
