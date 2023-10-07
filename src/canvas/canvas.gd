@@ -270,11 +270,18 @@ func process_selection_lasso(event, selector):
 
 func process_selection_magic(event, selector):
 	if event is InputEventMouseButton:
-		var pos = snapper.snap_position(get_local_mouse_position())
+		var pos = get_local_mouse_position()
 		if is_pressed:
 			selector.image = project.current_cel.get_image()
 			selector.select_move(pos)
 		elif selector.is_operating:
+			selector.select_end(pos)
+			
+	elif event is InputEventMouseMotion and selector.is_moving:
+		var pos = snapper.snap_position(get_local_mouse_position())
+		if is_pressed:
+			selector.select_move(pos)
+		else:
 			selector.select_end(pos)
 
 

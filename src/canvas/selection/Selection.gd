@@ -161,11 +161,15 @@ func resize_to(to_size :Vector2i):
 
 
 func get_rect_from_points(pts) -> Rect2i:
-	return Rect2i(pts[0], pts[pts.size()-1] - pts[0]).abs()
+	if pts.size() < 1:
+		return Rect2i()
+	return Rect2i(pts[0], pts[pts.size() - 1] - pts[0]).abs()
 
 
 func check_visible(sel_points) -> bool:
 	visible = true if sel_points.size() > 1 else false
+	# less 2 points is needed,
+	# because require 2 points to make 1 pixel.
 	return visible
 	
 
@@ -206,7 +210,7 @@ func get_pivot_offset(to_size:Vector2i) -> Vector2i:
 	return _offset
 
 
-func parse_points(sel_points:PackedVector2Array):
+func parse_two_points(sel_points:PackedVector2Array):
 	if sel_points.size() < 2:
 		# skip parse if points is not up to 2.
 		# the _draw() will take off the rest.
@@ -214,7 +218,7 @@ func parse_points(sel_points:PackedVector2Array):
 		
 	var pts :PackedVector2Array = []
 	var start := sel_points[0]
-	var end := sel_points[1]
+	var end := sel_points[sel_points.size() - 1]
 	var sel_size := (start - end).abs()
 	
 	if opt_as_square:
@@ -241,7 +245,6 @@ func parse_points(sel_points:PackedVector2Array):
 			end.y = start.y + sel_size.y
 			start.y = _start.y
 			
-
 	pts.append(start)
 	pts.append(end)
 	return pts
@@ -251,7 +254,7 @@ func parse_points(sel_points:PackedVector2Array):
 # Rectangle
 
 func selecting_rectangle(sel_points :Array):
-	sel_points = parse_points(sel_points)
+	sel_points = parse_two_points(sel_points)
 	if not check_visible(sel_points):
 		return
 	_current_draw = _draw_rectangle
@@ -260,7 +263,7 @@ func selecting_rectangle(sel_points :Array):
 
 
 func selected_rectangle(sel_points :Array):
-	sel_points = parse_points(sel_points)
+	sel_points = parse_two_points(sel_points)
 	if not check_visible(sel_points):
 		return
 	var sel_rect := get_rect_from_points(sel_points)
@@ -273,7 +276,7 @@ func selected_rectangle(sel_points :Array):
 # Ellipse
 
 func selecting_ellipse(sel_points :Array):
-	sel_points = parse_points(sel_points)
+	sel_points = parse_two_points(sel_points)
 	if not check_visible(sel_points):
 		return
 	_current_draw = _draw_ellipse
@@ -282,7 +285,7 @@ func selecting_ellipse(sel_points :Array):
 
 
 func selected_ellipse(sel_points :Array):
-	sel_points = parse_points(sel_points)
+	sel_points = parse_two_points(sel_points)
 	if not check_visible(sel_points):
 		return
 	var sel_rect := get_rect_from_points(sel_points)
