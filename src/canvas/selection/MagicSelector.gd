@@ -12,6 +12,7 @@ var image_rect :Rect2i :
 	get: return Rect2i(Vector2i.ZERO, image.get_size())
 
 var selected_color = null
+var start_position = null
 
 var tolerance := 0:
 	set = set_tolerance
@@ -25,19 +26,22 @@ func set_tolerance(val):
 
 
 func select_start(pos):
-	super.select_start(pos)
-	if image_rect.has_point(pos):
+	if image_rect.has_point(pos):  # make sure in the image, because get pixel.
+		super.select_start(pos)
 		selected_color = image.get_pixelv(pos)
+		start_position = pos
 
 
 func select_move(pos :Vector2i):
 	super.select_move(pos)
-	
-	if is_selecting and selected_color is Color:
+		
+	if is_selecting and points.size() > 0:
+		# check points size for make sure select_start is runned.
+		# first point is record from select_start.
 		if opt_contiguous:
-			matching_contiguous(pos)
+			matching_contiguous(points[0])
 		else:
-			matching_all(pos)
+			matching_all(points[0])
 	elif is_moving:
 		move_to(pos)
 
@@ -65,7 +69,7 @@ func matching_contiguous(pos :Vector2i):
 	var visited :Dictionary = {}
 	var rect :Rect2 = image_rect
 	queue.append(pos)
-	
+	visited[pos] = true
 	while queue:
 		var i = queue.size() - 1
 		var p = queue[i]
@@ -74,9 +78,11 @@ func matching_contiguous(pos :Vector2i):
 		# element is close to the beginning of the array (index 0). 
 		# This is because all elements placed after the removed element
 		# have to be reindexed.
-
-		if p not in points:
-			points.append(p)
+		
+		points.append(p)
+		# no need check duplicated here, each time check p is in points or not
+		# will cause lot of performance when points goes large.
+		# beside, only first point will be duplicated.
 
 		for n in NEIGHBOURS:
 			var np = p + n
