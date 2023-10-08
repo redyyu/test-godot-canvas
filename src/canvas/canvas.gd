@@ -1,19 +1,6 @@
 class_name Canvas extends Node2D
 
-
-signal select_updated(rect, rel_pos)
-signal select_canceled
-
-signal move_updated(rect, rel_pos, status)
-signal move_applied(rect, rel_pos, status)
-signal move_canceled
-
-signal crop_updated(rect, rel_pos, status)
-signal crop_applied(rect, rel_pos, status)
-signal crop_canceled
-
-signal color_picked(color)
-
+signal cropped(crop_rect)
 signal cursor_changed(cursor)
 signal operating(operate_state, is_finished)
 # let parent to know when should block some other actions.
@@ -102,25 +89,16 @@ func _ready():
 	brush.mask = selection.mask
 	eraser.mask = selection.mask
 	
-	selection.updated.connect(_on_select_updated)
-	selection.canceled.connect(_on_select_canceled)
-	
 	var snapping_hook = func(pos :Vector2i, wt := {}) -> Vector2i:
 		return snapper.snap_position(pos, true, wt)
 	
-	crop_sizer.updated.connect(_on_crop_updated)
-	crop_sizer.canceled.connect(_on_crop_canceled)
-	crop_sizer.applied.connect(_on_crop_applied)
+	crop_sizer.crop_canvas.connect(crop)
 	crop_sizer.cursor_changed.connect(_on_cursor_changed)
 	crop_sizer.inject_snapping(snapping_hook)
 	
-	move_sizer.updated.connect(_on_move_updated)
-	move_sizer.canceled.connect(_on_move_canceled)
-	move_sizer.applied.connect(_on_move_applied)
+	move_sizer.refresh_canvas.connect(refresh)
 	move_sizer.cursor_changed.connect(_on_cursor_changed)
 	move_sizer.inject_snapping(snapping_hook)
-	
-	pick_color.color_picked.connect(_on_color_picked)
 
 
 func attach_project(proj):
@@ -130,6 +108,15 @@ func attach_project(proj):
 	
 	set_state(state)  # trigger state changing to init settings.
 
+
+func refresh():
+	project.current_cel.update_texture()
+	queue_redraw()
+
+
+func crop(crop_rect :Rect2i):
+	project.crop_to(crop_rect)
+	
 
 # temporary prevent canvas operations.
 func frozen(frozen_it := false): 
@@ -144,18 +131,18 @@ func set_state(val):  # triggered when state changing.
 	indicator.hide_indicator()  # not all state need indicator
 	
 	if state == Artboard.CROP:
-		move_sizer.cancel(true, true)
+		move_sizer.cancel()
 		crop_sizer.launch(project.size)
-		selection.deselect(true)
+		selection.deselect()
 	elif state == Artboard.MOVE:
-		crop_sizer.cancel(true, true)
+		crop_sizer.cancel()
 		move_sizer.lanuch(project.current_cel.get_image(), selection.mask)
 		# selection must clear after mover setted, 
 		# mover still need it once.
-		selection.deselect(true)
+		selection.deselect()
 	elif state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
-		move_sizer.apply(true)
-		crop_sizer.cancel(true)
+		move_sizer.apply()
+		crop_sizer.cancel()
 		pencil.attach(project.current_cel.get_image())
 		brush.attach(project.current_cel.get_image())
 		eraser.attach(project.current_cel.get_image())
@@ -164,8 +151,8 @@ func set_state(val):  # triggered when state changing.
 		move_sizer.frozen()
 		crop_sizer.frozen()
 	else:
-		move_sizer.apply(true)
-		crop_sizer.cancel(true)
+		move_sizer.apply()
+		crop_sizer.cancel()
 
 
 func set_zoom_ratio(val):
@@ -352,50 +339,6 @@ func get_relative_mouse_position(): # other node need mouse location of canvas.
 # cursor
 func _on_cursor_changed(cursor):
 	cursor_changed.emit(cursor)
-
-
-# pick color
-func _on_color_picked(color :Color):
-	color_picked.emit(color)
-	
-
-# selection
-func _on_select_updated(rect :Rect2i, rel_pos: Vector2i):
-	select_updated.emit(rect, rel_pos)
-
-
-func _on_select_canceled():
-	select_canceled.emit()
-
-
-# crop
-func _on_crop_updated(rect :Rect2i, rel_pos: Vector2i, status :bool):
-	crop_updated.emit(rect, rel_pos, status)
-	
-	
-func _on_crop_applied(rect :Rect2i, rel_pos: Vector2i, status :bool):
-	crop_applied.emit(rect, rel_pos, status)
-
-
-func _on_crop_canceled():
-	crop_canceled.emit()
-	
-
-# move
-func _on_move_updated(rect :Rect2i, rel_pos: Vector2i, status :bool):
-	move_updated.emit(rect, rel_pos, status)
-	project.current_cel.update_texture()
-	queue_redraw()
-
-
-func _on_move_applied(rect :Rect2i, rel_pos: Vector2i, status :bool):
-	move_applied.emit(rect, rel_pos, status)
-	project.current_cel.update_texture()
-	queue_redraw()
-
-
-func _on_move_canceled():
-	move_canceled.emit()
 
 
 # snapping

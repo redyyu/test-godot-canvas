@@ -1,5 +1,6 @@
 class_name MoveSizer extends GizmoSizer
 
+signal refresh_canvas
 
 const MODULATE_COLOR := Color(1, 1, 1, 0.33)
 
@@ -14,6 +15,10 @@ var preview_image := Image.new() :
 	set(val):
 		preview_image = val
 		update_texture()
+
+
+func _init():
+	updated.connect(_on_updated)
 
 
 func reset():
@@ -37,6 +42,37 @@ func lanuch(img :Image, mask :Image):
 		else:
 			backup_rect = image_mask.get_used_rect()
 			attach(backup_rect)
+
+
+func cancel(use_reset := false):
+	image.copy_from(image_backup)
+	bound_rect = backup_rect
+	preview_image = Image.new()
+	super.cancel(use_reset)
+
+
+func apply(use_reset := false):
+	if has_area() and has_image():
+		preview_image.resize(bound_rect.size.x, 
+							 bound_rect.size.y,
+							 Image.INTERPOLATE_NEAREST)
+		# DO NOT just fill rect, selection might have different shapes.
+		image.blit_rect_mask(preview_image, preview_image,
+							 Rect2i(Vector2i.ZERO, bound_rect.size),
+							 bound_rect.position)
+		image_backup.copy_from(image)
+		backup_rect = bound_rect
+		# also the image mask must update, because already transformed.
+		var _mask = Image.create(image.get_width(), image.get_height(),
+								 false, image.get_format())
+		_mask.blit_rect(preview_image,
+						Rect2i(Vector2i.ZERO, bound_rect.size),
+						bound_rect.position)
+		image_mask.copy_from(_mask)
+		preview_image = Image.new()
+
+		super.apply(use_reset)
+
 
 
 func hire():
@@ -67,35 +103,6 @@ func hire():
 	super.hire()
 
 
-func cancel(use_reset := false, muted := false):
-	image.copy_from(image_backup)
-	bound_rect = backup_rect
-	preview_image = Image.new()
-	super.cancel(use_reset, muted)
-
-
-func apply(use_reset := false, muted := false):
-	if has_area() and has_image():
-		preview_image.resize(bound_rect.size.x, 
-							 bound_rect.size.y,
-							 Image.INTERPOLATE_NEAREST)
-		# DO NOT just fill rect, selection might have different shapes.
-		image.blit_rect_mask(preview_image, preview_image,
-							 Rect2i(Vector2i.ZERO, bound_rect.size),
-							 bound_rect.position)
-		image_backup.copy_from(image)
-		backup_rect = bound_rect
-		# also the image mask must update, because already transformed.
-		var _mask = Image.create(image.get_width(), image.get_height(),
-								 false, image.get_format())
-		_mask.blit_rect(preview_image,
-						Rect2i(Vector2i.ZERO, bound_rect.size),
-						bound_rect.position)
-		image_mask.copy_from(_mask)
-		preview_image = Image.new()
-
-		super.apply(use_reset, muted)
-
 
 func has_image() -> bool:
 	return not preview_image.is_empty()
@@ -121,3 +128,6 @@ func _draw():
 			draw_texture_rect(preview_texture, bound_rect, false,
 							  MODULATE_COLOR if is_dragging else Color.WHITE)
 	
+
+func _on_updated():
+	refresh_canvas.emit()

@@ -66,7 +66,6 @@ func matching_contiguous(pos :Vector2i):
 	var rect :Rect2 = image_rect
 	queue.append(pos)
 	
-	var count := 1
 	while queue:
 		var i = queue.size() - 1
 		var p = queue[i]
@@ -86,9 +85,6 @@ func matching_contiguous(pos :Vector2i):
 				var np_color = image.get_pixelv(np)
 				if is_matched_color(np_color):
 					queue.append(np)
-
-
-
 
 
 func is_matched_color(img_color :Color):

@@ -68,7 +68,7 @@ func _ready():
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
 	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
 	
-	opt_selection_mode.item_selected.connect(_on_selection_mode)
+#	opt_selection_mode.item_selected.connect(_on_selection_mode)
 	
 	btn_center_selector.pressed.connect(_on_btn_pressed.bind(btn_center_selector))
 	btn_square_selector.pressed.connect(_on_btn_pressed.bind(btn_square_selector))
@@ -88,25 +88,9 @@ func _ready():
 	artboard.show_grid_state = Grid.NONE
 	artboard.show_symmetry_guide_state = SymmetryGuide.CROSS_AXIS
 #	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
-	
-	artboard.transform_changed.connect(_on_transfrom_changed)
-	artboard.project_cropped.connect(_on_project_cropped)
-	artboard.color_picked.connect(_on_color_picked)
-	
-	transform_panel.pivot_updated.connect(_on_pivot_updated)
-	transform_panel.size_updated.connect(_on_size_updated)
-	transform_panel.position_updated.connect(_on_position_updated)
-	
+	artboard.register_transform_panel(transform_panel)
 
 
-
-#	var image = Image.new()
-#	if image.load('res://test.png') == OK:
-#		artboard.canvas.reference_image.set_image(image)
-#		artboard.canvas.reference_image.scale = Vector2(0.2, 0.2)
-#		artboard.canvas.reference_image.offset = Vector2(250, 100)
-
-	
 
 func _on_btn_pressed(btn):
 	match btn.name:
@@ -215,32 +199,3 @@ func _on_stroke_space_changed(val):
 	print('Stroke Space: ', val)
 	if current_drawer:
 		current_drawer.stroke_spacing = Vector2i(val, val)
-
-
-func _on_selection_mode(val):
-	artboard.apply_selection_mode(val)
-
-
-func _on_pivot_updated(val):
-	artboard.apply_pivot_point(val)
-	
-
-func _on_size_updated(val):
-	artboard.apply_resize(val)
-
-
-func _on_position_updated(val):
-	artboard.apply_moveto(val)
-
-
-func _on_color_picked(color):
-	print(color)
-		
-
-func _on_transfrom_changed(rect :Rect2i, rel_pos :Vector2i, status :bool):
-	rect.position = rel_pos
-	transform_panel.set_rect(rect, status)
-
-
-func _on_project_cropped(rect :Rect2i):
-	print('Crop Image: ', rect)	

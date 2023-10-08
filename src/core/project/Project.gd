@@ -74,6 +74,10 @@ func save():
 	pass
 
 
+func crop_to(rect :Rect2i):
+	print('Crop:', rect)
+	
+
 func change_size(value: Vector2i):
 	value = value.clamp(Vector2i.ONE, Vector2i(12000, 12000))
 	if is_instance_valid(tiles):

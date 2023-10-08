@@ -98,17 +98,15 @@ func set_pivot(pivot_id):
 		updated.emit(selected_rect, relative_position)
 
 
-func update_selection(muted := false):
+func update_selection():
 	if selection_map.is_invisible():
 		texture = null
 		selected_rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
-		if not muted:
-			canceled.emit()
+		canceled.emit()
 	else:
 		texture = ImageTexture.create_from_image(selection_map)
 		selected_rect = selection_map.get_used_rect()
-		if not muted:
-			updated.emit(selected_rect, relative_position)
+		updated.emit(selected_rect, relative_position)
 			
 	_current_draw = _draw_nothing
 	queue_redraw()
@@ -128,11 +126,11 @@ func has_point(point :Vector2i, precisely := false) -> bool:
 		return false
 
 
-func deselect(muted := false):
+func deselect():
 	points.clear()
 	selection_map.select_none()
 	_current_draw = _draw_nothing
-	update_selection(muted)
+	update_selection()
 
 
 func move_to(to_pos :Vector2i, use_pivot := true):

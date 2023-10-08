@@ -1,10 +1,9 @@
 class_name Artboard extends SubViewportContainer
 
 
-signal transform_changed(rect, rel_pos, status)
 signal project_cropped(rect)
-
 signal color_picked(color)
+signal state_changed(state, operator)
 
 
 enum {
@@ -25,16 +24,7 @@ enum {
 }
 
 var state := Artboard.NONE :
-	set(val):
-		# allow change without really changed val, trigger funcs in setter.
-		state = val
-		canvas.state = state
-		camera.state = state
-		change_state_cursor(state)
-#		if state == Artboard.MOVE:
-#			_lock_guides(guides_locked)
-#		else:
-#			_lock_guides(true)
+	set = set_state
 
 var project :Project
 
@@ -134,19 +124,6 @@ func _ready():
 	camera.zoomed.connect(_on_camera_updated)
 	camera.press_updated.connect(_on_camera_pressing)
 	
-	canvas.move_updated.connect(_on_move_updated)
-	canvas.move_applied.connect(_on_move_applied)
-	canvas.move_canceled.connect(_on_move_canceled)
-	
-	canvas.crop_updated.connect(_on_crop_updated)
-	canvas.crop_applied.connect(_on_crop_applied)
-	canvas.crop_canceled.connect(_on_crop_canceled)
-	
-	canvas.select_updated.connect(_on_select_updated)
-	canvas.select_canceled.connect(_on_select_canceled)
-
-	canvas.color_picked.connect(_on_color_picked)
-	
 	canvas.cursor_changed.connect(_on_canvas_cursor_changed)
 	canvas.operating.connect(_on_canvas_operating)
 	
@@ -171,8 +148,22 @@ func load_project(proj :Project):
 	trans_checker.update_bounds(project.size)
 
 
-func refresh_canvas():
-	canvas.queue_redraw()
+func set_state(val):
+		# allow change without really changed val, trigger funcs in setter.
+		state = val
+		canvas.state = state
+		camera.state = state
+		change_state_cursor(state)
+#		# NO NEED it
+#		if state == Artboard.MOVE:
+#			_lock_guides(guides_locked)
+#		else:
+#			_lock_guides(true)
+
+func register_transform_panel(panel):
+	panel.subscribe(canvas.move_szier)
+	panel.subscribe(canvas.crop_szier)
+	panel.subscribe(canvas.selection)
 
 
 func change_state_cursor(curr_state):
@@ -354,111 +345,3 @@ func _on_guide_released(guide):
 	
 	# make sure guides is in place
 	place_guides()
-
-
-# color pick
-func _on_color_picked(color :Color):
-	color_picked.emit(color)
-
-
-# select
-func _on_select_updated(rect :Rect2i, rel_pos:Vector2i):
-	transform_changed.emit(rect, rel_pos, true)
-	
-
-func _on_select_canceled():
-	var default_rect = Rect2i(Vector2i.ZERO, canvas.size)
-	transform_changed.emit(default_rect, Vector2i(), false)
-
-
-# crop
-func _on_crop_updated(rect :Rect2i, rel_pos:Vector2i, status :bool):
-	transform_changed.emit(rect, rel_pos, status)
-
-
-func _on_crop_applied(rect :Rect2i, rel_pos:Vector2i, status :bool):
-	transform_changed.emit(rect, rel_pos, status)
-	project_cropped.emit(rect)
-
-
-func _on_crop_canceled():
-	var default_rect = Rect2i(Vector2i.ZERO, canvas.size)
-	transform_changed.emit(default_rect, Vector2i(), false)
-
-
-# move
-func _on_move_updated(rect :Rect2i, rel_pos:Vector2i, status:bool):
-	transform_changed.emit(rect, rel_pos, status)
-
-
-func _on_move_applied(rect :Rect2i, rel_pos:Vector2i, status:bool):
-	transform_changed.emit(rect, rel_pos, status)
-
-
-func _on_move_canceled():
-	var default_rect = Rect2i(Vector2i.ZERO, canvas.size)
-	transform_changed.emit(default_rect, Vector2i(), false)
-
-
-# external
-func apply_selection_mode(sel_mode):
-	canvas.selection.mode = sel_mode
-
-
-func apply_select_as_square(opt):
-	canvas.selection.opt_as_square = opt
-
-
-func apply_select_as_center(opt):
-	canvas.selection.opt_from_center = opt
-
-
-func apply_select_contiguous(val):
-	match state:
-		SELECT_MAGIC:
-			canvas.magic_selector.opt_contiguous = val
-			
-
-func apply_select_tolerance(val):
-	match state:
-		SELECT_MAGIC:
-			canvas.magic_selector.set_tolerance(val)
-
-
-func apply_pivot_point(pivot_id):
-	canvas.selection.set_pivot(pivot_id)	
-	canvas.move_sizer.set_pivot(pivot_id)
-	canvas.crop_sizer.set_pivot(pivot_id)
-	
-
-func apply_resize(size_val):
-	match state:
-		SELECT_RECTANGLE:
-			canvas.rect_selector.resize_to(size_val)
-		SELECT_ELLIPSE:
-			canvas.ellipse_selector.resize_to(size_val)
-		SELECT_POLYGON:
-			canvas.polygon_selector.resize_to(size_val)
-		SELECT_LASSO:
-			canvas.rect_selector.resize_to(size_val)
-		CROP:
-			canvas.crop_sizer.resize_to(size_val)
-		MOVE:
-			canvas.move_sizer.resize_to(size_val)
-
-
-func apply_moveto(pos):
-	match state:
-		SELECT_RECTANGLE:
-			canvas.rect_selector.move_to(pos)
-		SELECT_ELLIPSE:
-			canvas.ellipse_selector.move_to(pos)
-		SELECT_POLYGON:
-			canvas.polygon_selector.move_to(pos)
-		SELECT_LASSO:
-			canvas.rect_selector.move_to(pos)
-		CROP:
-			canvas.crop_sizer.move_to(pos)
-		MOVE:
-			canvas.move_sizer.move_to(pos)
-			

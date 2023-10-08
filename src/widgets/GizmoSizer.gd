@@ -3,8 +3,8 @@ class_name GizmoSizer extends Node2D
 signal gizmo_hover_updated(gizmo, status)
 signal gizmo_press_updated(gizmo, status)
 
-signal updated(rect, rel_pos, statsu)
-signal applied(rect, rel_pos, statsu)
+signal updated(rect, rel_pos, status)
+signal applied(rect)
 signal canceled
 
 signal cursor_changed(cursor)
@@ -152,34 +152,24 @@ func reset():
 	bound_rect = Rect2i()
 
 
-func refresh(rect :Rect2i):
-	bound_rect = rect
-	updated.emit(bound_rect, relative_position, is_activated)
-
-
 func set_pivot(pivot_id):
 	pivot = pivot_id
 	if is_activated:
 		updated.emit(bound_rect, relative_position, is_activated)
 
 
-func apply(use_reset := false, muted :=false):
+func apply(use_reset := true):
 	dismiss()
-	if has_area() and not muted:
-		applied.emit(bound_rect, relative_position, is_activated)
+	applied.emit(bound_rect)
 	if use_reset:
 		reset()
 
 
-func cancel(use_reset := false, muted :=false):
+func cancel(use_reset := true):
 	dismiss()
-		
+	canceled.emit()
 	if use_reset:
-		if not muted:
-			canceled.emit()
 		reset()
-	else:
-		updated.emit(bound_rect, relative_position, is_activated)
 
 
 func hire():
@@ -410,9 +400,9 @@ func _input(event :InputEvent):
 	if event is InputEventKey:
 		if Input.is_key_pressed(KEY_ENTER) and \
 		   event.is_command_or_control_pressed():
-			apply()
+			apply(false)
 		elif Input.is_key_pressed(KEY_ESCAPE):
-			cancel()
+			cancel(false)
 		else:
 			var delta := 1
 			if Input.is_key_pressed(KEY_SHIFT):

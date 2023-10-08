@@ -43,7 +43,6 @@ func _ready():
 func update_bounds(bounds_size :Vector2i):
 	# Set the size to be the same as the project size.
 	set_bounds(bounds_size)
-#	refresh()
 
 
 func set_bounds(bounds: Vector2) -> void:

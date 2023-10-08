@@ -9,10 +9,37 @@ var shadow_image := Image.new()
 var last_pixels := [null, null]
 var pixel_perfect := true
 
+var shading_op := ShadingOp.new()
+
+var op_simple_shading :bool :
+	get: return shading_op.as_simple_shading
+	set(val): shading_op.as_simple_shading = val
+
+var op_lighten :bool :
+	get: return shading_op.as_ligthen
+	set(val): shading_op.as_lighten = val
+
+var op_hue_amount :float :
+	get: return shading_op.hue_amount
+	set(val): shading_op.hue_amount = val
+
+var op_sat_amount :float :
+	get: return shading_op.sat_amount
+	set(val): shading_op.sat_amount = val
+
+var op_value_amount :float :
+	get: return shading_op.value_amount
+	set(val): shading_op.value_amount = val
+	
+var op_strength :float:
+	get: return shading_op.strength
+	set(val): shading_op.strength = val
+
+
 class ShadingOp extends BaseDrawer.ColorOp:
-	var changed := false
 	var as_simple_shading := true
 	var as_lighten := false
+	
 	var hue_amount := 10.0
 	var sat_amount := 10.0
 	var value_amount := 10.0
@@ -24,7 +51,6 @@ class ShadingOp extends BaseDrawer.ColorOp:
 	var value_darken_limit := 10.0 / 100.0
 
 	func process(_src: Color, dst: Color) -> Color:
-		changed = true
 		if dst.a == 0:
 			return dst
 		if as_simple_shading:
@@ -105,9 +131,6 @@ class ShadingOp extends BaseDrawer.ColorOp:
 
 
 func _init():
-	allow_dyn_stroke_alpha = true
-	allow_dyn_stroke_width = true
-	color_op = ShadingOp.new()
 	stroke_width = 12
 	
 
@@ -119,7 +142,7 @@ func draw_pixel(position: Vector2i):
 	if not can_draw(position):
 		return
 	var old_color = shadow_image.get_pixelv(position)
-	var drawing_color :Color = color_op.process(stroke_color, old_color)
+	var drawing_color :Color = shading_op.process(stroke_color, old_color)
 	
 	if stroke_width_dynamics > 1:
 		var start := position - Vector2i.ONE * (stroke_width_dynamics >> 1)
@@ -131,23 +154,6 @@ func draw_pixel(position: Vector2i):
 			draw_blit(Rect2i(start, end - start), image, mask, drawing_color)
 	else:
 		image.set_pixelv(position, drawing_color)
-
-#	DONT NEED those, already replace by blit_rect_mask for high performance.
-#	the old way, is really slow, slow than slow horse when stroke size is big.
-#
-#	# for different stroke weight, draw pixel is one by one, 
-#	# even the stroke is large weight. actually its draw many pixel once.
-#	var coords_to_draw := PackedVector2Array()
-#	var start := position - Vector2i.ONE * (stroke_width_dynamics >> 1)
-#	var end := start + Vector2i.ONE * stroke_width_dynamics
-#
-#	for y in range(start.y, end.y):
-#		for x in range(start.x, end.x):
-#			coords_to_draw.append(Vector2(x, y))
-#	for coord in coords_to_draw:
-#		if can_draw(coord):
-#			image.set_pixelv(coord, drawing_color)
-##			shadow_image.set_pixelv(coord, drawing_color)
 
 
 func draw_start(pos: Vector2i):
