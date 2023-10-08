@@ -7,7 +7,7 @@ signal operating(operate_state, is_finished)
 # for improve useblilty.
 
 
-var state := Artboard.NONE:
+var state := Operate.NONE:
 	set = set_state
 
 var pencil := PencilDrawer.new()
@@ -130,24 +130,24 @@ func set_state(val):  # triggered when state changing.
 	
 	indicator.hide_indicator()  # not all state need indicator
 	
-	if state == Artboard.CROP:
+	if state == Operate.CROP:
 		move_sizer.cancel()
 		crop_sizer.launch(project.size)
 		selection.deselect()
-	elif state == Artboard.MOVE:
+	elif state == Operate.MOVE:
 		crop_sizer.cancel()
 		move_sizer.lanuch(project.current_cel.get_image(), selection.mask)
 		# selection must clear after mover setted, 
 		# mover still need it once.
 		selection.deselect()
-	elif state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
+	elif state in [Operate.BRUSH, Operate.PENCIL, Operate.ERASE]:
 		move_sizer.apply()
 		crop_sizer.cancel()
 		pencil.attach(project.current_cel.get_image())
 		brush.attach(project.current_cel.get_image())
 		eraser.attach(project.current_cel.get_image())
 		# DO NOT clear selection here, drawer can draw by selection.
-	elif state in [Artboard.DRAG, Artboard.ZOOM]:
+	elif state in [Operate.DRAG, Operate.ZOOM]:
 		move_sizer.frozen()
 		crop_sizer.frozen()
 	else:
@@ -292,27 +292,27 @@ func _input(event :InputEvent):
 		operating.emit(state, not is_pressed)
 
 	match state:
-		Artboard.PENCIL:
+		Operate.PENCIL:
 			process_drawing_or_erasing(event, pencil)
-		Artboard.BRUSH:
+		Operate.BRUSH:
 			process_drawing_or_erasing(event, brush)
-		Artboard.ERASE:
+		Operate.ERASE:
 			process_drawing_or_erasing(event, eraser)
-		Artboard.CROP:
+		Operate.CROP:
 			pass
-		Artboard.MOVE:
+		Operate.MOVE:
 			pass
-		Artboard.SELECT_RECTANGLE:
+		Operate.SELECT_RECTANGLE:
 			process_selection(event, rect_selector)
-		Artboard.SELECT_ELLIPSE:
+		Operate.SELECT_ELLIPSE:
 			process_selection(event, ellipse_selector)
-		Artboard.SELECT_POLYGON:
+		Operate.SELECT_POLYGON:
 			process_selection_polygon(event, polygon_selector)
-		Artboard.SELECT_LASSO:
+		Operate.SELECT_LASSO:
 			process_selection_lasso(event, lasso_selector)
-		Artboard.SELECT_MAGIC:
+		Operate.SELECT_MAGIC:
 			process_selection_magic(event, magic_selector)
-		Artboard.PICK_COLOR:
+		Operate.PICK_COLOR:
 			process_color_pick(event)
 
 

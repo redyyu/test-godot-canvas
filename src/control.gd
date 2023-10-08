@@ -88,24 +88,30 @@ func _ready():
 	artboard.show_grid_state = Grid.NONE
 	artboard.show_symmetry_guide_state = SymmetryGuide.CROSS_AXIS
 #	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
-	artboard.register_transform_panel(transform_panel)
+	artboard.operate_changed.connect(_on_artboard_operate_changed)
 
+
+func _on_artboard_operate_changed(operator):
+	if operator is CropSizer or operator is MoveSizer or operator is Selection:
+		transform_panel.subscribe(operator)
+	else:
+		transform_panel.unsubscribe()
 
 
 func _on_btn_pressed(btn):
 	match btn.name:
 		'BtnMove':
-			artboard.state = Artboard.MOVE
+			artboard.state = Operate.MOVE
 			current_drawer = null
 		'BtnPan':
-			artboard.state = Artboard.DRAG
+			artboard.state = Operate.DRAG
 			current_drawer = null
 		'BtnZoom':
-			artboard.state = Artboard.ZOOM
+			artboard.state = Operate.ZOOM
 			current_drawer = null
 			
 		'BtnPencil':
-			artboard.state = Artboard.PENCIL
+			artboard.state = Operate.PENCIL
 			if current_color == Color.RED:
 				current_color = Color.GREEN
 			else:
@@ -115,7 +121,7 @@ func _on_btn_pressed(btn):
 			btn.modulate = current_color
 			
 		'BtnBrush':
-			artboard.state = Artboard.BRUSH
+			artboard.state = Operate.BRUSH
 			if current_color == Color.RED:
 				current_color = Color.GREEN
 			else:
@@ -127,11 +133,11 @@ func _on_btn_pressed(btn):
 			btn.modulate = current_color
 			
 		'BtnErase':
-			artboard.state = Artboard.ERASE
+			artboard.state = Operate.ERASE
 			current_drawer = artboard.canvas.eraser
 			
 		'BtnCrop':
-			artboard.state = Artboard.CROP
+			artboard.state = Operate.CROP
 		
 		'BtnLockGuide':
 			artboard.guides_locked = btn.button_pressed
@@ -140,23 +146,23 @@ func _on_btn_pressed(btn):
 			artboard.show_guides = btn.button_pressed
 			
 		'BtnSelectRect':
-			artboard.state = Artboard.SELECT_RECTANGLE
+			artboard.state = Operate.SELECT_RECTANGLE
 		
 		'BtnSelectCircle':
-			artboard.state = Artboard.SELECT_ELLIPSE
+			artboard.state = Operate.SELECT_ELLIPSE
 		
 		'BtnSelectPolygon':
-			artboard.state = Artboard.SELECT_POLYGON
+			artboard.state = Operate.SELECT_POLYGON
 		
 		'BtnSelectLasso':
-			artboard.state = Artboard.SELECT_LASSO
+			artboard.state = Operate.SELECT_LASSO
 			
 		'BtnSelectMagic':
-			artboard.state = Artboard.SELECT_MAGIC
-			artboard.apply_select_tolerance(0)
+			artboard.state = Operate.SELECT_MAGIC
+#			artboard.apply_select_tolerance(0)
 		
 		'ColorPicker':
-			artboard.state = Artboard.PICK_COLOR
+			artboard.state = Operate.PICK_COLOR
 		
 		'BtnCenterSelector':
 			artboard.apply_select_as_center(btn.button_pressed)

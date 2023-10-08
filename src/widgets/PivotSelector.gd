@@ -16,7 +16,7 @@ enum Pivot {
 	CENTER,
 }
 
-@export var pivot := Pivot.TOP_LEFT:
+@export var pivot_value := Pivot.TOP_LEFT:
 	set = pivot_changed
 
 @export var pivot_point_radius := 5
@@ -51,9 +51,9 @@ func _ready():
 
 
 func pivot_changed(val):
-	if pivot != val:
-		pivot = val
-		pivot_updated.emit(pivot)
+	if pivot_value != val:
+		pivot_value = val
+		pivot_updated.emit(pivot_value)
 		prepare_pivots()
 	
 
@@ -66,7 +66,7 @@ func prepare_pivots():
 			'id': id,
 			'position': pos,
 			'rect': Rect2i(pos - pivot_touch_size / 2, pivot_touch_size),
-			'color': pivot_on_color if pivot == id else pivot_color
+			'color': pivot_on_color if pivot_value == id else pivot_color
 		})
 	queue_redraw()
 
@@ -99,7 +99,7 @@ func _input(event):
 		var pos = get_local_mouse_position()
 		for p in pivot_points:
 			if p['rect'].has_point(pos):
-				pivot = p['id']
+				pivot_value = p['id']
 				break
 
 

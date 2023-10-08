@@ -1,7 +1,6 @@
 class_name TransformPanel extends Panel
 
-var operators := []
-var default_rect := Rect2i()
+var operator :Variant
 
 @onready var opt_pivot := %OptPivot
 @onready var input_width := %InputWidth
@@ -17,8 +16,6 @@ func _ready():
 	input_y.value_changed.connect(_on_input_pos_updated)
 	opt_pivot.pivot_updated.connect(_on_pivot_updated)
 	
-	input_width.min_value = 1
-	input_height.min_value = 1
 	input_width.max_value = 12000
 	input_height.max_value = 12000
 	input_x.max_value = 12000
@@ -47,7 +44,9 @@ func set_editable(status):
 
 func _on_input_size_updated(_val):
 	if operator:
-		operator.resize_to(Vector2i(input_width.value, input_height.value))
+		var width = max(input_width.value, 1)
+		var height = max(input_height.value, 1)
+		operator.resize_to(Vector2i(width, height))
 
 
 func _on_input_pos_updated(_val):
@@ -56,22 +55,33 @@ func _on_input_pos_updated(_val):
 
 
 func _on_pivot_updated(val):
-	for operator in operators:
+	if operator:
 		operator.set_pivot(val)
 
 
-func subscribe(operator):
-	if operator not in operators:
-		operator.updated.connect(_on_operator_updated)
-		operator.canceled.connect(_on_operator_canceled)
-		operator.set_pivot(opt_pivot.value)
-		operators.append(operator)
-	
-
-func _on_operator_updated(rect :Rect2i, rel_pos :Vector2i, status :bool):
+func _on_transform_updated(rect :Rect2i, rel_pos :Vector2i, status := true):
 	rect.position = rel_pos
 	set_transform(rect, status)
-	
-	
-func _on_operator_canceled():
-	set_transform(default_rect, false)
+
+
+func _on_transform_canceled(rect :Rect2i, rel_pos :Vector2i):
+	rect.position = rel_pos
+	set_transform(rect, false)
+
+
+func subscribe(new_operator):
+	unsubscribe()
+	operator = new_operator
+	operator.updated.connect(_on_transform_updated)
+	operator.canceled.connect(_on_transform_canceled)
+	operator.set_pivot(opt_pivot.pivot_value)
+
+
+func unsubscribe():
+	if operator:
+		if operator.updated.is_connected(_on_transform_updated):
+			operator.updated.disconnect(_on_transform_updated)
+		if operator.canceled.is_connected(_on_transform_canceled):
+			operator.canceled.disconnect(_on_transform_canceled)
+	set_transform(Rect2i(), false)
+	operator = null

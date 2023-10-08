@@ -3,27 +3,10 @@ class_name Artboard extends SubViewportContainer
 
 signal project_cropped(rect)
 signal color_picked(color)
-signal state_changed(state, operator)
+signal operate_changed(state, operator)
 
 
-enum {
-	NONE,
-	MOVE,
-	DRAG,
-	ZOOM,
-	PENCIL,
-	BRUSH,
-	ERASE,
-	CROP,
-	SELECT_RECTANGLE,
-	SELECT_ELLIPSE,
-	SELECT_POLYGON,
-	SELECT_LASSO,
-	SELECT_MAGIC,
-	PICK_COLOR,
-}
-
-var state := Artboard.NONE :
+var state := Operate.NONE :
 	set = set_state
 
 var project :Project
@@ -41,7 +24,7 @@ var guides :Array[Guide] = []
 var guides_locked := false :
 	set(val):
 		guides_locked = val
-#		_lock_guides(guides_locked or state != Artboard.MOVE)
+#		_lock_guides(guides_locked or state != Operate.MOVE)
 		_lock_guides(guides_locked)
 		
 var show_guides := false :
@@ -130,7 +113,7 @@ func _ready():
 	mouse_guide.set_guide(size)
 	symmetry_guide.set_guide(size)
 	
-	state = Artboard.NONE  # trggier options when state changed.
+	state = Operate.NONE  # trggier options when state changed.
 
 
 func load_project(proj :Project):
@@ -151,27 +134,36 @@ func load_project(proj :Project):
 func set_state(val):
 		# allow change without really changed val, trigger funcs in setter.
 		state = val
+
+		if state == Operate.MOVE:
+			operate_changed.emit(canvas.move_sizer)
+		elif state == Operate.CROP:
+			operate_changed.emit(canvas.crop_sizer)
+		elif state == Operate.PICK_COLOR:
+			pass
+		elif state in [Operate.SELECT_RECTANGLE, Operate.SELECT_ELLIPSE, 
+					   Operate.SELECT_POLYGON, Operate.SELECT_LASSO,
+					   Operate.SELECT_MAGIC]:
+			operate_changed.emit(canvas.selection)
+		else:
+			operate_changed.emit(null)
+		
 		canvas.state = state
 		camera.state = state
 		change_state_cursor(state)
 #		# NO NEED it
-#		if state == Artboard.MOVE:
+#		if state == Operate.MOVE:
 #			_lock_guides(guides_locked)
 #		else:
 #			_lock_guides(true)
 
-func register_transform_panel(panel):
-	panel.subscribe(canvas.move_szier)
-	panel.subscribe(canvas.crop_szier)
-	panel.subscribe(canvas.selection)
-
 
 func change_state_cursor(curr_state):
-	if curr_state == Artboard.MOVE:
+	if curr_state == Operate.MOVE:
 		mouse_default_cursor_shape = Control.CURSOR_MOVE
-	elif curr_state == Artboard.DRAG: 
+	elif curr_state == Operate.DRAG: 
 		mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	elif curr_state in [Artboard.BRUSH, Artboard.PENCIL, Artboard.ERASE]:
+	elif curr_state in [Operate.BRUSH, Operate.PENCIL, Operate.ERASE]:
 		mouse_default_cursor_shape = Control.CURSOR_CROSS
 	else:
 		mouse_default_cursor_shape = Control.CURSOR_ARROW
@@ -235,7 +227,7 @@ func _on_camera_updated():
 	
 
 func _on_camera_pressing(is_pressed):
-	if state == Artboard.DRAG:
+	if state == Operate.DRAG:
 		if is_pressed:
 			mouse_default_cursor_shape = Control.CURSOR_DRAG
 		else:
@@ -311,7 +303,7 @@ func _on_guide_pressed(guide):
 
 
 func _on_guide_released(guide):
-#	guide.is_locked = guides_locked or state != Artboard.MOVE
+#	guide.is_locked = guides_locked or state != Operate.MOVE
 	guide.is_locked = guides_locked
 	
 	guide.relative_position = canvas.get_relative_mouse_position()

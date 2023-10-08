@@ -11,7 +11,7 @@ func select_start(pos :Vector2i):
 			points.append(pos)
 	else:
 		if mode == Selection.Mode.REPLACE:
-			selection.deselect(true)
+			selection.deselect()
 			# when already has a selection,
 			# then first click will clear the selection.
 		is_selecting = true

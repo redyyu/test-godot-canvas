@@ -1,6 +1,6 @@
 class_name CropSizer extends GizmoSizer
 
-signal crop_canvas
+signal crop_canvas(rect)
 
 const MASK_COLOR := Color(0, 0, 0, 0.66)
 
@@ -18,7 +18,7 @@ func launch(canvas_size: Vector2i):
 	attach(rect, true)
 
 
-func cancel(use_reset := false):
+func cancel(use_reset := true):
 	bound_rect = Rect2i(Vector2i.ZERO, size)
 	super.cancel(use_reset)
 
@@ -78,6 +78,6 @@ func _draw():
 			  line_color, line_width / zoom_ratio)
 
 
-func _on_applied():
-	crop_canvas.emit()
+func _on_applied(rect):
+	crop_canvas.emit(rect)
 

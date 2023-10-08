@@ -51,7 +51,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(85, 30)
 layout_mode = 2
 max_value = 12000.0
-value = 1.0
 prefix = "W"
 custom_arrow_step = 10.0
 
@@ -60,7 +59,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(85, 30)
 layout_mode = 2
 max_value = 12000.0
-value = 1.0
 prefix = "H"
 custom_arrow_step = 10.0
 

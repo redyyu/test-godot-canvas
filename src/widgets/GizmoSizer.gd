@@ -4,8 +4,9 @@ signal gizmo_hover_updated(gizmo, status)
 signal gizmo_press_updated(gizmo, status)
 
 signal updated(rect, rel_pos, status)
+signal canceled(rect, rel_pos)
 signal applied(rect)
-signal canceled
+
 
 signal cursor_changed(cursor)
 
@@ -167,7 +168,7 @@ func apply(use_reset := true):
 
 func cancel(use_reset := true):
 	dismiss()
-	canceled.emit()
+	canceled.emit(bound_rect, relative_position)
 	if use_reset:
 		reset()
 

@@ -18,7 +18,8 @@ var preview_image := Image.new() :
 
 
 func _init():
-	updated.connect(_on_updated)
+	updated.connect(_on_refreshed)
+	canceled.connect(_on_refreshed)
 
 
 func reset():
@@ -44,14 +45,14 @@ func lanuch(img :Image, mask :Image):
 			attach(backup_rect)
 
 
-func cancel(use_reset := false):
+func cancel(use_reset := true):
 	image.copy_from(image_backup)
 	bound_rect = backup_rect
 	preview_image = Image.new()
 	super.cancel(use_reset)
 
 
-func apply(use_reset := false):
+func apply(use_reset := true):
 	if has_area() and has_image():
 		preview_image.resize(bound_rect.size.x, 
 							 bound_rect.size.y,
@@ -129,5 +130,5 @@ func _draw():
 							  MODULATE_COLOR if is_dragging else Color.WHITE)
 	
 
-func _on_updated():
+func _on_refreshed(_rect, _rel_pos, _status):
 	refresh_canvas.emit()

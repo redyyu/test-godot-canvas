@@ -28,7 +28,7 @@ var zoom_center_point := Vector2.ZERO
 var use_integer_zoom := false
 
 var btn_pressed := false
-var state := Artboard.NONE
+var state := Operate.NONE
 
 
 func _ready():
@@ -62,9 +62,9 @@ func _input(event: InputEvent):
 		press_updated.emit(btn_pressed)
 		
 	match state:
-		Artboard.DRAG:
+		Operate.DRAG:
 			process_dragging(event)
-		Artboard.ZOOM:
+		Operate.ZOOM:
 			process_zooming(event)
 
 

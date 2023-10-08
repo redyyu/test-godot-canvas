@@ -2,7 +2,7 @@ class_name Selection extends Sprite2D
 
 
 signal updated(rect, rel_pos)
-signal canceled
+signal canceled(rect, rel_pos)
 
 
 enum Mode {
@@ -102,7 +102,7 @@ func update_selection():
 	if selection_map.is_invisible():
 		texture = null
 		selected_rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
-		canceled.emit()
+		canceled.emit(selected_rect, relative_position)
 	else:
 		texture = ImageTexture.create_from_image(selection_map)
 		selected_rect = selection_map.get_used_rect()
