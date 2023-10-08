@@ -3,13 +3,15 @@ class_name Artboard extends SubViewportContainer
 
 signal project_cropped(rect)
 signal color_picked(color)
-signal operate_changed(state, operator)
 
 
 var state := Operate.NONE :
 	set = set_state
 
 var project :Project
+
+var current_operator :Variant :
+	get: return canvas.current_operator
 
 var camera_offset :Vector2 :
 	get: return camera.offset
@@ -134,20 +136,6 @@ func load_project(proj :Project):
 func set_state(val):
 		# allow change without really changed val, trigger funcs in setter.
 		state = val
-
-		if state == Operate.MOVE:
-			operate_changed.emit(canvas.move_sizer)
-		elif state == Operate.CROP:
-			operate_changed.emit(canvas.crop_sizer)
-		elif state == Operate.PICK_COLOR:
-			pass
-		elif state in [Operate.SELECT_RECTANGLE, Operate.SELECT_ELLIPSE, 
-					   Operate.SELECT_POLYGON, Operate.SELECT_LASSO,
-					   Operate.SELECT_MAGIC]:
-			operate_changed.emit(canvas.selection)
-		else:
-			operate_changed.emit(null)
-		
 		canvas.state = state
 		camera.state = state
 		change_state_cursor(state)

@@ -88,30 +88,31 @@ func _ready():
 	artboard.show_grid_state = Grid.NONE
 	artboard.show_symmetry_guide_state = SymmetryGuide.CROSS_AXIS
 #	artboard.symmetry_guide_state = SymmetryGuide.HORIZONTAL_AXIS
-	artboard.operate_changed.connect(_on_artboard_operate_changed)
 
 
-func _on_artboard_operate_changed(operator):
-	if operator is CropSizer or operator is MoveSizer or operator is Selection:
-		transform_panel.subscribe(operator)
-	else:
-		transform_panel.unsubscribe()
+func set_state(state):
+	artboard.state = state
+	match state:
+		Operate.MOVE:
+			transform_panel.subscribe(artboard.current_operator)
+		Operate.CROP:
+			transform_panel.subscribe(artboard.current_operator)
+		Operate.SELECT_RECTANGLE:
+			transform_panel.subscribe(artboard.current_operator)
+		_:
+			transform_panel.unsubscribe()
 
 
 func _on_btn_pressed(btn):
 	match btn.name:
 		'BtnMove':
-			artboard.state = Operate.MOVE
-			current_drawer = null
+			set_state(Operate.MOVE)
 		'BtnPan':
-			artboard.state = Operate.DRAG
-			current_drawer = null
+			set_state(Operate.DRAG)
 		'BtnZoom':
-			artboard.state = Operate.ZOOM
-			current_drawer = null
-			
+			set_state(Operate.ZOOM)
 		'BtnPencil':
-			artboard.state = Operate.PENCIL
+			set_state(Operate.PENCIL)
 			if current_color == Color.RED:
 				current_color = Color.GREEN
 			else:
@@ -121,7 +122,7 @@ func _on_btn_pressed(btn):
 			btn.modulate = current_color
 			
 		'BtnBrush':
-			artboard.state = Operate.BRUSH
+			set_state(Operate.BRUSH)
 			if current_color == Color.RED:
 				current_color = Color.GREEN
 			else:
@@ -133,47 +134,35 @@ func _on_btn_pressed(btn):
 			btn.modulate = current_color
 			
 		'BtnErase':
-			artboard.state = Operate.ERASE
+			set_state(Operate.ERASE)
 			current_drawer = artboard.canvas.eraser
-			
 		'BtnCrop':
-			artboard.state = Operate.CROP
-		
+			set_state(Operate.CROP)
 		'BtnLockGuide':
 			artboard.guides_locked = btn.button_pressed
-		
 		'BtnShowGuide':
 			artboard.show_guides = btn.button_pressed
-			
 		'BtnSelectRect':
-			artboard.state = Operate.SELECT_RECTANGLE
-		
+			set_state(Operate.SELECT_RECTANGLE)
 		'BtnSelectCircle':
-			artboard.state = Operate.SELECT_ELLIPSE
-		
+			set_state(Operate.SELECT_ELLIPSE)
 		'BtnSelectPolygon':
-			artboard.state = Operate.SELECT_POLYGON
-		
+			set_state(Operate.SELECT_POLYGON)
 		'BtnSelectLasso':
-			artboard.state = Operate.SELECT_LASSO
-			
+			set_state(Operate.SELECT_LASSO)
 		'BtnSelectMagic':
-			artboard.state = Operate.SELECT_MAGIC
-#			artboard.apply_select_tolerance(0)
-		
+			set_state(Operate.SELECT_MAGIC)
+			artboard.canvas.magic_selector.tolerance = 0
 		'ColorPicker':
-			artboard.state = Operate.PICK_COLOR
-		
+			set_state(Operate.PICK_COLOR)
 		'BtnCenterSelector':
-			artboard.apply_select_as_center(btn.button_pressed)
-		
+			artboard.canvas.selection.opt_from_center = btn.button_pressed
 		'BtnSquareSelector':
-			artboard.apply_select_as_square(btn.button_pressed)
-		
+			artboard.canvas.selection.opt_as_square = btn.button_pressed
 		'BtnContiguous':
-			artboard.apply_select_contiguous(btn.button_pressed)
+			artboard.canvas.magic_selector.opt_contiguous = btn.button_pressed
 		
-		
+
 	if current_drawer:
 		opt_stroke_dynamics.disabled = not current_drawer.allow_dyn_stroke_width
 		opt_alpha_dynamics.disabled = not current_drawer.allow_dyn_stroke_alpha

@@ -23,6 +23,7 @@ var magic_selector := MagicSelector.new()
 var pick_color := PickColor.new()
 		
 var project :Project
+var current_operator :Variant = null
 var size :Vector2i :
 	get:
 		if project:
@@ -130,29 +131,59 @@ func set_state(val):  # triggered when state changing.
 	
 	indicator.hide_indicator()  # not all state need indicator
 	
-	if state == Operate.CROP:
-		move_sizer.cancel()
-		crop_sizer.launch(project.size)
-		selection.deselect()
-	elif state == Operate.MOVE:
-		crop_sizer.cancel()
-		move_sizer.lanuch(project.current_cel.get_image(), selection.mask)
-		# selection must clear after mover setted, 
-		# mover still need it once.
-		selection.deselect()
-	elif state in [Operate.BRUSH, Operate.PENCIL, Operate.ERASE]:
-		move_sizer.apply()
-		crop_sizer.cancel()
-		pencil.attach(project.current_cel.get_image())
-		brush.attach(project.current_cel.get_image())
-		eraser.attach(project.current_cel.get_image())
-		# DO NOT clear selection here, drawer can draw by selection.
-	elif state in [Operate.DRAG, Operate.ZOOM]:
-		move_sizer.frozen()
-		crop_sizer.frozen()
-	else:
-		move_sizer.apply()
-		crop_sizer.cancel()
+	match state:
+		Operate.CROP:
+			current_operator = crop_sizer
+			move_sizer.cancel()
+			crop_sizer.launch(project.size)
+			selection.deselect()
+		Operate.MOVE:
+			current_operator = move_sizer
+			crop_sizer.cancel()
+			move_sizer.lanuch(project.current_cel.get_image(), selection.mask)
+			# selection must clear after mover setted, 
+			# mover still need it once.
+			selection.deselect()
+		Operate.BRUSH:
+			current_operator = brush
+			move_sizer.apply()
+			crop_sizer.cancel()
+			brush.attach(project.current_cel.get_image())
+		Operate.PENCIL:
+			current_operator = pencil
+			move_sizer.apply()
+			crop_sizer.cancel()
+			pencil.attach(project.current_cel.get_image())
+		Operate.ERASE:
+			current_operator = eraser
+			move_sizer.apply()
+			crop_sizer.cancel()
+			eraser.attach(project.current_cel.get_image())
+			# DO NOT clear selection here, drawer can draw by selection.
+		Operate.SELECT_RECTANGLE:
+			current_operator = rect_selector
+			move_sizer.apply()
+			crop_sizer.cancel()
+		Operate.SELECT_ELLIPSE:
+			current_operator = ellipse_selector
+			move_sizer.apply()
+			crop_sizer.cancel()
+		Operate.SELECT_POLYGON:
+			current_operator = polygon_selector
+			move_sizer.apply()
+			crop_sizer.cancel()
+		Operate.SELECT_LASSO:
+			current_operator = lasso_selector
+			move_sizer.apply()
+			crop_sizer.cancel()
+		Operate.SELECT_MAGIC:
+			current_operator = magic_selector
+			move_sizer.apply()
+			crop_sizer.cancel()
+		_:
+			current_operator = null
+			move_sizer.apply()
+			crop_sizer.cancel()
 
 
 func set_zoom_ratio(val):

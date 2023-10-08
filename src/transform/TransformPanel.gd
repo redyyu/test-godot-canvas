@@ -72,9 +72,10 @@ func _on_transform_canceled(rect :Rect2i, rel_pos :Vector2i):
 func subscribe(new_operator):
 	unsubscribe()
 	operator = new_operator
-	operator.updated.connect(_on_transform_updated)
-	operator.canceled.connect(_on_transform_canceled)
-	operator.set_pivot(opt_pivot.pivot_value)
+	if operator:
+		operator.updated.connect(_on_transform_updated)
+		operator.canceled.connect(_on_transform_canceled)
+		operator.set_pivot(opt_pivot.pivot_value)
 
 
 func unsubscribe():
