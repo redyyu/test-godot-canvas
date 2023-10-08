@@ -15,12 +15,13 @@ var drawer_brush := BrushDrawer.new()
 var drawer_eraser := EraseDrawer.new()
 var drawer_shading := ShadingDrawer.new()
 
-var rect_selector := RectSelector.new()
-var ellipse_selector := EllipseSelector.new()
-var polygon_selector := PolygonSelector.new()
-var lasso_selector := LassoSelector.new()
-var magic_selector := MagicSelector.new()
+var selector_rect := RectSelector.new()
+var selector_ellipse := EllipseSelector.new()
+var selector_polygon := PolygonSelector.new()
+var selector_lasso := LassoSelector.new()
+var selector_magic := MagicSelector.new()
 
+var color_bucket := ColorBucket.new()
 var pick_color := PickColor.new()
 		
 var project :Project
@@ -81,16 +82,18 @@ func _ready():
 #	onion_future.blue_red_color = Color.BLUE
 	
 	# attach selection to selector
-	rect_selector.selection = selection
-	ellipse_selector.selection = selection	
-	polygon_selector.selection = selection
-	lasso_selector.selection = selection
-	magic_selector.selection = selection
+	selector_rect.selection = selection
+	selector_ellipse.selection = selection	
+	selector_polygon.selection = selection
+	selector_lasso.selection = selection
+	selector_magic.selection = selection
 	
 	drawer_pencil.mask = selection.mask
 	drawer_brush.mask = selection.mask
 	drawer_eraser.mask = selection.mask
 	drawer_shading.mask = selection.mask
+	
+	color_bucket.mask = selection.mask
 	
 	var snapping_hook = func(pos :Vector2i, wt := {}) -> Vector2i:
 		return snapper.snap_position(pos, true, wt)
@@ -108,6 +111,11 @@ func attach_project(proj):
 	project = proj
 	
 	selection.size = project.size
+	
+	drawer_brush.attach(project.current_cel.get_image())
+	drawer_pencil.attach(project.current_cel.get_image())
+	drawer_eraser.attach(project.current_cel.get_image())
+	drawer_shading.attach(project.current_cel.get_image())
 	
 	set_state(state)  # trigger state changing to init settings.
 
@@ -133,67 +141,19 @@ func set_state(val):  # triggered when state changing.
 	
 	indicator.hide_indicator()  # not all state need indicator
 	
-	match state:
-		Operate.CROP:
-			current_operator = crop_sizer
-			move_sizer.cancel()
-			crop_sizer.launch(project.size)
-			selection.deselect()
-		Operate.MOVE:
-			current_operator = move_sizer
-			crop_sizer.cancel()
-			move_sizer.lanuch(project.current_cel.get_image(), selection.mask)
-			# selection must clear after mover setted, 
-			# mover still need it once.
-			selection.deselect()
-		Operate.BRUSH:
-			current_operator = drawer_brush
-			move_sizer.apply()
-			crop_sizer.cancel()
-			drawer_brush.attach(project.current_cel.get_image())
-			# DO NOT clear selection here, drawer can draw by selection.
-		Operate.PENCIL:
-			current_operator = drawer_pencil
-			move_sizer.apply()
-			crop_sizer.cancel()
-			drawer_pencil.attach(project.current_cel.get_image())
-			# DO NOT clear selection here, drawer can draw by selection.
-		Operate.ERASE:
-			current_operator = drawer_eraser
-			move_sizer.apply()
-			crop_sizer.cancel()
-			drawer_eraser.attach(project.current_cel.get_image())
-			# DO NOT clear selection here, drawer can draw by selection.
-		Operate.SHADING:
-			current_operator = drawer_shading
-			move_sizer.apply()
-			crop_sizer.cancel()
-			drawer_shading.attach(project.current_cel.get_image())
-			# DO NOT clear selection here, drawer can draw by selection.
-		Operate.SELECT_RECTANGLE:
-			current_operator = rect_selector
-			move_sizer.apply()
-			crop_sizer.cancel()
-		Operate.SELECT_ELLIPSE:
-			current_operator = ellipse_selector
-			move_sizer.apply()
-			crop_sizer.cancel()
-		Operate.SELECT_POLYGON:
-			current_operator = polygon_selector
-			move_sizer.apply()
-			crop_sizer.cancel()
-		Operate.SELECT_LASSO:
-			current_operator = lasso_selector
-			move_sizer.apply()
-			crop_sizer.cancel()
-		Operate.SELECT_MAGIC:
-			current_operator = magic_selector
-			move_sizer.apply()
-			crop_sizer.cancel()
-		_:
-			current_operator = null
-			move_sizer.apply()
-			crop_sizer.cancel()
+	if state == Operate.CROP:
+		move_sizer.cancel()
+		crop_sizer.launch(project.size)
+		selection.deselect()
+	elif state == Operate.MOVE:
+		crop_sizer.cancel()
+		move_sizer.lanuch(project.current_cel.get_image(), selection.mask)
+		# selection must clear after mover setted, 
+		# mover still need it once.
+		selection.deselect()
+	else:
+		move_sizer.apply()
+		crop_sizer.cancel()
 
 
 func set_zoom_ratio(val):
@@ -346,15 +306,15 @@ func _input(event :InputEvent):
 		Operate.MOVE:
 			pass
 		Operate.SELECT_RECTANGLE:
-			process_selection(event, rect_selector)
+			process_selection(event, selector_rect)
 		Operate.SELECT_ELLIPSE:
-			process_selection(event, ellipse_selector)
+			process_selection(event, selector_ellipse)
 		Operate.SELECT_POLYGON:
-			process_selection_polygon(event, polygon_selector)
+			process_selection_polygon(event, selector_polygon)
 		Operate.SELECT_LASSO:
-			process_selection_lasso(event, lasso_selector)
+			process_selection_lasso(event, selector_lasso)
 		Operate.SELECT_MAGIC:
-			process_selection_magic(event, magic_selector)
+			process_selection_magic(event, selector_magic)
 		Operate.PICK_COLOR:
 			process_color_pick(event)
 

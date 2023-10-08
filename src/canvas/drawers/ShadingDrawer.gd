@@ -11,27 +11,27 @@ var pixel_perfect := true
 
 var shading_op := ShadingOp.new()
 
-var op_simple_shading :bool :
+var opt_simple_shading :bool :
 	get: return shading_op.as_simple_shading
 	set(val): shading_op.as_simple_shading = val
 
-var op_lighten :bool :
+var opt_lighten :bool :
 	get: return shading_op.as_ligthen
 	set(val): shading_op.as_lighten = val
 
-var op_hue_amount :float :
+var opt_hue_amount :float :
 	get: return shading_op.hue_amount
 	set(val): shading_op.hue_amount = clampf(val, 0.0, 180.0)
 
-var op_sat_amount :float :
+var opt_sat_amount :float :
 	get: return shading_op.sat_amount
 	set(val): shading_op.sat_amount = clampf(val, 0.0, 100.0)
 
-var op_value_amount :float :
+var opt_value_amount :float :
 	get: return shading_op.value_amount
 	set(val): shading_op.value_amount = clampf(val, 0.0, 100.0)
 	
-var op_amount :float:
+var opt_amount :float:
 	get: return shading_op.strength * 100
 	set(val): shading_op.strength = clampf(val / 100.0, 0.00, 1.00)
 

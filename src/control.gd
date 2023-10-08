@@ -96,11 +96,11 @@ func set_state(state):
 	artboard.state = state
 	match state:
 		Operate.MOVE:
-			transform_panel.subscribe(artboard.current_operator)
+			transform_panel.subscribe(artboard.canvas.move_sizer)
 		Operate.CROP:
-			transform_panel.subscribe(artboard.current_operator)
+			transform_panel.subscribe(artboard.canvas.crop_sizer)
 		Operate.SELECT_RECTANGLE:
-			transform_panel.subscribe(artboard.current_operator)
+			transform_panel.subscribe(artboard.canvas.selector_rect)
 		_:
 			transform_panel.unsubscribe()
 
@@ -141,12 +141,12 @@ func _on_btn_pressed(btn):
 		'BtnShading':
 			set_state(Operate.SHADING)
 			current_drawer = artboard.canvas.drawer_shading
-			current_drawer.op_amount = 5
-			current_drawer.op_hue_amount = 50
-			current_drawer.op_sat_amount = 50
-			current_drawer.op_value_amount = 150
-			current_drawer.op_simple_shading = false
-			current_drawer.op_lighten = true
+			current_drawer.opt_amount = 5
+			current_drawer.opt_hue_amount = 50
+			current_drawer.opt_sat_amount = 50
+			current_drawer.opt_value_amount = 150
+			current_drawer.opt_simple_shading = false
+			current_drawer.opt_lighten = true
 		'BtnCrop':
 			set_state(Operate.CROP)
 		'BtnLockGuide':
@@ -163,7 +163,7 @@ func _on_btn_pressed(btn):
 			set_state(Operate.SELECT_LASSO)
 		'BtnSelectMagic':
 			set_state(Operate.SELECT_MAGIC)
-			artboard.canvas.magic_selector.tolerance = 0
+			artboard.canvas.selector_magic.tolerance = 0
 		'ColorPicker':
 			set_state(Operate.PICK_COLOR)
 		'BtnCenterSelector':
@@ -171,7 +171,7 @@ func _on_btn_pressed(btn):
 		'BtnSquareSelector':
 			artboard.canvas.selection.opt_as_square = btn.button_pressed
 		'BtnContiguous':
-			artboard.canvas.magic_selector.opt_contiguous = btn.button_pressed
+			artboard.canvas.selector_magic.opt_contiguous = btn.button_pressed
 		
 
 	if current_drawer:

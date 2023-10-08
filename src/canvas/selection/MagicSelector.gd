@@ -15,14 +15,10 @@ var selected_color = null
 var start_position = null
 
 var tolerance := 0:
-	set = set_tolerance
+	set(val):
+		tolerance = clampi(val, 0, 100)
 
 var opt_contiguous := false
-
-
-func set_tolerance(val):
-	if val != tolerance:
-		tolerance = clampi(val, 0, 100)
 
 
 func select_start(pos):
