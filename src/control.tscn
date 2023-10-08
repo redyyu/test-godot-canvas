@@ -104,6 +104,14 @@ offset_right = 1107.0
 offset_bottom = 357.0
 text = "Erase"
 
+[node name="BtnShading" type="Button" parent="."]
+layout_mode = 0
+offset_left = 971.0
+offset_top = 284.0
+offset_right = 1041.0
+offset_bottom = 315.0
+text = "Shading"
+
 [node name="BtnSelectRect" type="Button" parent="."]
 layout_mode = 0
 offset_left = 1037.0

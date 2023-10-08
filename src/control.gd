@@ -20,6 +20,7 @@ var current_drawer :PixelDrawer
 @onready var btn_12 = $BtnSelectMagic
 @onready var btn_13 = $ColorPicker
 @onready var btn_14 = $BtnContiguous
+@onready var btn_15 = $BtnShading
 
 @onready var btn_lock_guide = $BtnLockGuide
 @onready var btn_show_guide = $BtnShowGuide
@@ -64,6 +65,7 @@ func _ready():
 	btn_12.pressed.connect(_on_btn_pressed.bind(btn_12))
 	btn_13.pressed.connect(_on_btn_pressed.bind(btn_13))
 	btn_14.pressed.connect(_on_btn_pressed.bind(btn_14))
+	btn_15.pressed.connect(_on_btn_pressed.bind(btn_15))
 	
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
 	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
@@ -117,7 +119,7 @@ func _on_btn_pressed(btn):
 				current_color = Color.GREEN
 			else:
 				current_color = Color.RED
-			current_drawer = artboard.canvas.pencil
+			current_drawer = artboard.canvas.drawer_pencil
 			current_drawer.stroke_color = current_color
 			btn.modulate = current_color
 			
@@ -129,13 +131,22 @@ func _on_btn_pressed(btn):
 				current_color = Color.RED
 			var tmp_color = Color(current_color)
 #			tmp_color.a *= 0.5
-			current_drawer = artboard.canvas.brush
+			current_drawer = artboard.canvas.drawer_brush
 			current_drawer.stroke_color = tmp_color
 			btn.modulate = current_color
 			
 		'BtnErase':
 			set_state(Operate.ERASE)
-			current_drawer = artboard.canvas.eraser
+			current_drawer = artboard.canvas.drawer_eraser
+		'BtnShading':
+			set_state(Operate.SHADING)
+			current_drawer = artboard.canvas.drawer_shading
+			current_drawer.op_amount = 5
+			current_drawer.op_hue_amount = 50
+			current_drawer.op_sat_amount = 50
+			current_drawer.op_value_amount = 150
+			current_drawer.op_simple_shading = false
+			current_drawer.op_lighten = true
 		'BtnCrop':
 			set_state(Operate.CROP)
 		'BtnLockGuide':

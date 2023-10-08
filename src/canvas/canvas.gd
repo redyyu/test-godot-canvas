@@ -10,9 +10,10 @@ signal operating(operate_state, is_finished)
 var state := Operate.NONE:
 	set = set_state
 
-var pencil := PencilDrawer.new()
-var brush := BrushDrawer.new()
-var eraser := EraseDrawer.new()
+var drawer_pencil := PencilDrawer.new()
+var drawer_brush := BrushDrawer.new()
+var drawer_eraser := EraseDrawer.new()
+var drawer_shading := ShadingDrawer.new()
 
 var rect_selector := RectSelector.new()
 var ellipse_selector := EllipseSelector.new()
@@ -86,9 +87,10 @@ func _ready():
 	lasso_selector.selection = selection
 	magic_selector.selection = selection
 	
-	pencil.mask = selection.mask
-	brush.mask = selection.mask
-	eraser.mask = selection.mask
+	drawer_pencil.mask = selection.mask
+	drawer_brush.mask = selection.mask
+	drawer_eraser.mask = selection.mask
+	drawer_shading.mask = selection.mask
 	
 	var snapping_hook = func(pos :Vector2i, wt := {}) -> Vector2i:
 		return snapper.snap_position(pos, true, wt)
@@ -145,20 +147,28 @@ func set_state(val):  # triggered when state changing.
 			# mover still need it once.
 			selection.deselect()
 		Operate.BRUSH:
-			current_operator = brush
+			current_operator = drawer_brush
 			move_sizer.apply()
 			crop_sizer.cancel()
-			brush.attach(project.current_cel.get_image())
+			drawer_brush.attach(project.current_cel.get_image())
+			# DO NOT clear selection here, drawer can draw by selection.
 		Operate.PENCIL:
-			current_operator = pencil
+			current_operator = drawer_pencil
 			move_sizer.apply()
 			crop_sizer.cancel()
-			pencil.attach(project.current_cel.get_image())
+			drawer_pencil.attach(project.current_cel.get_image())
+			# DO NOT clear selection here, drawer can draw by selection.
 		Operate.ERASE:
-			current_operator = eraser
+			current_operator = drawer_eraser
 			move_sizer.apply()
 			crop_sizer.cancel()
-			eraser.attach(project.current_cel.get_image())
+			drawer_eraser.attach(project.current_cel.get_image())
+			# DO NOT clear selection here, drawer can draw by selection.
+		Operate.SHADING:
+			current_operator = drawer_shading
+			move_sizer.apply()
+			crop_sizer.cancel()
+			drawer_shading.attach(project.current_cel.get_image())
 			# DO NOT clear selection here, drawer can draw by selection.
 		Operate.SELECT_RECTANGLE:
 			current_operator = rect_selector
@@ -324,11 +334,13 @@ func _input(event :InputEvent):
 
 	match state:
 		Operate.PENCIL:
-			process_drawing_or_erasing(event, pencil)
+			process_drawing_or_erasing(event, drawer_pencil)
 		Operate.BRUSH:
-			process_drawing_or_erasing(event, brush)
+			process_drawing_or_erasing(event, drawer_brush)
 		Operate.ERASE:
-			process_drawing_or_erasing(event, eraser)
+			process_drawing_or_erasing(event, drawer_eraser)
+		Operate.SHADING:
+			process_drawing_or_erasing(event, drawer_shading)
 		Operate.CROP:
 			pass
 		Operate.MOVE:

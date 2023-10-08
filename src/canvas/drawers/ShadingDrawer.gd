@@ -21,19 +21,19 @@ var op_lighten :bool :
 
 var op_hue_amount :float :
 	get: return shading_op.hue_amount
-	set(val): shading_op.hue_amount = val
+	set(val): shading_op.hue_amount = clampf(val, 0.0, 180.0)
 
 var op_sat_amount :float :
 	get: return shading_op.sat_amount
-	set(val): shading_op.sat_amount = val
+	set(val): shading_op.sat_amount = clampf(val, 0.0, 100.0)
 
 var op_value_amount :float :
 	get: return shading_op.value_amount
-	set(val): shading_op.value_amount = val
+	set(val): shading_op.value_amount = clampf(val, 0.0, 100.0)
 	
-var op_strength :float:
-	get: return shading_op.strength
-	set(val): shading_op.strength = val
+var op_amount :float:
+	get: return shading_op.strength * 100
+	set(val): shading_op.strength = clampf(val / 100.0, 0.00, 1.00)
 
 
 class ShadingOp extends BaseDrawer.ColorOp:
@@ -143,7 +143,8 @@ func draw_pixel(position: Vector2i):
 		return
 	var old_color = shadow_image.get_pixelv(position)
 	var drawing_color :Color = shading_op.process(stroke_color, old_color)
-	
+	if drawing_color.a == 0:
+		return
 	if stroke_width_dynamics > 1:
 		var start := position - Vector2i.ONE * (stroke_width_dynamics >> 1)
 		var end := start + Vector2i.ONE * stroke_width_dynamics
