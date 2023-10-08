@@ -52,10 +52,15 @@ var zoom_ratio := 1.0 :
 		zoom_ratio = val
 		refresh_material()
 
+var tolerance := 0:
+	set(val):
+		tolerance = clampi(val, 0, 100)
+
 var points :PackedVector2Array = []
 
 var opt_as_square := false
 var opt_from_center := false
+var opt_contiguous := false
 
 var as_replace :bool :
 	get: return mode == Selection.Mode.REPLACE

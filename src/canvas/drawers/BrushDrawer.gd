@@ -26,7 +26,8 @@ class BrushOp extends BaseDrawer.ColorOp:
 			return src
 
 
-func _init():
+func _init(sel_mask :Image):
+	mask = sel_mask
 	allow_dyn_stroke_alpha = true
 	allow_dyn_stroke_width = true
 	color_op = BrushOp.new()

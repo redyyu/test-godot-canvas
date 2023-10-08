@@ -1,4 +1,4 @@
-class_name ColorBucket extends RefCounted
+class_name Bucket extends RefCounted
 
 signal color_filled
 
@@ -21,23 +21,33 @@ var tolerance := 0 :
 	set(val):
 		tolerance = clampi(val, 0, 100)
 
-var opt_contiguous := false
+var opt_contiguous := true
+
+
+func _init(sel_mask):
+	mask = sel_mask
+	
+
+func attach(img :Image):
+	image = img
 
 
 func fill(pos :Vector2i):
 	if not image_rect.has_point(pos):
 		return
-	if mask.is_empty() and mask.is_invisible():
+	if mask.is_empty() or mask.is_invisible():
 		var target_color = image.get_pixelv(pos)
 		if opt_contiguous:
-			fill_to_color(pos, target_color)
-		else:
 			fill_to_color_contiguous(pos, target_color)
+		else:
+			fill_to_color(target_color)
 	else:
-		fill_selection(pos)
+		fill_selection()
+	
+	color_filled.emit()
 	
 
-func fill_selection(pos :Vector2i):
+func fill_selection():
 	var fill_rect = mask.get_used_rect()
 	for x in range(fill_rect.position.x, fill_rect.end.x):
 		for y in range(fill_rect.position.y, fill_rect.end.y):
@@ -45,7 +55,7 @@ func fill_selection(pos :Vector2i):
 			image.set_pixelv(p, fill_color)
 
 
-func fill_to_color(pos :Vector2i, target_color :Color):
+func fill_to_color(target_color :Color):
 	for x in image.get_width():
 		for y in image.get_height():
 			var p := Vector2i(x, y)
@@ -55,7 +65,6 @@ func fill_to_color(pos :Vector2i, target_color :Color):
 
 
 func fill_to_color_contiguous(pos :Vector2i, target_color :Color):
-	var points :PackedVector2Array = []
 	var queue :PackedVector2Array = []
 	var visited :Dictionary = {}
 	var rect :Rect2 = image_rect
@@ -70,10 +79,7 @@ func fill_to_color_contiguous(pos :Vector2i, target_color :Color):
 		# This is because all elements placed after the removed element
 		# have to be reindexed.
 		
-		points.append(p)
-		# no need check duplicated here, each time check p is in points or not
-		# will cause lot of performance when points goes large.
-		# beside, only first point will be duplicated.
+		image.set_pixelv(p, fill_color)
 
 		for n in NEIGHBOURS:
 			var np = p + n

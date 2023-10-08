@@ -10,20 +10,6 @@ signal operating(operate_state, is_finished)
 var state := Operate.NONE:
 	set = set_state
 
-var drawer_pencil := PencilDrawer.new()
-var drawer_brush := BrushDrawer.new()
-var drawer_eraser := EraseDrawer.new()
-var drawer_shading := ShadingDrawer.new()
-
-var selector_rect := RectSelector.new()
-var selector_ellipse := EllipseSelector.new()
-var selector_polygon := PolygonSelector.new()
-var selector_lasso := LassoSelector.new()
-var selector_magic := MagicSelector.new()
-
-var color_bucket := ColorBucket.new()
-var pick_color := PickColor.new()
-		
 var project :Project
 var current_operator :Variant = null
 var size :Vector2i :
@@ -51,10 +37,26 @@ var is_pressed := false
 var zoom := Vector2.ONE :
 	set = set_zoom_ratio
 
+
+var color_pick := ColorPick.new()
+
 @onready var indicator :Indicator = $Indicator
 @onready var selection :Selection = $Selection
 @onready var crop_sizer :CropSizer = $CropSizer
 @onready var move_sizer :MoveSizer = $MoveSizer
+
+@onready var selector_rect := RectSelector.new(selection)
+@onready var selector_ellipse := EllipseSelector.new(selection)
+@onready var selector_polygon := PolygonSelector.new(selection)
+@onready var selector_lasso := LassoSelector.new(selection)
+@onready var selector_magic := MagicSelector.new(selection)
+
+@onready var drawer_pencil := PencilDrawer.new(selection.mask)
+@onready var drawer_brush := BrushDrawer.new(selection.mask)
+@onready var drawer_eraser := EraseDrawer.new(selection.mask)
+@onready var drawer_shading := ShadingDrawer.new(selection.mask)
+
+@onready var bucket := Bucket.new(selection.mask)
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -67,12 +69,8 @@ var zoom := Vector2.ONE :
 #var onion_skinning_future_rate := 1.0
 
 #@onready var tile_mode :Node2D = $TileMode
-#@onready var pixel_grid :Node2D = $PixelGrid
-#@onready var grid :Node2D = $Grid
-#@onready var selection :Node2D = $Selection
 #@onready var onion_past :Node2D = $OnionPast
 #@onready var onion_future :Node2D = $OnionFuture
-#@onready var crop_sizer :crop_sizer = $crop_sizer
 
 
 func _ready():
@@ -81,19 +79,7 @@ func _ready():
 #	onion_future.type = onion_future.FUTURE
 #	onion_future.blue_red_color = Color.BLUE
 	
-	# attach selection to selector
-	selector_rect.selection = selection
-	selector_ellipse.selection = selection	
-	selector_polygon.selection = selection
-	selector_lasso.selection = selection
-	selector_magic.selection = selection
-	
-	drawer_pencil.mask = selection.mask
-	drawer_brush.mask = selection.mask
-	drawer_eraser.mask = selection.mask
-	drawer_shading.mask = selection.mask
-	
-	color_bucket.mask = selection.mask
+	bucket.mask = selection.mask
 	
 	var snapping_hook = func(pos :Vector2i, wt := {}) -> Vector2i:
 		return snapper.snap_position(pos, true, wt)
@@ -105,6 +91,8 @@ func _ready():
 	move_sizer.refresh_canvas.connect(refresh)
 	move_sizer.cursor_changed.connect(_on_cursor_changed)
 	move_sizer.inject_snapping(snapping_hook)
+	
+	bucket.color_filled.connect(refresh)
 
 
 func attach_project(proj):
@@ -117,6 +105,7 @@ func attach_project(proj):
 	drawer_eraser.attach(project.current_cel.get_image())
 	drawer_shading.attach(project.current_cel.get_image())
 	
+	bucket.attach(project.current_cel.get_image())
 	set_state(state)  # trigger state changing to init settings.
 
 
@@ -276,12 +265,19 @@ func process_selection_magic(event, selector):
 func process_color_pick(event):
 	if event is InputEventMouseButton:
 		if is_pressed:
-			pick_color.blend_image(project.current_frame.get_images(),
+			color_pick.merge_image(project.current_frame.get_images(),
 								   PixelCel.IMAGE_FORMAT)
 	elif event is InputEventMouseMotion:
 		if is_pressed:
 			var pos = get_local_mouse_position()
-			pick_color.pick(pos)
+			color_pick.pick(pos)
+
+
+func process_bucket_fill(event):
+	if event is InputEventMouseButton:
+		if is_pressed:
+			var pos = get_local_mouse_position()
+			bucket.fill(pos)
 
 
 func _input(event :InputEvent):
@@ -315,8 +311,10 @@ func _input(event :InputEvent):
 			process_selection_lasso(event, selector_lasso)
 		Operate.SELECT_MAGIC:
 			process_selection_magic(event, selector_magic)
-		Operate.PICK_COLOR:
+		Operate.COLOR_PICK:
 			process_color_pick(event)
+		Operate.BUCKET:
+			process_bucket_fill(event)
 
 
 func _draw():

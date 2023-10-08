@@ -14,12 +14,6 @@ var image_rect :Rect2i :
 var selected_color = null
 var start_position = null
 
-var tolerance := 0:
-	set(val):
-		tolerance = clampi(val, 0, 100)
-
-var opt_contiguous := false
-
 
 func select_start(pos):
 	if image_rect.has_point(pos):  # make sure in the image, because get pixel.
@@ -34,7 +28,7 @@ func select_move(pos :Vector2i):
 	if is_selecting and points.size() > 0:
 		# check points size for make sure select_start is runned.
 		# first point is record from select_start.
-		if opt_contiguous:
+		if selection.opt_contiguous:
 			matching_contiguous(points[0])
 		else:
 			matching_all(points[0])
@@ -94,9 +88,9 @@ func is_matched_color(img_color :Color):
 		return false
 	if selected_color.is_equal_approx(img_color):
 		return true
-	elif tolerance > 0:
+	elif selection.tolerance > 0:
 		var diff = selected_color - img_color
-		var t = tolerance / 100.0
+		var t = selection.tolerance / 100.0
 		diff.r = abs(diff.r)
 		diff.g = abs(diff.g)
 		diff.b = abs(diff.b)

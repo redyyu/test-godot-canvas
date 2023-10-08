@@ -21,6 +21,7 @@ var current_drawer :PixelDrawer
 @onready var btn_13 = $ColorPicker
 @onready var btn_14 = $BtnContiguous
 @onready var btn_15 = $BtnShading
+@onready var btn_16 = $Bucket
 
 @onready var btn_lock_guide = $BtnLockGuide
 @onready var btn_show_guide = $BtnShowGuide
@@ -66,6 +67,7 @@ func _ready():
 	btn_13.pressed.connect(_on_btn_pressed.bind(btn_13))
 	btn_14.pressed.connect(_on_btn_pressed.bind(btn_14))
 	btn_15.pressed.connect(_on_btn_pressed.bind(btn_15))
+	btn_16.pressed.connect(_on_btn_pressed.bind(btn_16))
 	
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
 	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
@@ -100,7 +102,7 @@ func set_state(state):
 		Operate.CROP:
 			transform_panel.subscribe(artboard.canvas.crop_sizer)
 		Operate.SELECT_RECTANGLE:
-			transform_panel.subscribe(artboard.canvas.selector_rect)
+			transform_panel.subscribe(artboard.canvas.selection)
 		_:
 			transform_panel.unsubscribe()
 
@@ -149,6 +151,8 @@ func _on_btn_pressed(btn):
 			current_drawer.opt_lighten = true
 		'BtnCrop':
 			set_state(Operate.CROP)
+		'Bucket':
+			set_state(Operate.BUCKET)
 		'BtnLockGuide':
 			artboard.guides_locked = btn.button_pressed
 		'BtnShowGuide':
@@ -165,7 +169,7 @@ func _on_btn_pressed(btn):
 			set_state(Operate.SELECT_MAGIC)
 			artboard.canvas.selector_magic.tolerance = 0
 		'ColorPicker':
-			set_state(Operate.PICK_COLOR)
+			set_state(Operate.COLOR_PICK)
 		'BtnCenterSelector':
 			artboard.canvas.selection.opt_from_center = btn.button_pressed
 		'BtnSquareSelector':

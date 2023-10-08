@@ -52,6 +52,10 @@ class ColorOp:
 	var strength := 1.0
 
 
+func _init(sel_mask :Image):
+	mask = sel_mask
+
+
 func attach(img :Image):
 	image = img
 

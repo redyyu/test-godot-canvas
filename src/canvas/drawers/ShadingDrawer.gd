@@ -130,7 +130,8 @@ class ShadingOp extends BaseDrawer.ColorOp:
 
 
 
-func _init():
+func _init(sel_mask :Image):
+	mask = sel_mask
 	stroke_width = 12
 	
 

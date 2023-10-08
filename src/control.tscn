@@ -274,3 +274,11 @@ offset_top = 377.0
 offset_right = 1029.0
 offset_bottom = 408.0
 text = "Color"
+
+[node name="Bucket" type="Button" parent="."]
+layout_mode = 0
+offset_left = 910.0
+offset_top = 379.0
+offset_right = 960.0
+offset_bottom = 410.0
+text = "Bucket"
