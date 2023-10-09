@@ -326,8 +326,8 @@ func move_to(to_pos :Vector2i, use_pivot := true):
 		to_pos.x -= target_edge.x - size.x
 	if target_edge.y > size.y:
 		to_pos.y -= target_edge.y - size.y
-		
-	update_shape()
+	shaped_rect.position = to_pos
+	queue_redraw()
 	
 
 func resize_to(to_size :Vector2i):

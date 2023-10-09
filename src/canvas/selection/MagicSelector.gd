@@ -24,7 +24,7 @@ func select_start(pos :Vector2i):
 
 func select_move(pos :Vector2i):
 	super.select_move(pos)
-		
+
 	if is_selecting and points.size() > 0:
 		# check points size for make sure select_start is runned.
 		# first point is record from select_start.
