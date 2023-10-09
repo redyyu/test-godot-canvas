@@ -362,7 +362,7 @@ var _draw_rectangle = func():
 		return
 	
 	var rect = get_rect_from_points(points)
-	if rect.size == Vector2i.ZERO:
+	if not rect.has_area():
 		return
 	draw_rect(rect, Color.WHITE, false, 1.0 / zoom_ratio)
 	# doesn't matter the drawn color, material will take care of it.
@@ -370,7 +370,7 @@ var _draw_rectangle = func():
 
 var _draw_ellipse = func():
 	var rect = get_rect_from_points(points)
-	if rect.size == Vector2i.ZERO:
+	if not rect.has_area():
 		return
 	rect = Rect2(rect)
 #	draw_rect(rect, Color.WHITE, false, 1.0 / zoom_ratio)

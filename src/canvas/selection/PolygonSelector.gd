@@ -8,11 +8,10 @@ func select_move(pos :Vector2i):
 		selection.selecting_polygon(points)
 
 	elif is_moving:
-		move_to(pos)
+		selection.move_to(pos)
 
 
 func select_end(pos :Vector2i):
 	if is_selecting:
 		selection.selected_polygon(points)
-			
 	super.select_end(pos)

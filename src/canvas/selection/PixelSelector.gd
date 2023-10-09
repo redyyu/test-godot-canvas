@@ -18,12 +18,14 @@ func select_start(pos :Vector2i):
 		points.append(pos)
 
 
-func move_to(to_pos :Vector2i, use_pivot := true):
-	selection.move_to(to_pos, use_pivot)
+# NO NEED move_to and reisze_to, all combined into selection.
 
+#func move_to(to_pos :Vector2i, use_pivot := true):
+#	selection.move_to(to_pos, use_pivot)
+#
 
-func resize_to(to_size:Vector2i):
-	selection.resize_to(to_size)
+#func resize_to(to_size:Vector2i):
+#	selection.resize_to(to_size)
 	
 
 

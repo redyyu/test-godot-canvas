@@ -33,7 +33,7 @@ func select_move(pos :Vector2i):
 		else:
 			matching_all(points[0])
 	elif is_moving:
-		move_to(pos)
+		selection.move_to(pos)
 
 
 func select_end(pos :Vector2i):
