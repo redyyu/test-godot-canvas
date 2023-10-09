@@ -15,7 +15,7 @@ var selected_color = null
 var start_position = null
 
 
-func select_start(pos):
+func select_start(pos :Vector2i):
 	if image_rect.has_point(pos):  # make sure in the image, because get pixel.
 		super.select_start(pos)
 		selected_color = image.get_pixelv(pos)
@@ -36,7 +36,7 @@ func select_move(pos :Vector2i):
 		move_to(pos)
 
 
-func select_end(pos):
+func select_end(pos :Vector2i):
 	if is_selecting:
 		selection.selected_magic(points)
 	super.select_end(pos)

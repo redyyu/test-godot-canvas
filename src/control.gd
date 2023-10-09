@@ -72,7 +72,7 @@ func _ready():
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
 	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
 	
-#	opt_selection_mode.item_selected.connect(_on_selection_mode)
+	opt_selection_mode.item_selected.connect(_on_selection_mode)
 	
 	btn_center_selector.pressed.connect(_on_btn_pressed.bind(btn_center_selector))
 	btn_square_selector.pressed.connect(_on_btn_pressed.bind(btn_square_selector))
@@ -102,6 +102,14 @@ func set_state(state):
 		Operate.CROP:
 			transform_panel.subscribe(artboard.canvas.crop_sizer)
 		Operate.SELECT_RECTANGLE:
+			transform_panel.subscribe(artboard.canvas.selection)
+		Operate.SELECT_ELLIPSE:
+			transform_panel.subscribe(artboard.canvas.selection)
+		Operate.SELECT_POLYGON:
+			transform_panel.subscribe(artboard.canvas.selection)
+		Operate.SELECT_LASSO:
+			transform_panel.subscribe(artboard.canvas.selection)
+		Operate.SELECT_MAGIC:
 			transform_panel.subscribe(artboard.canvas.selection)
 		_:
 			transform_panel.unsubscribe()
@@ -209,3 +217,7 @@ func _on_stroke_space_changed(val):
 	print('Stroke Space: ', val)
 	if current_drawer:
 		current_drawer.stroke_spacing = Vector2i(val, val)
+
+
+func _on_selection_mode(val):
+	artboard.canvas.selection.mode = val

@@ -11,7 +11,7 @@ func select_move(pos :Vector2i):
 		move_to(pos)
 
 
-func select_end(pos):
+func select_end(pos :Vector2i):
 	if is_selecting:
 		selection.selected_polygon(points)
 			

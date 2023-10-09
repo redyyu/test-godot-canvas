@@ -19,7 +19,7 @@ var pivot_offset :Vector2i :
 	get: return get_pivot_offset(selected_rect.size)
 	
 var relative_position :Vector2i :  # with pivot, for display on panel
-	get: return selected_rect.position + pivot_offset
+	get: return get_relative_position(selected_rect)
 
 
 var size := Vector2i.ONE:
@@ -150,7 +150,7 @@ func resize_to(to_size :Vector2i):
 	update_selection()
 
 
-func get_rect_from_points(pts) -> Rect2i:
+func get_rect_from_points(pts :PackedVector2Array) -> Rect2i:
 	if pts.size() < 1:
 		return Rect2i()
 	return Rect2i(pts[0], pts[pts.size() - 1] - pts[0]).abs()
@@ -162,6 +162,10 @@ func check_visible(sel_points) -> bool:
 	# because require 2 points to make 1 pixel.
 	return visible
 	
+
+func get_relative_position(rect :Rect2i):
+	return rect.position + get_pivot_offset(rect.size)
+
 
 func get_pivot_offset(to_size:Vector2i) -> Vector2i:
 	var _offset = Vector2i.ZERO
@@ -240,7 +244,6 @@ func parse_two_points(sel_points:PackedVector2Array):
 	return pts
 
 
-
 # Rectangle
 
 func selecting_rectangle(sel_points :Array):
@@ -249,6 +252,9 @@ func selecting_rectangle(sel_points :Array):
 		return
 	_current_draw = _draw_rectangle
 	points = sel_points
+	var sel_rect = get_rect_from_points(points)
+	var sel_rel_pos = get_relative_position(sel_rect)
+	updated.emit(sel_rect, sel_rel_pos)
 	queue_redraw()
 
 
@@ -271,6 +277,9 @@ func selecting_ellipse(sel_points :Array):
 		return
 	_current_draw = _draw_ellipse
 	points = sel_points
+	var sel_rect = get_rect_from_points(points)
+	var sel_rel_pos = get_relative_position(sel_rect)
+	updated.emit(sel_rect, sel_rel_pos)
 	queue_redraw()
 
 
