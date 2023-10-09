@@ -4,7 +4,7 @@ class_name PivotSelector extends Control
 
 signal pivot_updated(pivot)
 
-enum Pivot {
+enum PivotPoint {
 	TOP_LEFT,
 	TOP_CENTER,
 	TOP_RIGHT,
@@ -16,7 +16,7 @@ enum Pivot {
 	CENTER,
 }
 
-@export var pivot_value := Pivot.TOP_LEFT:
+@export var pivot_value := PivotPoint.TOP_LEFT:
 	set = pivot_changed
 
 @export var pivot_point_radius := 5
@@ -59,7 +59,7 @@ func pivot_changed(val):
 
 func prepare_pivots():	
 	pivot_points.clear()
-	for i in Pivot:
+	for i in PivotPoint:
 		var id = Pivot[i]
 		var pos = get_pivot_position(id)
 		pivot_points.append({
@@ -73,23 +73,23 @@ func prepare_pivots():
 
 func get_pivot_position(id) -> Vector2i:
 	match id:
-		Pivot.TOP_LEFT:
+		PivotPoint.TOP_LEFT:
 			return Vector2.ZERO + pivot_size * 1.0
-		Pivot.TOP_CENTER:
+		PivotPoint.TOP_CENTER:
 			return Vector2(size.x * 0.5, pivot_size.y)
-		Pivot.TOP_RIGHT:
+		PivotPoint.TOP_RIGHT:
 			return Vector2(size.x - pivot_size.x, pivot_size.y)
-		Pivot.MIDDLE_RIGHT:
+		PivotPoint.MIDDLE_RIGHT:
 			return Vector2(size.x - pivot_size.x, size.y * 0.5)
-		Pivot.BOTTOM_RIGHT:
+		PivotPoint.BOTTOM_RIGHT:
 			return Vector2(size.x - pivot_size.x, size.y - pivot_size.y)
-		Pivot.BOTTOM_CENTER:
+		PivotPoint.BOTTOM_CENTER:
 			return Vector2(size.x * 0.5, size.y - pivot_size.y)
-		Pivot.BOTTOM_LEFT:
+		PivotPoint.BOTTOM_LEFT:
 			return Vector2(pivot_size.x, size.y - pivot_size.y)
-		Pivot.MIDDLE_LEFT:
+		PivotPoint.MIDDLE_LEFT:
 			return Vector2(pivot_size.x, size.y * 0.5)
-		_: # Pivot.CENTER
+		_: # PivotPoint.CENTER
 			return Vector2(size.x * 0.5, size.y * 0.5)
 
 
@@ -107,4 +107,3 @@ func _draw():
 	draw_rect(frame_rect, line_color, false, line_weight)
 	for p in pivot_points:
 		draw_circle(p['position'], pivot_point_radius, p['color'])
-

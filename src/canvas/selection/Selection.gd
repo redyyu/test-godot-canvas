@@ -14,19 +14,7 @@ enum Mode {
 
 var mode := Mode.REPLACE
 
-enum Pivot {
-	TOP_LEFT,
-	TOP_CENTER,
-	TOP_RIGHT,
-	MIDDLE_RIGHT,
-	BOTTOM_RIGHT,
-	BOTTOM_CENTER,
-	BOTTOM_LEFT,
-	MIDDLE_LEFT,
-	CENTER,
-}
-
-var pivot := Pivot.TOP_LEFT
+var pivot := Pivot.TOP_LEFT  # Pivot class in /core.
 var pivot_offset :Vector2i :
 	get: return get_pivot_offset(selected_rect.size)
 	
@@ -113,7 +101,7 @@ func update_selection():
 		selected_rect = selection_map.get_used_rect()
 		updated.emit(selected_rect, relative_position)
 			
-	_current_draw = _draw_nothing
+	_current_draw = null
 	queue_redraw()
 
 
@@ -134,7 +122,6 @@ func has_point(point :Vector2i, precisely := false) -> bool:
 func deselect():
 	points.clear()
 	selection_map.select_none()
-	_current_draw = _draw_nothing
 	update_selection()
 
 
@@ -351,17 +338,14 @@ func selected_magic(sel_points :Array):
 
 func _draw():
 	if points.size() > 1:
-		_current_draw.call()	
+		if _current_draw is Callable:
+			_current_draw.call()
 		# switch in `selection_` func.
 		# try not use state, so many states in proejcts already.
 		# also there is internal useage for this class only.
 
 
-var _current_draw = _draw_nothing
-
-
-var _draw_nothing = func():
-	pass
+var _current_draw = null
 
 
 var _draw_rectangle = func():
@@ -438,5 +422,3 @@ func _input(event):
 				delta = selected_rect.position.x
 			selection_map.move_delta(-delta, HORIZONTAL)
 			update_selection()
-	
-	
