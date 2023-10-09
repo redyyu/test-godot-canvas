@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://c08qtjj7x8pnk"]
+[gd_scene load_steps=21 format=3 uid="uid://c08qtjj7x8pnk"]
 
 [ext_resource type="Shader" path="res://src/shaders/TransparentChecker.gdshader" id="1_d8lm1"]
 [ext_resource type="Script" path="res://src/canvas/Artboard.gd" id="1_fg2jv"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://src/canvas/CanvasCamera.gd" id="5_ghk1k"]
 [ext_resource type="Script" path="res://src/canvas/guide/Grid.gd" id="6_qakk7"]
 [ext_resource type="Script" path="res://src/canvas/selection/Selection.gd" id="7_u15up"]
+[ext_resource type="Script" path="res://src/canvas/silhouette/Silhouette.gd" id="7_xeh1s"]
 [ext_resource type="Script" path="res://src/canvas/CropSizer.gd" id="9_jix6q"]
 [ext_resource type="Shader" path="res://src/shaders/MarchingAntsOutline.gdshader" id="9_y3e15"]
 [ext_resource type="Script" path="res://src/canvas/MoveSizer.gd" id="10_e8gjq"]
@@ -73,7 +74,8 @@ script = ExtResource("4_1y3pt")
 [node name="Indicator" type="Node2D" parent="Viewport/Canvas"]
 script = ExtResource("5_d6712")
 
-[node name="Shape" type="Node2D" parent="Viewport/Canvas"]
+[node name="Silhouette" type="Node2D" parent="Viewport/Canvas"]
+script = ExtResource("7_xeh1s")
 
 [node name="Selection" type="Sprite2D" parent="Viewport/Canvas"]
 material = SubResource("ShaderMaterial_paxfm")

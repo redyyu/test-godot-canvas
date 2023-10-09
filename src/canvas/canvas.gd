@@ -45,6 +45,8 @@ var color_pick := ColorPick.new()
 @onready var crop_sizer :CropSizer = $CropSizer
 @onready var move_sizer :MoveSizer = $MoveSizer
 
+@onready var silhouette :Silhouette = $Silhouette
+
 @onready var selector_rect := RectSelector.new(selection)
 @onready var selector_ellipse := EllipseSelector.new(selection)
 @onready var selector_polygon := PolygonSelector.new(selection)
@@ -57,6 +59,8 @@ var color_pick := ColorPick.new()
 @onready var drawer_shading := ShadingDrawer.new(selection.mask)
 
 @onready var bucket := Bucket.new(selection.mask)
+
+@onready var shaper_rect := RectShaper.new(silhouette)
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -99,6 +103,7 @@ func attach_project(proj):
 	project = proj
 	
 	selection.size = project.size
+	silhouette.size = project.size
 	
 	drawer_brush.attach(project.current_cel.get_image())
 	drawer_pencil.attach(project.current_cel.get_image())
@@ -280,6 +285,17 @@ func process_bucket_fill(event):
 			bucket.fill(pos)
 
 
+func process_shape(event, shaper):
+	if event is InputEventMouseButton:
+		if is_pressed:
+			var pos = snapper.snap_position(get_local_mouse_position())
+			shaper.shaping_begin(pos)
+	if event is InputEventMouseMotion:
+		if is_pressed:
+			var pos = snapper.snap_position(get_local_mouse_position())
+			shaper.shaping(pos)
+			
+
 func _input(event :InputEvent):
 	if not project.current_cel:
 		return
@@ -311,6 +327,8 @@ func _input(event :InputEvent):
 			process_selection_lasso(event, selector_lasso)
 		Operate.SELECT_MAGIC:
 			process_selection_magic(event, selector_magic)
+		Operate.SHAPE_RECTANGLE:
+			process_shape(event, shaper_rect)
 		Operate.COLOR_PICK:
 			process_color_pick(event)
 		Operate.BUCKET:

@@ -22,6 +22,7 @@ var current_drawer :PixelDrawer
 @onready var btn_14 = $BtnContiguous
 @onready var btn_15 = $BtnShading
 @onready var btn_16 = $Bucket
+@onready var btn_17 = $BtnShapeRect
 
 @onready var btn_lock_guide = $BtnLockGuide
 @onready var btn_show_guide = $BtnShowGuide
@@ -68,6 +69,7 @@ func _ready():
 	btn_14.pressed.connect(_on_btn_pressed.bind(btn_14))
 	btn_15.pressed.connect(_on_btn_pressed.bind(btn_15))
 	btn_16.pressed.connect(_on_btn_pressed.bind(btn_16))
+	btn_17.pressed.connect(_on_btn_pressed.bind(btn_17))
 	
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
 	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
@@ -176,6 +178,8 @@ func _on_btn_pressed(btn):
 		'BtnSelectMagic':
 			set_state(Operate.SELECT_MAGIC)
 			artboard.canvas.selector_magic.tolerance = 0
+		'BtnShapeRect':
+			set_state(Operate.SHAPE_RECTANGLE)
 		'ColorPicker':
 			set_state(Operate.COLOR_PICK)
 		'BtnCenterSelector':

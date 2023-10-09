@@ -1,4 +1,4 @@
-class_name ShapingArea extends Node2D
+class_name Silhouette extends Node2D
 
 signal updated(rect, rel_pos)
 signal canceled
@@ -11,8 +11,10 @@ var pivot_offset :Vector2i :
 var relative_position :Vector2i :  # with pivot, for display on panel
 	get: return shaped_rect.position + pivot_offset
 
+var size := Vector2i.ZERO
+var boundary : Rect2i :
+	get: return Rect2i(Vector2i.ZERO, size)
 var shaped_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
-var boundary := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 var shape_color := Color.BLACK
 
 var zoom_ratio := 1.0
@@ -21,6 +23,7 @@ var points :PackedVector2Array = []
 
 var opt_as_square := false
 var opt_from_center := false
+var opt_outline := false
 
 var is_pressed := false
 
@@ -37,7 +40,6 @@ func update_shape():
 	else:
 		shaped_rect = points_to_rect(points)
 		updated.emit(shaped_rect, relative_position)
-
 	queue_redraw()
 
 
@@ -61,7 +63,6 @@ func points_to_rect(pts) -> Rect2i:
 			end.x = p.x
 		if end.y < p.y:
 			end.y = p.y
-		
 	return Rect2i(start, end - start).abs()
 
 
@@ -178,7 +179,6 @@ func shaped_rectangle(sel_points :Array):
 		return
 #	shaped_map.fill_rect(_rect, shape_color)
 	points.clear()
-	update_shape()
 
 
 # Ellipse
@@ -238,8 +238,7 @@ var _current_shape = null
 var _shape_rectangle = func():
 	if points.size() <= 1:
 		return
-
-	if shaped_rect.size == Vector2i.ZERO:
+	if not shaped_rect.has_area():
 		return
 	draw_rect(shaped_rect, shape_color, false, 1.0 / zoom_ratio)
 	# doesn't matter the drawn color, material will take care of it.
@@ -247,7 +246,7 @@ var _shape_rectangle = func():
 
 var _shape_ellipse = func():
 	var rect = points_to_rect(points)
-	if rect.size == Vector2i.ZERO:
+	if not rect.has_area():
 		return
 	rect = Rect2(rect)
 #	draw_rect(rect, Color.WHITE, false, 1.0 / zoom_ratio)
@@ -311,6 +310,23 @@ func move_delta(delta :int, orientation:Orientation):
 	match orientation:
 		HORIZONTAL: shaped_rect.position.x += delta
 		VERTICAL: shaped_rect.position.y += delta
+	update_shape()
+
+
+func move_to(to_pos :Vector2i, use_pivot := true):
+	var _offset := pivot_offset if use_pivot else Vector2i.ZERO
+	
+	var target_pos := to_pos - _offset
+	var target_edge := target_pos + shaped_rect.size
+	if target_pos.x < 0:
+		to_pos.x = _offset.x
+	if target_pos.y < 0:
+		to_pos.y = _offset.y
+	if target_edge.x > size.x:
+		to_pos.x -= target_edge.x - size.x
+	if target_edge.y > size.y:
+		to_pos.y -= target_edge.y - size.y
+		
 	update_shape()
 	
 

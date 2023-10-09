@@ -120,6 +120,14 @@ offset_right = 1129.0
 offset_bottom = 477.0
 text = "Select Rect"
 
+[node name="BtnShapeRect" type="Button" parent="."]
+layout_mode = 0
+offset_left = 520.0
+offset_top = 548.0
+offset_right = 614.0
+offset_bottom = 579.0
+text = "Shape Rect"
+
 [node name="BtnSelectMagic" type="Button" parent="."]
 layout_mode = 0
 offset_left = 937.0
