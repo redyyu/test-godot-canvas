@@ -11,7 +11,6 @@ var pivot_offset :Vector2i :
 var relative_position :Vector2i :  # with pivot, for display on panel
 	get: return shaped_rect.position + pivot_offset
 
-var shaped_map := Image.new()
 var shaped_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 var boundary := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 var shape_color := Color.BLACK
@@ -29,25 +28,41 @@ var is_pressed := false
 func reset():
 	_current_shape = null
 	points.clear()
-	shaped_map.fill(Color.TRANSPARENT)
 
 
-func update_shaping():
-	if shaped_map.is_invisible():
+func update_shape():
+	if points.size() < 1:
 		shaped_rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 		canceled.emit(shaped_rect, relative_position)
 	else:
-		shaped_rect = get_rect_from_points(points)
+		shaped_rect = points_to_rect(points)
 		updated.emit(shaped_rect, relative_position)
-			
-	_current_shape = null
+
 	queue_redraw()
 
 
-func get_rect_from_points(pts) -> Rect2i:
+func points_to_rect(pts) -> Rect2i:
 	if pts.size() < 1:
 		return Rect2i()
-	return Rect2i(pts[0], pts[pts.size() - 1] - pts[0]).abs()
+	var start = null
+	var end = null
+	for p in pts:
+		if start == null:
+			start = p
+		if end == null:
+			end = p
+			
+		if start.x > p.x:
+			start.x = p.x
+		if start.y > p.y:
+			start.y = p.y
+		
+		if end.x < p.x:
+			end.x = p.x
+		if end.y < p.y:
+			end.y = p.y
+		
+	return Rect2i(start, end - start).abs()
 
 
 func check_visible(sel_points) -> bool:
@@ -56,6 +71,14 @@ func check_visible(sel_points) -> bool:
 	# because require 2 points to make 1 pixel.
 	return visible
 	
+
+func has_area():
+	return shaped_rect.has_area()
+
+
+func has_point(pos :Vector2i):
+	return shaped_rect.has_point(pos)
+
 
 func get_pivot_offset(to_size:Vector2i) -> Vector2i:
 	var _offset = Vector2i.ZERO
@@ -143,24 +166,24 @@ func shaping_rectangle(sel_points :Array):
 		return
 	_current_shape = _shape_rectangle
 	points = sel_points
-	queue_redraw()
+	update_shape()
 
 
 func shaped_rectangle(sel_points :Array):
 	sel_points = parse_two_points(sel_points)
 	if not check_visible(sel_points):
 		return
-	var _rect := get_rect_from_points(sel_points)
+	var _rect := points_to_rect(sel_points)
 	if _rect.size < Vector2i.ONE:
 		return
-	shaped_map.fill_rect(_rect, shape_color)
+#	shaped_map.fill_rect(_rect, shape_color)
 	points.clear()
-	update_shaping()
+	update_shape()
 
 
 # Ellipse
 
-func selecting_ellipse(sel_points :Array):
+func shaping_ellipse(sel_points :Array):
 	sel_points = parse_two_points(sel_points)
 	if not check_visible(sel_points):
 		return
@@ -169,21 +192,21 @@ func selecting_ellipse(sel_points :Array):
 	queue_redraw()
 
 
-func selected_ellipse(sel_points :Array):
+func shaped_ellipse(sel_points :Array):
 	sel_points = parse_two_points(sel_points)
 	if not check_visible(sel_points):
 		return
-	var _rect := get_rect_from_points(sel_points)
+	var _rect := points_to_rect(sel_points)
 	if _rect.size < Vector2i.ONE:
 		return
-	shaped_map.shape_ellipse(_rect, shape_color)
+#	shaped_map.shape_ellipse(_rect, shape_color)
 	points.clear()
-	update_shaping()
+	update_shape()
 
 
 # Polygon
 
-func selecting_polygon(sel_points :Array):
+func shaping_polygon(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_polyline
@@ -191,12 +214,12 @@ func selecting_polygon(sel_points :Array):
 	queue_redraw()
 
 
-func selected_polygon(sel_points :Array):
+func shaped_polygon(sel_points :Array):
 	if not check_visible(sel_points):
 		return
-	shaped_map.shape_polygon(sel_points, shape_color)
+#	shaped_map.shape_polygon(sel_points, shape_color)
 	points.clear()
-	update_shaping()
+	update_shape()
 
 
 # Draw selecting lines
@@ -215,16 +238,15 @@ var _current_shape = null
 var _shape_rectangle = func():
 	if points.size() <= 1:
 		return
-	
-	var rect = get_rect_from_points(points)
-	if rect.size == Vector2i.ZERO:
+
+	if shaped_rect.size == Vector2i.ZERO:
 		return
-	draw_rect(rect, Color.WHITE, false, 1.0 / zoom_ratio)
+	draw_rect(shaped_rect, shape_color, false, 1.0 / zoom_ratio)
 	# doesn't matter the drawn color, material will take care of it.
 	
 
 var _shape_ellipse = func():
-	var rect = get_rect_from_points(points)
+	var rect = points_to_rect(points)
 	if rect.size == Vector2i.ZERO:
 		return
 	rect = Rect2(rect)
@@ -243,11 +265,11 @@ var _shape_ellipse = func():
 		dscale = rect.size.y / rect.size.x
 		draw_set_transform(center, 0, Vector2(1, dscale))
 #	draw_rect(Rect2i(Vector2.ZERO, size), Color.WHITE, false, 1.0 / zoom_ratio)
-	draw_arc(Vector2.ZERO, radius, 0, 360, 36, Color.WHITE, 1.0 / zoom_ratio)
+	draw_arc(Vector2.ZERO, radius, 0, 360, 36, shape_color, 1.0 / zoom_ratio)
 
 
 var _shape_polyline = func():
-	draw_polyline(points, Color.WHITE, 1 / zoom_ratio)
+	draw_polyline(points, shape_color, 1 / zoom_ratio)
 	
 
 func _input(event):
@@ -281,4 +303,23 @@ func _input(event):
 			if shaped_rect.position.x < delta:
 				delta = shaped_rect.position.x
 			move_delta(-delta, HORIZONTAL)
+
+
+func move_delta(delta :int, orientation:Orientation):
+	if has_area():
+		return
+	match orientation:
+		HORIZONTAL: shaped_rect.position.x += delta
+		VERTICAL: shaped_rect.position.y += delta
+	update_shape()
+	
+
+func resize_to(to_size :Vector2i):
+	if has_area():
+		return 
+	var coef := Vector2(pivot_offset) / Vector2(to_size)
+	var size_diff :Vector2i = Vector2(shaped_rect.size - to_size) * coef
+	shaped_rect.position += size_diff
+	shaped_rect.size = to_size
+	update_shape()
 
