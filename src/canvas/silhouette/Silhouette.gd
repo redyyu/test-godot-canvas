@@ -41,13 +41,21 @@ func reset():
 	points.clear()
 
 
+func set_pivot(pivot_id):
+	pivot = pivot_id
+	if shaped_rect.has_area():
+		updated.emit(shaped_rect, relative_position)
+
+
 func update_shape():
 	if points.size() < 1:
 		shaped_rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 		canceled.emit(shaped_rect, relative_position)
+		visible = false
 	else:
 		shaped_rect = points_to_rect(points)
 		updated.emit(shaped_rect, relative_position)
+		visible = true
 	queue_redraw()
 
 
@@ -184,7 +192,7 @@ func shaped_rectangle():
 		image.fill_rect(shaped_rect, shape_color)
 	else:
 		var tmp_img = Image.create(image.get_width(), image.get_height(), false, image.get_format())
-		var rect = shaped_rect.grow(round(-stroke_weight))
+		var rect = shaped_rect.grow(-stroke_weight)
 		tmp_img.fill_rect(shaped_rect, shape_color)
 		tmp_img.fill_rect(rect, Color.TRANSPARENT)
 		image.blend_rect(tmp_img, shaped_rect, shaped_rect.position)
@@ -216,13 +224,17 @@ func shaped_ellipse():
 			if boundary.has_point(pos):
 				image.set_pixelv(pos, shape_color)
 	else:
-		var ellipse = get_ellipse_points(shaped_rect.size)
+		var ellipse = get_ellipse_points_filled(shaped_rect.size)
+		var inner_rect := shaped_rect.grow(-stroke_weight)
+		var inner_ellipse = get_ellipse_points_filled(inner_rect.size)
 		for pos in ellipse:
+			if inner_ellipse.has(pos - Vector2(stroke_weight, stroke_weight)):
+				continue
 			if pos_offset:
 				pos += pos_offset
 			if boundary.has_point(pos):
 				image.set_pixelv(pos, shape_color)
-		
+
 	refresh_canvas.emit()
 	points.clear()
 	update_shape()
@@ -289,9 +301,11 @@ var _shape_ellipse = func():
 		radius = _rect.size.x / 2.0
 		dscale = _rect.size.y / _rect.size.x
 		draw_set_transform(center, 0, Vector2(1, dscale))
+
 	if opt_fill:
 		draw_circle(Vector2.ZERO, radius, shape_color)
 	else:
+		radius -= stroke_weight / 2.0  # fix draw_arc stroke expand.
 		draw_arc(Vector2.ZERO, radius, 0, 360, 36, 
 				 shape_color, stroke_weight / zoom_ratio)
 		# draw_arc place center to ZERO, use tranform move to the right center.
@@ -371,16 +385,14 @@ var _shape_polyline = func():
 
 
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html
-func get_ellipse_points_filled(csize: Vector2i,
-							   thickness := 1) -> PackedVector2Array:
-	var offsetted_size := csize + Vector2i.ONE * (thickness - 1)
-	var border := get_ellipse_points(offsetted_size)
+func get_ellipse_points_filled(csize: Vector2i) -> PackedVector2Array:
+	var border := get_ellipse_border_points(csize)
 	var filling: PackedVector2Array = []
 
-	for x in range(1, ceili(offsetted_size.x / 2.0)):
+	for x in range(1, ceili(csize.x / 2.0)):
 		var _fill := false
 		var prev_is_true := false
-		for y in range(0, ceili(offsetted_size.y / 2.0)):
+		for y in range(0, ceili(csize.y / 2.0)):
 			var top_l_p := Vector2i(x, y)
 			var bit := border.has(top_l_p)
 
@@ -390,10 +402,10 @@ func get_ellipse_points_filled(csize: Vector2i,
 
 			if not bit and (_fill or prev_is_true):
 				filling.append(top_l_p)
-				filling.append(Vector2i(x, offsetted_size.y - y - 1))
-				filling.append(Vector2i(offsetted_size.x - x - 1, y))
-				filling.append(Vector2i(offsetted_size.x - x - 1, 
-										offsetted_size.y - y - 1))
+				filling.append(Vector2i(x, csize.y - y - 1))
+				filling.append(Vector2i(csize.x - x - 1, y))
+				filling.append(Vector2i(csize.x - x - 1, 
+										csize.y - y - 1))
 
 				if prev_is_true:
 					_fill = true
@@ -404,8 +416,8 @@ func get_ellipse_points_filled(csize: Vector2i,
 	return border + filling
 
 
-func get_ellipse_points(csize: Vector2i) -> PackedVector2Array:
-	var array: PackedVector2Array = []
+func get_ellipse_border_points(csize: Vector2i) -> PackedVector2Array:
+	var border: PackedVector2Array = []
 	var x0 := 0
 	var x1 := csize.x - 1
 	var y0 := 0
@@ -438,10 +450,10 @@ func get_ellipse_points(csize: Vector2i) -> PackedVector2Array:
 		var v2 := Vector2i(x0, y0)
 		var v3 := Vector2i(x0, y1)
 		var v4 := Vector2i(x1, y1)
-		array.append(v1)
-		array.append(v2)
-		array.append(v3)
-		array.append(v4)
+		border.append(v1)
+		border.append(v2)
+		border.append(v3)
+		border.append(v4)
 
 		e2 = 2 * err
 		if e2 <= dy:
@@ -461,11 +473,11 @@ func get_ellipse_points(csize: Vector2i) -> PackedVector2Array:
 		var v2 := Vector2i(x1 + 1, y0)
 		var v3 := Vector2i(x0 - 1, y1)
 		var v4 := Vector2i(x1 + 1, y1)
-		array.append(v1)
-		array.append(v2)
-		array.append(v3)
-		array.append(v4)
+		border.append(v1)
+		border.append(v2)
+		border.append(v3)
+		border.append(v4)
 		y0 += 1
 		y1 -= 1
 
-	return array
+	return border

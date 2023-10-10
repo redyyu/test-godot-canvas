@@ -1,6 +1,7 @@
 class_name TransformPanel extends Panel
 
 var operator :Variant
+var as_force_editable := false
 
 @onready var opt_pivot := %OptPivot
 @onready var input_width := %InputWidth
@@ -35,6 +36,8 @@ func set_transform(rect :Rect2i, status := false):
 
 
 func set_editable(status):
+	if as_force_editable:
+		status = true
 	input_x.editable = status
 	input_y.editable = status
 	input_width.editable = status
@@ -69,8 +72,11 @@ func _on_transform_canceled(rect :Rect2i, rel_pos :Vector2i):
 	set_transform(rect, false)
 
 
-func subscribe(new_operator):
+func subscribe(new_operator, use_force_editable := false):
 	unsubscribe()
+	as_force_editable = use_force_editable
+	if as_force_editable:
+		set_editable(true)
 	operator = new_operator
 	if operator:
 		operator.updated.connect(_on_transform_updated)
