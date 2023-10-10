@@ -267,7 +267,7 @@ func process_selection_magic(event, selector):
 		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed:
 			selector.select_move(pos)
-		else:
+		elif selector.is_operating:
 			selector.select_end(pos)
 
 
@@ -291,15 +291,19 @@ func process_bucket_fill(event):
 
 func process_shape(event, shaper):
 	if event is InputEventMouseButton:
-		if is_pressed and not event.double_click:
-			var pos = snapper.snap_position(get_local_mouse_position())
-			shaper.shaping(pos)
-		elif shaper.is_shaping and event.double_click:
-			shaper.apply()
-	elif event is InputEventMouseMotion:
+		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed:
-			var pos = snapper.snap_position(get_local_mouse_position())
-			shaper.shaping(pos)
+			if silhouette.has_point(pos):
+				shaper.get_moving_offset(pos)
+			else:
+				shaper.apply()
+			# DO NOT depaned doublie_clieck here, pressed always come first.
+	elif event is InputEventMouseMotion:
+		var pos = snapper.snap_position(get_local_mouse_position())
+		if is_pressed:
+			shaper.shape_move(pos)
+		elif shaper.is_operating:
+			shaper.shape_end(pos)
 
 
 func _input(event :InputEvent):

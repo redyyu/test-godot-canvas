@@ -21,8 +21,6 @@ var shape_color := Color.BLACK
 
 var zoom_ratio := 1.0
 
-var points :PackedVector2Array = []
-
 var opt_as_square := false
 var opt_from_center := false
 var opt_fill := false
@@ -39,25 +37,23 @@ func attach(img :Image):
 
 func reset():
 	_current_shape = null
-	points.clear()
+	shaped_rect = Rect2i()
 	update_shape()
 
 
 func set_pivot(pivot_id):
 	pivot = pivot_id
-	if shaped_rect.has_area():
+	if has_area():
 		updated.emit(shaped_rect, relative_position, true)
 
 
 func update_shape():
-	if points.size() < 1:
-		shaped_rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
-		updated.emit(shaped_rect, relative_position, false)
-		visible = false
-	else:
-		shaped_rect = points_to_rect(points)
+	if has_area():
 		updated.emit(shaped_rect, relative_position, true)
 		visible = true
+	else:
+		updated.emit(shaped_rect, relative_position, false)
+		visible = false
 	queue_redraw()
 
 
@@ -97,6 +93,10 @@ func has_area():
 
 func has_point(pos :Vector2i):
 	return shaped_rect.has_point(pos)
+
+
+func get_offset(pos :Vector2i):
+	return pos - shaped_rect.position
 
 
 func get_pivot_offset(to_size:Vector2i) -> Vector2i:
@@ -183,12 +183,12 @@ func shaping_rectangle(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_rectangle
-	points = sel_points
+	shaped_rect = points_to_rect(sel_points)
 	update_shape()
 
 
 func shaped_rectangle():
-	if not shaped_rect.has_area():
+	if not has_area():
 		return
 	if opt_fill:
 		image.fill_rect(shaped_rect, shape_color)
@@ -202,7 +202,6 @@ func shaped_rectangle():
 		tmp_img.fill_rect(rect, Color.TRANSPARENT)
 		image.blend_rect(tmp_img, shaped_rect, shaped_rect.position)
 	refresh_canvas.emit()
-	points.clear()
 	update_shape()
 
 
@@ -213,12 +212,12 @@ func shaping_ellipse(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_ellipse
-	points = sel_points
+	shaped_rect = points_to_rect(sel_points)
 	update_shape()
 
 
 func shaped_ellipse():
-	if not shaped_rect.has_area():
+	if not has_area():
 		return
 	var pos_offset :Vector2 = shaped_rect.position
 	if opt_fill:
@@ -241,7 +240,6 @@ func shaped_ellipse():
 				image.set_pixelv(pos, shape_color)
 
 	refresh_canvas.emit()
-	points.clear()
 	update_shape()
 
 
@@ -251,7 +249,7 @@ func shaping_polygon(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_polyline
-	points = sel_points
+	shaped_rect = points_to_rect(sel_points)
 	queue_redraw()
 
 
@@ -259,14 +257,13 @@ func shaped_polygon(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 #	shaped_map.shape_polygon(sel_points, shape_color)
-	points.clear()
 	update_shape()
 
 
 # Draw shaping
 
 func _draw():
-	if points.size() > 1:
+	if has_area():
 		if _current_shape is Callable:
 			_current_shape.call()
 		# switch in `selection_` func.
@@ -277,8 +274,6 @@ var _current_shape = null
 
 
 var _shape_rectangle = func():
-	if points.size() <= 1:
-		return
 	if not shaped_rect.has_area():
 		return
 	if opt_fill:
@@ -317,7 +312,10 @@ var _shape_ellipse = func():
 
 
 var _shape_polyline = func():
-	draw_polyline(points, shape_color, 1 / zoom_ratio)
+#	draw_polyline(points, shape_color, 1 / zoom_ratio)
+	# calculte polygon by rect. for shape who need some point not on the rect.
+	# use the ratio of width and height to adjustment. such as Pentagram.
+	pass
 	
 #
 func _input(event):
@@ -366,33 +364,36 @@ func move_delta(delta :int, orientation:Orientation):
 	match orientation:
 		HORIZONTAL: shaped_rect.position.x += delta
 		VERTICAL: shaped_rect.position.y += delta
+	update_shape()
 
 
-#func move_to(to_pos :Vector2i, use_pivot := true):
-#	var _offset := pivot_offset if use_pivot else Vector2i.ZERO
-#
-#	var target_pos := to_pos - _offset
-#	var target_edge := target_pos + shaped_rect.size
-#	if target_pos.x < 0:
-#		to_pos.x = _offset.x
-#	if target_pos.y < 0:
-#		to_pos.y = _offset.y
-#	if target_edge.x > size.x:
-#		to_pos.x -= target_edge.x - size.x
-#	if target_edge.y > size.y:
-#		to_pos.y -= target_edge.y - size.y
-#	shaped_rect.position = to_pos
-#	queue_redraw()
-#
-#
-#func resize_to(to_size :Vector2i):
-#	if has_area():
-#		return 
-#	var coef := Vector2(pivot_offset) / Vector2(to_size)
-#	var size_diff :Vector2i = Vector2(shaped_rect.size - to_size) * coef
-#	shaped_rect.position += size_diff
-#	shaped_rect.size = to_size
-#	update_shape()
+func move_to(to_pos :Vector2i, use_pivot := false):
+	var _offset := pivot_offset if use_pivot else Vector2i.ZERO
+
+	var target_pos := to_pos - _offset
+	var target_edge := target_pos + shaped_rect.size
+	if target_pos.x < 0:
+		to_pos.x = _offset.x
+	if target_pos.y < 0:
+		to_pos.y = _offset.y
+	if target_edge.x > size.x:
+		to_pos.x -= target_edge.x - size.x
+	if target_edge.y > size.y:
+		to_pos.y -= target_edge.y - size.y
+	shaped_rect.position = to_pos
+	update_shape()
+
+
+func resize_to(to_size :Vector2i):
+	if not has_area():
+		return 
+	
+	var coef := Vector2(pivot_offset) / Vector2(to_size)
+	var size_diff :Vector2i = Vector2(shaped_rect.size - to_size) * coef
+	print(pivot_offset)
+	shaped_rect.position += size_diff
+	shaped_rect.size = to_size
+	update_shape()
 
 
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html
