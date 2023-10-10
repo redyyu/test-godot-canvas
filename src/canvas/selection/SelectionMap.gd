@@ -60,7 +60,7 @@ func select_ellipse(rect :Rect2i,
 					replace:=false, subtract:=false, intersect:=false):
 	if rect.size < Vector2i.ONE:
 		return
-	var ellipse = get_ellipse_points_filled(Vector2.ZERO, rect.size)
+	var ellipse = get_ellipse_points_filled(rect.size)
 	
 	if is_invisible():
 		fill_ellipse(ellipse, SELECTED_COLOR, rect.position)
@@ -326,8 +326,9 @@ func resize_to(to_size :Vector2i, pivot_offset :=Vector2i.ZERO):
 
 
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html
-func get_ellipse_points(pos: Vector2i, csize: Vector2i) -> PackedVector2Array:
+func get_ellipse_points(csize: Vector2i) -> PackedVector2Array:
 	var array: PackedVector2Array = []
+	var pos := Vector2i.ZERO
 	var x0 := pos.x
 	var x1 := pos.x + (csize.x - 1)
 	var y0 := pos.y
@@ -390,11 +391,10 @@ func get_ellipse_points(pos: Vector2i, csize: Vector2i) -> PackedVector2Array:
 	return array
 	
 
-func get_ellipse_points_filled(pos: Vector2i, 
-							   csize: Vector2i,
+func get_ellipse_points_filled(csize: Vector2i,
 							   thickness := 1) -> PackedVector2Array:
 	var offsetted_size := csize + Vector2i.ONE * (thickness - 1)
-	var border := get_ellipse_points(pos, offsetted_size)
+	var border := get_ellipse_points(offsetted_size)
 	var filling: PackedVector2Array = []
 
 	for x in range(1, ceili(offsetted_size.x / 2.0)):
@@ -402,18 +402,18 @@ func get_ellipse_points_filled(pos: Vector2i,
 		var prev_is_true := false
 		for y in range(0, ceili(offsetted_size.y / 2.0)):
 			var top_l_p := Vector2i(x, y)
-			var bit := border.has(pos + top_l_p)
+			var bit := border.has(top_l_p)
 
 			if bit and not _fill:
 				prev_is_true = true
 				continue
 
 			if not bit and (_fill or prev_is_true):
-				filling.append(pos + top_l_p)
-				filling.append(pos + Vector2i(x, offsetted_size.y - y - 1))
-				filling.append(pos + Vector2i(offsetted_size.x - x - 1, y))
-				filling.append(pos + Vector2i(offsetted_size.x - x - 1, 
-											  offsetted_size.y - y - 1))
+				filling.append(top_l_p)
+				filling.append(Vector2i(x, offsetted_size.y - y - 1))
+				filling.append(Vector2i(offsetted_size.x - x - 1, y))
+				filling.append(Vector2i(offsetted_size.x - x - 1, 
+										offsetted_size.y - y - 1))
 
 				if prev_is_true:
 					_fill = true

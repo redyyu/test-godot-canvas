@@ -128,6 +128,15 @@ offset_right = 614.0
 offset_bottom = 579.0
 text = "Shape Rect"
 
+[node name="BtnShapeEllipse" type="Button" parent="."]
+layout_mode = 0
+offset_left = 402.0
+offset_top = 548.0
+offset_right = 511.0
+offset_bottom = 579.0
+text = "Shape Ellipse
+"
+
 [node name="BtnSelectMagic" type="Button" parent="."]
 layout_mode = 0
 offset_left = 937.0

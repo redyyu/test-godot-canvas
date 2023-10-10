@@ -389,6 +389,7 @@ var _draw_ellipse = func():
 		draw_set_transform(center, 0, Vector2(1, dscale))
 #	draw_rect(Rect2i(Vector2.ZERO, size), Color.WHITE, false, 1.0 / zoom_ratio)
 	draw_arc(Vector2.ZERO, radius, 0, 360, 36, Color.WHITE, 1.0 / zoom_ratio)
+	# draw_arc place center to ZERO, use tranform move to the right center.
 
 
 var _draw_polyline = func():

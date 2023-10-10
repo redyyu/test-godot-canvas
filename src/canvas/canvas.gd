@@ -61,6 +61,8 @@ var color_pick := ColorPick.new()
 @onready var bucket := Bucket.new(selection.mask)
 
 @onready var shaper_rect := RectShaper.new(silhouette)
+@onready var shaper_ellipse := EllipseShaper.new(silhouette)
+
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -292,6 +294,8 @@ func process_shape(event, shaper):
 		if is_pressed:
 			var pos = snapper.snap_position(get_local_mouse_position())
 			shaper.shaping_begin(pos)
+		else:
+			shaper.shaping_stop()
 	elif event is InputEventMouseMotion:
 		if is_pressed:
 			var pos = snapper.snap_position(get_local_mouse_position())
@@ -331,6 +335,8 @@ func _input(event :InputEvent):
 			process_selection_magic(event, selector_magic)
 		Operate.SHAPE_RECTANGLE:
 			process_shape(event, shaper_rect)
+		Operate.SHAPE_ELLIPSE:
+			process_shape(event, shaper_ellipse)
 		Operate.COLOR_PICK:
 			process_color_pick(event)
 		Operate.BUCKET:

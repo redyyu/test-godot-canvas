@@ -1,4 +1,4 @@
-class_name RectShaper extends BaseShaper
+class_name EllipseShaper extends BaseShaper
 
 
 func shaping(pos :Vector2i):
@@ -8,9 +8,9 @@ func shaping(pos :Vector2i):
 			# only keep frist points for rectangle.
 			points.resize(1)
 		points.append(pos) # append last point for rectangle.
-		silhouette.shaping_rectangle(points)
+		silhouette.shaping_ellipse(points)
 
 
 func shaping_stop():
-	silhouette.shaped_rectangle()
+	silhouette.shaped_ellipse()
 	super.shaping_stop()

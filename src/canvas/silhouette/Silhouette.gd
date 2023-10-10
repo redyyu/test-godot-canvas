@@ -26,7 +26,7 @@ var opt_as_square := false
 var opt_from_center := false
 var opt_fill := false
 
-var stroke_weight := 10.0
+var stroke_weight := 2
 
 var is_pressed := false
 
@@ -178,7 +178,7 @@ func shaping_rectangle(sel_points :Array):
 
 
 func shaped_rectangle():
-	if shaped_rect.size < Vector2i.ONE:
+	if not shaped_rect.has_area():
 		return
 	if opt_fill:
 		image.fill_rect(shaped_rect, shape_color)
@@ -201,17 +201,29 @@ func shaping_ellipse(sel_points :Array):
 		return
 	_current_shape = _shape_ellipse
 	points = sel_points
-	queue_redraw()
+	update_shape()
 
 
-func shaped_ellipse(sel_points :Array):
-	sel_points = parse_two_points(sel_points)
-	if not check_visible(sel_points):
+func shaped_ellipse():
+	if not shaped_rect.has_area():
 		return
-	var _rect := points_to_rect(sel_points)
-	if _rect.size < Vector2i.ONE:
-		return
-#	shaped_map.shape_ellipse(_rect, shape_color)
+	var pos_offset :Vector2 = shaped_rect.position
+	if opt_fill:
+		var ellipse = get_ellipse_points_filled(shaped_rect.size)
+		for pos in ellipse:
+			if pos_offset:
+				pos += pos_offset
+			if boundary.has_point(pos):
+				image.set_pixelv(pos, shape_color)
+	else:
+		var ellipse = get_ellipse_points(shaped_rect.size)
+		for pos in ellipse:
+			if pos_offset:
+				pos += pos_offset
+			if boundary.has_point(pos):
+				image.set_pixelv(pos, shape_color)
+		
+	refresh_canvas.emit()
 	points.clear()
 	update_shape()
 
@@ -255,103 +267,202 @@ var _shape_rectangle = func():
 	if opt_fill:
 		draw_rect(shaped_rect, shape_color, true)
 	else:
-		var _rect = shaped_rect.grow(round(-stroke_weight /2))
+		var _rect = shaped_rect.grow(round(-stroke_weight / 2.0))
 		# stroke is middle of the rect boundary.
 		draw_rect(_rect, shape_color, false, stroke_weight / zoom_ratio)
 
 
 var _shape_ellipse = func():
-	var rect = points_to_rect(points)
-	if not rect.has_area():
+	if not shaped_rect.has_area():
 		return
-	rect = Rect2(rect)
-#	draw_rect(rect, Color.WHITE, false, 1.0 / zoom_ratio)
 	var radius :float
 	var dscale :float
-	var center = rect.get_center()
+	var center = shaped_rect.get_center()
 	
-	if rect.size.x < rect.size.y:
-		radius = rect.size.y / 2.0
-		dscale = rect.size.x / rect.size.y
+	var _rect = Rect2(shaped_rect)
+	if _rect.size.x < _rect.size.y:
+		radius = _rect.size.y / 2.0
+		dscale = _rect.size.x / _rect.size.y
 		draw_set_transform(center, 0, Vector2(dscale, 1))
 		# the transform is effect whole size 
 	else:
-		radius = rect.size.x / 2.0
-		dscale = rect.size.y / rect.size.x
+		radius = _rect.size.x / 2.0
+		dscale = _rect.size.y / _rect.size.x
 		draw_set_transform(center, 0, Vector2(1, dscale))
-#	draw_rect(Rect2i(Vector2.ZERO, size), Color.WHITE, false, 1.0 / zoom_ratio)
-	draw_arc(Vector2.ZERO, radius, 0, 360, 36, shape_color, 1.0 / zoom_ratio)
+	if opt_fill:
+		draw_circle(Vector2.ZERO, radius, shape_color)
+	else:
+		draw_arc(Vector2.ZERO, radius, 0, 360, 36, 
+				 shape_color, stroke_weight / zoom_ratio)
+		# draw_arc place center to ZERO, use tranform move to the right center.
 
 
 var _shape_polyline = func():
 	draw_polyline(points, shape_color, 1 / zoom_ratio)
 	
-
-func _input(event):
-	if event is InputEventKey:
-		var delta := 1
-		
-		if Input.is_key_pressed(KEY_ESCAPE):
-			reset()
-		
-		if Input.is_key_pressed(KEY_SHIFT):
-			delta = 10
-			
-		if Input.is_action_pressed('ui_up'):
-			if shaped_rect.position.y < delta:
-				delta = shaped_rect.position.y
-			move_delta(-delta, VERTICAL)
-		
-		elif Input.is_action_pressed('ui_right'):
-			var right_remain := boundary.size.x - shaped_rect.end.x
-			if right_remain < delta:
-				delta = right_remain
-			move_delta(delta, HORIZONTAL)
-		
-		elif Input.is_action_pressed('ui_down'):
-			var bottom_remain := boundary.size.y - shaped_rect.end.y
-			if bottom_remain < delta:
-				delta = bottom_remain
-			move_delta(delta, VERTICAL)
-		
-		elif Input.is_action_pressed('ui_left'):
-			if shaped_rect.position.x < delta:
-				delta = shaped_rect.position.x
-			move_delta(-delta, HORIZONTAL)
-
-
-func move_delta(delta :int, orientation:Orientation):
-	if has_area():
-		return
-	match orientation:
-		HORIZONTAL: shaped_rect.position.x += delta
-		VERTICAL: shaped_rect.position.y += delta
-	update_shape()
+#
+#func _input(event):
+#	if event is InputEventKey:
+#		var delta := 1
+#
+#		if Input.is_key_pressed(KEY_ESCAPE):
+#			reset()
+#
+#		if Input.is_key_pressed(KEY_SHIFT):
+#			delta = 10
+#
+#		if Input.is_action_pressed('ui_up'):
+#			if shaped_rect.position.y < delta:
+#				delta = shaped_rect.position.y
+#			move_delta(-delta, VERTICAL)
+#
+#		elif Input.is_action_pressed('ui_right'):
+#			var right_remain := boundary.size.x - shaped_rect.end.x
+#			if right_remain < delta:
+#				delta = right_remain
+#			move_delta(delta, HORIZONTAL)
+#
+#		elif Input.is_action_pressed('ui_down'):
+#			var bottom_remain := boundary.size.y - shaped_rect.end.y
+#			if bottom_remain < delta:
+#				delta = bottom_remain
+#			move_delta(delta, VERTICAL)
+#
+#		elif Input.is_action_pressed('ui_left'):
+#			if shaped_rect.position.x < delta:
+#				delta = shaped_rect.position.x
+#			move_delta(-delta, HORIZONTAL)
 
 
-func move_to(to_pos :Vector2i, use_pivot := true):
-	var _offset := pivot_offset if use_pivot else Vector2i.ZERO
+#func move_delta(delta :int, orientation:Orientation):
+#	if has_area():
+#		return
+#	match orientation:
+#		HORIZONTAL: shaped_rect.position.x += delta
+#		VERTICAL: shaped_rect.position.y += delta
+#	update_shape()
+
+
+#func move_to(to_pos :Vector2i, use_pivot := true):
+#	var _offset := pivot_offset if use_pivot else Vector2i.ZERO
+#
+#	var target_pos := to_pos - _offset
+#	var target_edge := target_pos + shaped_rect.size
+#	if target_pos.x < 0:
+#		to_pos.x = _offset.x
+#	if target_pos.y < 0:
+#		to_pos.y = _offset.y
+#	if target_edge.x > size.x:
+#		to_pos.x -= target_edge.x - size.x
+#	if target_edge.y > size.y:
+#		to_pos.y -= target_edge.y - size.y
+#	shaped_rect.position = to_pos
+#	queue_redraw()
+#
+#
+#func resize_to(to_size :Vector2i):
+#	if has_area():
+#		return 
+#	var coef := Vector2(pivot_offset) / Vector2(to_size)
+#	var size_diff :Vector2i = Vector2(shaped_rect.size - to_size) * coef
+#	shaped_rect.position += size_diff
+#	shaped_rect.size = to_size
+#	update_shape()
+
+## Algorithm based on http://members.chello.at/easyfilter/bresenham.html
+func get_ellipse_points(csize: Vector2i) -> PackedVector2Array:
+	var array: PackedVector2Array = []
+	var pos := Vector2i.ZERO
+	var x0 := pos.x
+	var x1 := pos.x + (csize.x - 1)
+	var y0 := pos.y
+	var y1 := pos.y + (csize.y - 1)
+	var a := absi(x1 - x0)
+	var b := absi(y1 - x0)
+	var b1 := b & 1
+	var dx := 4 * (1 - a) * b * b
+	var dy := 4 * (b1 + 1) * a * a
+	var err := dx + dy + b1 * a * a
+	var e2 := 0
+
+	if x0 > x1:
+		x0 = x1
+		x1 += a
+
+	if y0 > y1:
+		y0 = y1
+
+	y0 += int(float(b + 1) / 2)  # int and float is for remove warrning.
+	y1 = y0 - b1
+	a *= 8 * a
+	b1 = 8 * b * b
+
+	while x0 <= x1:
+		var v1 := Vector2i(x1, y0)
+		var v2 := Vector2i(x0, y0)
+		var v3 := Vector2i(x0, y1)
+		var v4 := Vector2i(x1, y1)
+		array.append(v1)
+		array.append(v2)
+		array.append(v3)
+		array.append(v4)
+
+		e2 = 2 * err
+		if e2 <= dy:
+			y0 += 1
+			y1 -= 1
+			dy += a
+			err += dy
+
+		if e2 >= dx || 2 * err > dy:
+			x0 += 1
+			x1 -= 1
+			dx += b1
+			err += dx
+
+	while y0 - y1 < b:
+		var v1 := Vector2i(x0 - 1, y0)
+		var v2 := Vector2i(x1 + 1, y0)
+		var v3 := Vector2i(x0 - 1, y1)
+		var v4 := Vector2i(x1 + 1, y1)
+		array.append(v1)
+		array.append(v2)
+		array.append(v3)
+		array.append(v4)
+		y0 += 1
+		y1 -= 1
+
+	return array
 	
-	var target_pos := to_pos - _offset
-	var target_edge := target_pos + shaped_rect.size
-	if target_pos.x < 0:
-		to_pos.x = _offset.x
-	if target_pos.y < 0:
-		to_pos.y = _offset.y
-	if target_edge.x > size.x:
-		to_pos.x -= target_edge.x - size.x
-	if target_edge.y > size.y:
-		to_pos.y -= target_edge.y - size.y
-	shaped_rect.position = to_pos
-	queue_redraw()
-	
 
-func resize_to(to_size :Vector2i):
-	if has_area():
-		return 
-	var coef := Vector2(pivot_offset) / Vector2(to_size)
-	var size_diff :Vector2i = Vector2(shaped_rect.size - to_size) * coef
-	shaped_rect.position += size_diff
-	shaped_rect.size = to_size
-	update_shape()
+func get_ellipse_points_filled(csize: Vector2i,
+							   thickness := 1) -> PackedVector2Array:
+	var offsetted_size := csize + Vector2i.ONE * (thickness - 1)
+	var border := get_ellipse_points(offsetted_size)
+	var filling: PackedVector2Array = []
 
+	for x in range(1, ceili(offsetted_size.x / 2.0)):
+		var _fill := false
+		var prev_is_true := false
+		for y in range(0, ceili(offsetted_size.y / 2.0)):
+			var top_l_p := Vector2i(x, y)
+			var bit := border.has(top_l_p)
+
+			if bit and not _fill:
+				prev_is_true = true
+				continue
+
+			if not bit and (_fill or prev_is_true):
+				filling.append(top_l_p)
+				filling.append(Vector2i(x, offsetted_size.y - y - 1))
+				filling.append(Vector2i(offsetted_size.x - x - 1, y))
+				filling.append(Vector2i(offsetted_size.x - x - 1, 
+										offsetted_size.y - y - 1))
+
+				if prev_is_true:
+					_fill = true
+					prev_is_true = false
+			elif bit and _fill:
+				break
+
+	return border + filling
