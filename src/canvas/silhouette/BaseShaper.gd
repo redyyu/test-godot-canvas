@@ -23,16 +23,26 @@ func reset():
 
 
 func shaping_begin(pos :Vector2i):
-	reset()
 	if silhouette.has_point(pos):
 		is_moving = true
+	elif is_shaping:
+		shaping_stop()
 	else:
+		reset()
 		is_shaping = true
 		points.append(pos)
 
 
-func shaping(_pos :Vector2i):
-	pass
+func shaping(pos :Vector2i):
+	if not shaping:
+		shaping_begin(pos)
+
+
+func shaping_stop():
+	silhouette.shaped_rectangle()
+	is_shaping = false
+	is_moving = false
+	points.clear()
 
 
 func move_to(to_pos :Vector2i, use_pivot := true):

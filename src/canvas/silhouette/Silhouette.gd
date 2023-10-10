@@ -2,8 +2,9 @@ class_name Silhouette extends Node2D
 
 signal updated(rect, rel_pos)
 signal canceled
+signal refresh_canvas
 
-
+var image := Image.new()
 var pivot := Pivot.TOP_LEFT  # Pivot class in /core.
 var pivot_offset :Vector2i :
 	get: return get_pivot_offset(shaped_rect.size)
@@ -23,9 +24,16 @@ var points :PackedVector2Array = []
 
 var opt_as_square := false
 var opt_from_center := false
-var opt_outline := false
+var opt_fill := false
+
+var stroke_weight := 10.0
 
 var is_pressed := false
+
+
+func attach(img :Image):
+	image = img
+	size = Vector2i(image.get_width(), image.get_height())
 
 
 func reset():
@@ -158,7 +166,6 @@ func parse_two_points(sel_points:PackedVector2Array):
 	return pts
 
 
-
 # Rectangle
 
 func shaping_rectangle(sel_points :Array):
@@ -170,15 +177,20 @@ func shaping_rectangle(sel_points :Array):
 	update_shape()
 
 
-func shaped_rectangle(sel_points :Array):
-	sel_points = parse_two_points(sel_points)
-	if not check_visible(sel_points):
+func shaped_rectangle():
+	if shaped_rect.size < Vector2i.ONE:
 		return
-	var _rect := points_to_rect(sel_points)
-	if _rect.size < Vector2i.ONE:
-		return
-#	shaped_map.fill_rect(_rect, shape_color)
+	if opt_fill:
+		image.fill_rect(shaped_rect, shape_color)
+	else:
+		var tmp_img = Image.create(image.get_width(), image.get_height(), false, image.get_format())
+		var rect = shaped_rect.grow(round(-stroke_weight))
+		tmp_img.fill_rect(shaped_rect, shape_color)
+		tmp_img.fill_rect(rect, Color.TRANSPARENT)
+		image.blend_rect(tmp_img, shaped_rect, shaped_rect.position)
+	refresh_canvas.emit()
 	points.clear()
+	update_shape()
 
 
 # Ellipse
@@ -240,9 +252,13 @@ var _shape_rectangle = func():
 		return
 	if not shaped_rect.has_area():
 		return
-	draw_rect(shaped_rect, shape_color, false, 1.0 / zoom_ratio)
-	# doesn't matter the drawn color, material will take care of it.
-	
+	if opt_fill:
+		draw_rect(shaped_rect, shape_color, true)
+	else:
+		var _rect = shaped_rect.grow(round(-stroke_weight /2))
+		# stroke is middle of the rect boundary.
+		draw_rect(_rect, shape_color, false, stroke_weight / zoom_ratio)
+
 
 var _shape_ellipse = func():
 	var rect = points_to_rect(points)

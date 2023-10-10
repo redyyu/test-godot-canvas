@@ -97,13 +97,15 @@ func _ready():
 	move_sizer.inject_snapping(snapping_hook)
 	
 	bucket.color_filled.connect(refresh)
+	silhouette.refresh_canvas.connect(refresh)
 
 
 func attach_project(proj):
 	project = proj
 	
 	selection.size = project.size
-	silhouette.size = project.size
+	
+	silhouette.attach(project.current_cel.get_image())
 	
 	drawer_brush.attach(project.current_cel.get_image())
 	drawer_pencil.attach(project.current_cel.get_image())
@@ -290,7 +292,7 @@ func process_shape(event, shaper):
 		if is_pressed:
 			var pos = snapper.snap_position(get_local_mouse_position())
 			shaper.shaping_begin(pos)
-	if event is InputEventMouseMotion:
+	elif event is InputEventMouseMotion:
 		if is_pressed:
 			var pos = snapper.snap_position(get_local_mouse_position())
 			shaper.shaping(pos)

@@ -45,7 +45,6 @@ func _init():
 	evt_deselect_all.keycode = KEY_D
 	evt_deselect_all.command_or_control_autoremap = true
 	InputMap.action_add_event('deselect_all', evt_deselect_all)
-	
 
 
 func _ready():
