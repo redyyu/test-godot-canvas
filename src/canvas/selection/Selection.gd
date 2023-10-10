@@ -96,10 +96,12 @@ func update_selection():
 		texture = null
 		selected_rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 		canceled.emit(selected_rect, relative_position)
+		visible = false
 	else:
 		texture = ImageTexture.create_from_image(selection_map)
 		selected_rect = selection_map.get_used_rect()
 		updated.emit(selected_rect, relative_position)
+		visible = true
 			
 	_current_draw = null
 	queue_redraw()
