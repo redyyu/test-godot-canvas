@@ -328,11 +328,10 @@ func resize_to(to_size :Vector2i, pivot_offset :=Vector2i.ZERO):
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html
 func get_ellipse_points(csize: Vector2i) -> PackedVector2Array:
 	var array: PackedVector2Array = []
-	var pos := Vector2i.ZERO
-	var x0 := pos.x
-	var x1 := pos.x + (csize.x - 1)
-	var y0 := pos.y
-	var y1 := pos.y + (csize.y - 1)
+	var x0 := 0
+	var x1 := csize.x - 1
+	var y0 := 0
+	var y1 := csize.y - 1
 	var a := absi(x1 - x0)
 	var b := absi(y1 - x0)
 	var b1 := b & 1
