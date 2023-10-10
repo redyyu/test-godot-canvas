@@ -315,46 +315,43 @@ var _shape_polyline = func():
 	draw_polyline(points, shape_color, 1 / zoom_ratio)
 	
 #
-#func _input(event):
-#	if event is InputEventKey:
-#		var delta := 1
-#
-#		if Input.is_key_pressed(KEY_ESCAPE):
-#			reset()
-#
-#		if Input.is_key_pressed(KEY_SHIFT):
-#			delta = 10
-#
-#		if Input.is_action_pressed('ui_up'):
-#			if shaped_rect.position.y < delta:
-#				delta = shaped_rect.position.y
-#			move_delta(-delta, VERTICAL)
-#
-#		elif Input.is_action_pressed('ui_right'):
-#			var right_remain := boundary.size.x - shaped_rect.end.x
-#			if right_remain < delta:
-#				delta = right_remain
-#			move_delta(delta, HORIZONTAL)
-#
-#		elif Input.is_action_pressed('ui_down'):
-#			var bottom_remain := boundary.size.y - shaped_rect.end.y
-#			if bottom_remain < delta:
-#				delta = bottom_remain
-#			move_delta(delta, VERTICAL)
-#
-#		elif Input.is_action_pressed('ui_left'):
-#			if shaped_rect.position.x < delta:
-#				delta = shaped_rect.position.x
-#			move_delta(-delta, HORIZONTAL)
+func _input(event):
+	if event is InputEventKey:
+		var delta := 1
+		
+		if Input.is_key_pressed(KEY_SHIFT):
+			delta = 10
+
+		if Input.is_action_pressed('ui_up'):
+			if shaped_rect.position.y < delta:
+				delta = shaped_rect.position.y
+			move_delta(-delta, VERTICAL)
+
+		elif Input.is_action_pressed('ui_right'):
+			var right_remain := boundary.size.x - shaped_rect.end.x
+			if right_remain < delta:
+				delta = right_remain
+			move_delta(delta, HORIZONTAL)
+
+		elif Input.is_action_pressed('ui_down'):
+			var bottom_remain := boundary.size.y - shaped_rect.end.y
+			if bottom_remain < delta:
+				delta = bottom_remain
+			move_delta(delta, VERTICAL)
+
+		elif Input.is_action_pressed('ui_left'):
+			if shaped_rect.position.x < delta:
+				delta = shaped_rect.position.x
+			move_delta(-delta, HORIZONTAL)
 
 
-#func move_delta(delta :int, orientation:Orientation):
-#	if has_area():
-#		return
-#	match orientation:
-#		HORIZONTAL: shaped_rect.position.x += delta
-#		VERTICAL: shaped_rect.position.y += delta
-#	update_shape()
+func move_delta(delta :int, orientation:Orientation):
+	if not shaped_rect.has_area():
+		return
+
+	match orientation:
+		HORIZONTAL: shaped_rect.position.x += delta
+		VERTICAL: shaped_rect.position.y += delta
 
 
 #func move_to(to_pos :Vector2i, use_pivot := true):

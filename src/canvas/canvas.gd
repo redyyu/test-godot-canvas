@@ -294,13 +294,13 @@ func process_shape(event, shaper):
 		if is_pressed:
 			var pos = snapper.snap_position(get_local_mouse_position())
 			shaper.shaping_begin(pos)
-		else:
-			shaper.shaping_stop()
+		elif event.double_click:
+			shaper.apply()
 	elif event is InputEventMouseMotion:
 		if is_pressed:
 			var pos = snapper.snap_position(get_local_mouse_position())
 			shaper.shaping(pos)
-			
+
 
 func _input(event :InputEvent):
 	if not project.current_cel:

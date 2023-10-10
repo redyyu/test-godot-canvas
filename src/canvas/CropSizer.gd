@@ -8,6 +8,7 @@ var size := Vector2i.ZERO
 
 
 func _init():
+	super._init()
 	applied.connect(_on_applied)
 
 

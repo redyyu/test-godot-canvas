@@ -115,7 +115,7 @@ func set_state(state):
 		Operate.SELECT_MAGIC:
 			transform_panel.subscribe(artboard.canvas.selection)
 		Operate.SHAPE_ELLIPSE:
-			transform_panel.subscribe(artboard.canvas.silhouette, true)
+			transform_panel.subscribe(artboard.canvas.silhouette)
 		_:
 			transform_panel.unsubscribe()
 

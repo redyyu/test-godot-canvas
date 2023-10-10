@@ -44,3 +44,11 @@ func shaping_stop():
 #
 #func resize_to(to_size:Vector2i):
 #	silhouette.resize_to(to_size)
+
+
+func apply():
+	pass
+
+
+func cancel():
+	pass

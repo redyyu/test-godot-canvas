@@ -18,6 +18,7 @@ var preview_image := Image.new() :
 
 
 func _init():
+	super._init()
 	updated.connect(_on_refreshed)
 	canceled.connect(_on_refreshed)
 
@@ -130,5 +131,5 @@ func _draw():
 							  MODULATE_COLOR if is_dragging else Color.WHITE)
 	
 
-func _on_refreshed(_rect, _rel_pos, _status):
+func _on_refreshed(_rect, _rel_pos, _st:=false):
 	refresh_canvas.emit()
