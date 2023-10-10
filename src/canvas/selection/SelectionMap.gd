@@ -326,16 +326,14 @@ func resize_to(to_size :Vector2i, pivot_offset :=Vector2i.ZERO):
 
 
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html
-func get_ellipse_points_filled(csize: Vector2i,
-							   thickness := 1) -> PackedVector2Array:
-	var offsetted_size := csize + Vector2i.ONE * (thickness - 1)
-	var border := get_ellipse_border_points(offsetted_size)
+func get_ellipse_points_filled(csize: Vector2i) -> PackedVector2Array:
+	var border := get_ellipse_border_points(csize)
 	var filling: PackedVector2Array = []
 
-	for x in range(1, ceili(offsetted_size.x / 2.0)):
+	for x in range(1, ceili(csize.x / 2.0)):
 		var _fill := false
 		var prev_is_true := false
-		for y in range(0, ceili(offsetted_size.y / 2.0)):
+		for y in range(0, ceili(csize.y / 2.0)):
 			var top_l_p := Vector2i(x, y)
 			var bit := border.has(top_l_p)
 
@@ -345,10 +343,10 @@ func get_ellipse_points_filled(csize: Vector2i,
 
 			if not bit and (_fill or prev_is_true):
 				filling.append(top_l_p)
-				filling.append(Vector2i(x, offsetted_size.y - y - 1))
-				filling.append(Vector2i(offsetted_size.x - x - 1, y))
-				filling.append(Vector2i(offsetted_size.x - x - 1, 
-										offsetted_size.y - y - 1))
+				filling.append(Vector2i(x, csize.y - y - 1))
+				filling.append(Vector2i(csize.x - x - 1, y))
+				filling.append(Vector2i(csize.x - x - 1, 
+										csize.y - y - 1))
 
 				if prev_is_true:
 					_fill = true
