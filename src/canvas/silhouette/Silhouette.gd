@@ -371,13 +371,45 @@ var _shape_polyline = func():
 
 
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html
+func get_ellipse_points_filled(csize: Vector2i,
+							   thickness := 1) -> PackedVector2Array:
+	var offsetted_size := csize + Vector2i.ONE * (thickness - 1)
+	var border := get_ellipse_points(offsetted_size)
+	var filling: PackedVector2Array = []
+
+	for x in range(1, ceili(offsetted_size.x / 2.0)):
+		var _fill := false
+		var prev_is_true := false
+		for y in range(0, ceili(offsetted_size.y / 2.0)):
+			var top_l_p := Vector2i(x, y)
+			var bit := border.has(top_l_p)
+
+			if bit and not _fill:
+				prev_is_true = true
+				continue
+
+			if not bit and (_fill or prev_is_true):
+				filling.append(top_l_p)
+				filling.append(Vector2i(x, offsetted_size.y - y - 1))
+				filling.append(Vector2i(offsetted_size.x - x - 1, y))
+				filling.append(Vector2i(offsetted_size.x - x - 1, 
+										offsetted_size.y - y - 1))
+
+				if prev_is_true:
+					_fill = true
+					prev_is_true = false
+			elif bit and _fill:
+				break
+
+	return border + filling
+
+
 func get_ellipse_points(csize: Vector2i) -> PackedVector2Array:
 	var array: PackedVector2Array = []
-	var pos := Vector2i.ZERO
-	var x0 := pos.x
-	var x1 := pos.x + (csize.x - 1)
-	var y0 := pos.y
-	var y1 := pos.y + (csize.y - 1)
+	var x0 := 0
+	var x1 := csize.x - 1
+	var y0 := 0
+	var y1 := csize.y - 1
 	var a := absi(x1 - x0)
 	var b := absi(y1 - x0)
 	var b1 := b & 1
@@ -393,7 +425,10 @@ func get_ellipse_points(csize: Vector2i) -> PackedVector2Array:
 	if y0 > y1:
 		y0 = y1
 
-	y0 += round((b + 1) / 2.0)  # int and float is for remove warrning.
+	y0 += int((b + 1) / 2.0)
+	# DO NOT round() here, might cause unexcepted border here.
+	# int and float is for remove warrning.
+	
 	y1 = y0 - b1
 	a *= 8 * a
 	b1 = 8 * b * b
@@ -434,36 +469,3 @@ func get_ellipse_points(csize: Vector2i) -> PackedVector2Array:
 		y1 -= 1
 
 	return array
-	
-
-func get_ellipse_points_filled(csize: Vector2i,
-							   thickness := 1) -> PackedVector2Array:
-	var offsetted_size := csize + Vector2i.ONE * (thickness - 1)
-	var border := get_ellipse_points(offsetted_size)
-	var filling: PackedVector2Array = []
-
-	for x in range(1, ceili(offsetted_size.x / 2.0)):
-		var _fill := false
-		var prev_is_true := false
-		for y in range(0, ceili(offsetted_size.y / 2.0)):
-			var top_l_p := Vector2i(x, y)
-			var bit := border.has(top_l_p)
-
-			if bit and not _fill:
-				prev_is_true = true
-				continue
-
-			if not bit and (_fill or prev_is_true):
-				filling.append(top_l_p)
-				filling.append(Vector2i(x, offsetted_size.y - y - 1))
-				filling.append(Vector2i(offsetted_size.x - x - 1, y))
-				filling.append(Vector2i(offsetted_size.x - x - 1, 
-										offsetted_size.y - y - 1))
-
-				if prev_is_true:
-					_fill = true
-					prev_is_true = false
-			elif bit and _fill:
-				break
-
-	return border + filling

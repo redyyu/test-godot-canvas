@@ -326,74 +326,10 @@ func resize_to(to_size :Vector2i, pivot_offset :=Vector2i.ZERO):
 
 
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html
-func get_ellipse_points(csize: Vector2i) -> PackedVector2Array:
-	var array: PackedVector2Array = []
-	var x0 := 0
-	var x1 := csize.x - 1
-	var y0 := 0
-	var y1 := csize.y - 1
-	var a := absi(x1 - x0)
-	var b := absi(y1 - x0)
-	var b1 := b & 1
-	var dx := 4 * (1 - a) * b * b
-	var dy := 4 * (b1 + 1) * a * a
-	var err := dx + dy + b1 * a * a
-	var e2 := 0
-
-	if x0 > x1:
-		x0 = x1
-		x1 += a
-
-	if y0 > y1:
-		y0 = y1
-
-	y0 += round((b + 1) / 2.0)  # int and float is for remove warrning.
-	y1 = y0 - b1
-	a *= 8 * a
-	b1 = 8 * b * b
-
-	while x0 <= x1:
-		var v1 := Vector2i(x1, y0)
-		var v2 := Vector2i(x0, y0)
-		var v3 := Vector2i(x0, y1)
-		var v4 := Vector2i(x1, y1)
-		array.append(v1)
-		array.append(v2)
-		array.append(v3)
-		array.append(v4)
-
-		e2 = 2 * err
-		if e2 <= dy:
-			y0 += 1
-			y1 -= 1
-			dy += a
-			err += dy
-
-		if e2 >= dx || 2 * err > dy:
-			x0 += 1
-			x1 -= 1
-			dx += b1
-			err += dx
-
-	while y0 - y1 < b:
-		var v1 := Vector2i(x0 - 1, y0)
-		var v2 := Vector2i(x1 + 1, y0)
-		var v3 := Vector2i(x0 - 1, y1)
-		var v4 := Vector2i(x1 + 1, y1)
-		array.append(v1)
-		array.append(v2)
-		array.append(v3)
-		array.append(v4)
-		y0 += 1
-		y1 -= 1
-
-	return array
-	
-
 func get_ellipse_points_filled(csize: Vector2i,
 							   thickness := 1) -> PackedVector2Array:
 	var offsetted_size := csize + Vector2i.ONE * (thickness - 1)
-	var border := get_ellipse_points(offsetted_size)
+	var border := get_ellipse_border_points(offsetted_size)
 	var filling: PackedVector2Array = []
 
 	for x in range(1, ceili(offsetted_size.x / 2.0)):
@@ -421,3 +357,70 @@ func get_ellipse_points_filled(csize: Vector2i,
 				break
 
 	return border + filling
+
+
+func get_ellipse_border_points(csize: Vector2i) -> PackedVector2Array:
+	var border: PackedVector2Array = []
+	var x0 := 0
+	var x1 := csize.x - 1
+	var y0 := 0
+	var y1 := csize.y - 1
+	var a := absi(x1 - x0)
+	var b := absi(y1 - x0)
+	var b1 := b & 1
+	var dx := 4 * (1 - a) * b * b
+	var dy := 4 * (b1 + 1) * a * a
+	var err := dx + dy + b1 * a * a
+	var e2 := 0
+
+	if x0 > x1:
+		x0 = x1
+		x1 += a
+
+	if y0 > y1:
+		y0 = y1
+
+	y0 += int((b + 1) / 2.0)
+	# DO NOT round() here, might cause unexcepted border here.
+	# int and float is for remove warrning.
+	
+	y1 = y0 - b1
+	a *= 8 * a
+	b1 = 8 * b * b
+
+	while x0 <= x1:
+		var v1 := Vector2i(x1, y0)
+		var v2 := Vector2i(x0, y0)
+		var v3 := Vector2i(x0, y1)
+		var v4 := Vector2i(x1, y1)
+		border.append(v1)
+		border.append(v2)
+		border.append(v3)
+		border.append(v4)
+
+		e2 = 2 * err
+		if e2 <= dy:
+			y0 += 1
+			y1 -= 1
+			dy += a
+			err += dy
+
+		if e2 >= dx || 2 * err > dy:
+			x0 += 1
+			x1 -= 1
+			dx += b1
+			err += dx
+
+	while y0 - y1 < b:
+		var v1 := Vector2i(x0 - 1, y0)
+		var v2 := Vector2i(x1 + 1, y0)
+		var v3 := Vector2i(x0 - 1, y1)
+		var v4 := Vector2i(x1 + 1, y1)
+		border.append(v1)
+		border.append(v2)
+		border.append(v3)
+		border.append(v4)
+		y0 += 1
+		y1 -= 1
+
+	return border
