@@ -12,19 +12,5 @@ func shaping(pos :Vector2i):
 
 
 func apply():
-	print('apply')
-#	silhouette.shaped_ellipse()
-
-
-func cancel():
-	silhouette.reset()
-
-
-
-func _input(event):
-	if event is InputEventKey:
-		if Input.is_key_pressed(KEY_ENTER) and \
-		   event.is_command_or_control_pressed():
-			apply()
-		elif Input.is_key_pressed(KEY_ESCAPE):
-			cancel()
+	silhouette.shaped_ellipse()
+	super.apply()

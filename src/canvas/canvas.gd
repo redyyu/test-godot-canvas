@@ -291,10 +291,10 @@ func process_bucket_fill(event):
 
 func process_shape(event, shaper):
 	if event is InputEventMouseButton:
-		if is_pressed:
+		if is_pressed and not event.double_click:
 			var pos = snapper.snap_position(get_local_mouse_position())
-			shaper.shaping_begin(pos)
-		elif event.double_click:
+			shaper.shaping(pos)
+		elif shaper.is_shaping and event.double_click:
 			shaper.apply()
 	elif event is InputEventMouseMotion:
 		if is_pressed:

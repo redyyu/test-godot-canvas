@@ -14,6 +14,12 @@ var is_operating :bool :
 
 func _init(_silhouette :Silhouette):
 	silhouette = _silhouette
+	silhouette.applied.connect(_on_applied)
+	silhouette.canceled.connect(_on_canceled)
+	# use signal to separate different shaper is current using.
+	# because shaper do not have _input event.
+	# but silhouette can emit signal when key event is triggered.
+	# then current shaper can tell sillhouette what to do.
 
 
 func reset():
@@ -24,18 +30,16 @@ func reset():
 
 func shaping_begin(pos :Vector2i):
 	reset()
-	is_shaping = true
-	points.append(pos)
+	if silhouette.has_point(pos):
+		is_moving = true
+	else:
+		is_shaping = true
+		points.append(pos)
 
 
 func shaping(pos :Vector2i):
-	if not shaping:
+	if not is_shaping:
 		shaping_begin(pos)
-
-
-func shaping_stop():
-	is_shaping = false
-	points.clear()
 
 
 #func move_to(to_pos :Vector2i, use_pivot := true):
@@ -47,8 +51,21 @@ func shaping_stop():
 
 
 func apply():
-	pass
+	reset()
+	silhouette.reset()
 
 
 func cancel():
-	pass
+	reset()
+	silhouette.reset()
+
+
+
+func _on_applied(_rect):
+	if is_shaping:
+		apply()
+
+
+func _on_canceled():
+	if is_shaping:
+		cancel()

@@ -11,6 +11,6 @@ func shaping(pos :Vector2i):
 		silhouette.shaping_rectangle(points)
 
 
-func shaping_stop():
+func apply():
 	silhouette.shaped_rectangle()
-	super.shaping_stop()
+	super.apply()

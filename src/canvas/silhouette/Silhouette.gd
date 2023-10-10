@@ -1,6 +1,7 @@
 class_name Silhouette extends Node2D
 
-signal updated(rect, rel_pos)
+signal updated(rect, rel_pos, status)
+signal applied(rect)
 signal canceled
 signal refresh_canvas
 
@@ -39,22 +40,23 @@ func attach(img :Image):
 func reset():
 	_current_shape = null
 	points.clear()
+	update_shape()
 
 
 func set_pivot(pivot_id):
 	pivot = pivot_id
 	if shaped_rect.has_area():
-		updated.emit(shaped_rect, relative_position)
+		updated.emit(shaped_rect, relative_position, true)
 
 
 func update_shape():
 	if points.size() < 1:
 		shaped_rect = Rect2i(Vector2i.ZERO, Vector2i.ZERO)
-		canceled.emit(shaped_rect, relative_position)
+		updated.emit(shaped_rect, relative_position, false)
 		visible = false
 	else:
 		shaped_rect = points_to_rect(points)
-		updated.emit(shaped_rect, relative_position)
+		updated.emit(shaped_rect, relative_position, true)
 		visible = true
 	queue_redraw()
 
@@ -191,7 +193,10 @@ func shaped_rectangle():
 	if opt_fill:
 		image.fill_rect(shaped_rect, shape_color)
 	else:
-		var tmp_img = Image.create(image.get_width(), image.get_height(), false, image.get_format())
+		var tmp_img = Image.create(image.get_width(),
+								   image.get_height(),
+								   false,
+								   image.get_format())
 		var rect = shaped_rect.grow(-stroke_weight)
 		tmp_img.fill_rect(shaped_rect, shape_color)
 		tmp_img.fill_rect(rect, Color.TRANSPARENT)
@@ -258,7 +263,7 @@ func shaped_polygon(sel_points :Array):
 	update_shape()
 
 
-# Draw selecting lines
+# Draw shaping
 
 func _draw():
 	if points.size() > 1:
@@ -317,8 +322,17 @@ var _shape_polyline = func():
 #
 func _input(event):
 	if event is InputEventKey:
-		var delta := 1
+
+		if Input.is_key_pressed(KEY_ENTER) and \
+		   event.is_command_or_control_pressed():
+			applied.emit(shaped_rect)
+			# send signal to Shaper,
+			# it's for separaate different shaper current using.
+			# because shaper does not have _input, but sillhouette has.
+		elif Input.is_key_pressed(KEY_ESCAPE):
+			canceled.emit()
 		
+		var delta := 1
 		if Input.is_key_pressed(KEY_SHIFT):
 			delta = 10
 

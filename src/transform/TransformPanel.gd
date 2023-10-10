@@ -74,7 +74,6 @@ func subscribe(new_operator):
 	operator = new_operator
 	if operator:
 		operator.updated.connect(_on_transform_updated)
-		operator.canceled.connect(_on_transform_canceled)
 		operator.set_pivot(opt_pivot.pivot_value)
 
 
@@ -82,7 +81,5 @@ func unsubscribe():
 	if operator:
 		if operator.updated.is_connected(_on_transform_updated):
 			operator.updated.disconnect(_on_transform_updated)
-		if operator.canceled.is_connected(_on_transform_canceled):
-			operator.canceled.disconnect(_on_transform_canceled)
 	set_transform(Rect2i(), false)
 	operator = null
