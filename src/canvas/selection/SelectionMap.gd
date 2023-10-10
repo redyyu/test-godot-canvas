@@ -75,12 +75,12 @@ func select_ellipse(rect :Rect2i,
 			p += Vector2(rect.position)
 			if map_rect.has_point(p):
 				tmp_map.set_pixelv(p, SELECTED_COLOR)
-
-		for x in width:
-			for y in height:
-				var pos := Vector2i(x, y)
-				if is_selected(pos) and not tmp_map.get_pixelv(pos).a > 0:
-					select_pixel(pos, true)
+		blit_rect_mask(tmp_map, self, map_rect, Vector2i.ZERO)
+#		for x in width:
+#			for y in height:
+#				var pos := Vector2i(x, y)
+#				if is_selected(pos) and not tmp_map.get_pixelv(pos).a > 0:
+#					select_pixel(pos, true)
 	else:
 		if subtract:
 			fill_ellipse(ellipse, UNSELECTED_COLOR, rect.position)
