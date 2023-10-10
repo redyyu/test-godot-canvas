@@ -189,7 +189,7 @@ func _on_btn_pressed(btn):
 			set_state(Operate.SHAPE_ELLIPSE)
 			artboard.canvas.silhouette.opt_as_square = false
 			artboard.canvas.silhouette.opt_from_center = false
-			artboard.canvas.silhouette.opt_fill = true
+			artboard.canvas.silhouette.opt_fill = false
 			artboard.canvas.silhouette.stroke_weight = 2
 		'ColorPicker':
 			set_state(Operate.COLOR_PICK)

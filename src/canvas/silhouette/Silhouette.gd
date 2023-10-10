@@ -369,6 +369,7 @@ var _shape_polyline = func():
 #	shaped_rect.size = to_size
 #	update_shape()
 
+
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html
 func get_ellipse_points(csize: Vector2i) -> PackedVector2Array:
 	var array: PackedVector2Array = []
@@ -392,7 +393,7 @@ func get_ellipse_points(csize: Vector2i) -> PackedVector2Array:
 	if y0 > y1:
 		y0 = y1
 
-	y0 += int(float(b + 1) / 2)  # int and float is for remove warrning.
+	y0 += round((b + 1) / 2.0)  # int and float is for remove warrning.
 	y1 = y0 - b1
 	a *= 8 * a
 	b1 = 8 * b * b
