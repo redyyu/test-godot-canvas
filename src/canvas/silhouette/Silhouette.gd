@@ -17,6 +17,9 @@ var size := Vector2i.ZERO
 var boundary : Rect2i :
 	get: return Rect2i(Vector2i.ZERO, size)
 var shaped_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
+
+var points :PackedVector2Array = []  # line / polygon still need it.
+
 var shape_color := Color.BLACK
 
 var zoom_ratio := 1.0
@@ -39,6 +42,7 @@ func attach(img :Image):
 func reset():
 	_current_shape = null
 	shaped_rect = Rect2i()
+	points.clear()
 	update_shape()
 
 
@@ -184,7 +188,8 @@ func shaping_rectangle(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_rectangle
-	shaped_rect = points_to_rect(sel_points)
+	points = sel_points
+	shaped_rect = points_to_rect(points)
 	update_shape()
 
 
@@ -213,7 +218,8 @@ func shaping_ellipse(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_ellipse
-	shaped_rect = points_to_rect(sel_points)
+	points = sel_points
+	shaped_rect = points_to_rect(points)
 	update_shape()
 
 
@@ -240,6 +246,38 @@ func shaped_ellipse():
 			if boundary.has_point(pos):
 				image.set_pixelv(pos, shape_color)
 
+	refresh_canvas.emit()
+	update_shape()
+
+
+
+# Line
+
+func shaping_line(sel_points :Array):
+	sel_points = parse_two_points(sel_points)
+	if not check_visible(sel_points):
+		return
+	_current_shape = _shape_line
+	points = sel_points
+	shaped_rect = points_to_rect(points)
+
+	update_shape()
+
+
+func shaped_line():
+	if not has_area():
+		return
+	if opt_fill:
+		image.fill_rect(shaped_rect, shape_color)
+	else:
+		var tmp_img = Image.create(image.get_width(),
+								   image.get_height(),
+								   false,
+								   image.get_format())
+		var rect = shaped_rect.grow(-stroke_weight)
+		tmp_img.fill_rect(shaped_rect, shape_color)
+		tmp_img.fill_rect(rect, Color.TRANSPARENT)
+		image.blend_rect(tmp_img, shaped_rect, shaped_rect.position)
 	refresh_canvas.emit()
 	update_shape()
 
@@ -310,6 +348,16 @@ var _shape_ellipse = func():
 		draw_arc(Vector2.ZERO, radius, 0, 360, 36, 
 				 shape_color, stroke_weight / zoom_ratio)
 		# draw_arc place center to ZERO, use tranform move to the right center.
+
+
+var _shape_line = func():
+	if not shaped_rect.has_area():
+		return
+	var start = points[0]
+	var end = points[points.size() - 1]
+	
+	draw_line(start, end, shape_color, stroke_weight / zoom_ratio)
+
 
 
 var _shape_polyline = func():

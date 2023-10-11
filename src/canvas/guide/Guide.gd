@@ -10,7 +10,7 @@ const DEFAULT_WIDTH := 2
 const LINE_COLOR := Color.REBECCA_PURPLE
 const SNAPPING_DISTANCE := 12.0
 
-var relative_position := Vector2.ZERO
+var relative_position := Vector2i.ZERO
 # one of coordinate x or y is useless,
 # because guide is cross over the artboard.
 # y used for HORIZONTAL, x used for VERTICAL.

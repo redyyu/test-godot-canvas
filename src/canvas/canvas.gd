@@ -62,7 +62,7 @@ var color_pick := ColorPick.new()
 
 @onready var shaper_rect := RectShaper.new(silhouette)
 @onready var shaper_ellipse := EllipseShaper.new(silhouette)
-
+@onready var shaper_line := LineShaper.new(silhouette)
 
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
@@ -343,6 +343,8 @@ func _input(event :InputEvent):
 			process_shape(event, shaper_rect)
 		Operate.SHAPE_ELLIPSE:
 			process_shape(event, shaper_ellipse)
+		Operate.SHAPE_LINE:
+			process_shape(event, shaper_line)
 		Operate.COLOR_PICK:
 			process_color_pick(event)
 		Operate.BUCKET:
@@ -364,7 +366,7 @@ func _draw():
 			draw_texture(tex, Vector2.ZERO, modulate_color)
 
 
-func get_relative_mouse_position(): # other node need mouse location of canvas.
+func get_relative_mouse_position() -> Vector2i: # mouse location of canvas.
 	var mpos = get_local_mouse_position()
 	return Vector2i(round(mpos.x), round(mpos.y))
 

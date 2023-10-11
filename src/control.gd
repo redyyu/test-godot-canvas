@@ -24,6 +24,8 @@ var current_drawer :PixelDrawer
 @onready var btn_16 = $Bucket
 @onready var btn_17 = $BtnShapeRect
 @onready var btn_18 = $BtnShapeEllipse
+@onready var btn_19 = $BtnShapeLine
+@onready var btn_20 = $BtnShapePolygon
 
 @onready var btn_lock_guide = $BtnLockGuide
 @onready var btn_show_guide = $BtnShowGuide
@@ -71,6 +73,8 @@ func _ready():
 	btn_16.pressed.connect(_on_btn_pressed.bind(btn_16))
 	btn_17.pressed.connect(_on_btn_pressed.bind(btn_17))
 	btn_18.pressed.connect(_on_btn_pressed.bind(btn_18))
+	btn_19.pressed.connect(_on_btn_pressed.bind(btn_19))
+	btn_20.pressed.connect(_on_btn_pressed.bind(btn_20))
 	
 	btn_lock_guide.pressed.connect(_on_btn_pressed.bind(btn_lock_guide))
 	btn_show_guide.pressed.connect(_on_btn_pressed.bind(btn_show_guide))
@@ -194,7 +198,19 @@ func _on_btn_pressed(btn):
 			artboard.canvas.silhouette.opt_as_square = false
 			artboard.canvas.silhouette.opt_from_center = false
 			artboard.canvas.silhouette.opt_fill = false
-			artboard.canvas.silhouette.stroke_weight = 1
+			artboard.canvas.silhouette.stroke_weight = 2
+		'BtnShapeLine':
+			set_state(Operate.SHAPE_LINE)
+			artboard.canvas.silhouette.opt_as_square = false
+			artboard.canvas.silhouette.opt_from_center = false
+			artboard.canvas.silhouette.opt_fill = false
+			artboard.canvas.silhouette.stroke_weight = 5
+		'BtnShapePolygon':
+			set_state(Operate.SHAPE_POLYGON)
+			artboard.canvas.silhouette.opt_as_square = false
+			artboard.canvas.silhouette.opt_from_center = false
+			artboard.canvas.silhouette.opt_fill = false
+			artboard.canvas.silhouette.stroke_weight = 2
 		'ColorPicker':
 			set_state(Operate.COLOR_PICK)
 		'BtnCenterSelector':

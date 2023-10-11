@@ -137,6 +137,24 @@ offset_bottom = 579.0
 text = "Shape Ellipse
 "
 
+[node name="BtnShapeLine" type="Button" parent="."]
+layout_mode = 0
+offset_left = 514.0
+offset_top = 511.0
+offset_right = 623.0
+offset_bottom = 542.0
+text = "Shape line
+"
+
+[node name="BtnShapePolygon" type="Button" parent="."]
+layout_mode = 0
+offset_left = 397.0
+offset_top = 511.0
+offset_right = 506.0
+offset_bottom = 542.0
+text = "Shape Polygon
+"
+
 [node name="BtnSelectMagic" type="Button" parent="."]
 layout_mode = 0
 offset_left = 937.0
