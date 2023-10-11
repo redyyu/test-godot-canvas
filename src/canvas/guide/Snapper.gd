@@ -113,6 +113,38 @@ func snap_position(pos: Vector2, snap_to_edge := false, wt := {}) -> Vector2:
 	return pos
 	
 
+func snap_boundary_position(rect:Rect2, pos :Vector2) -> Vector2:
+	var pos_corners := []
+	pos_corners.append({ # top left corner
+		'position': pos,
+		'offset': Vector2.ZERO,
+	})
+	pos_corners.append({ # top right corner
+		'position': Vector2(pos.x + rect.size.x, pos.y),
+		'offset': Vector2(rect.size.x, 0)
+	})
+	pos_corners.append({ # bottom right corner
+		'position': pos + rect.size,
+		'offset': rect.size
+	})
+	pos_corners.append({ # bottom left corner
+		'position': Vector2(pos.x, pos.y + rect.size.y),
+		'offset': Vector2(0, rect.size.y)
+	})
+	
+	var snap_pos = null
+	var last_weight := 0
+	var wt := {'weight': 0}
+	for corner in pos_corners:
+		snap_pos = snap_position(corner['position'], true, wt)
+		snap_pos = Vector2i(snap_pos.x, snap_pos.y)
+		if wt['weight'] > last_weight:
+			last_weight = wt['weight']
+			pos = Vector2i(snap_pos) - corner['offset']
+
+	return pos.floor()
+
+
 func process_snap_to_grid_boundary(pos :Vector2,
 								   grid_size:Vector2,
 								   distance :float) -> Vector2:

@@ -395,35 +395,7 @@ func drag_to(pos, drag_offset):
 	
 	# convert to local pos from the rect zero pos. 
 	# DO NOT use get_local_mouse_position, because bound_rect is not zero pos.
-	var pos_corners := []
-	pos_corners.append({ # top left corner
-		'position': pos,
-		'offset': Vector2i.ZERO,
-	})
-	pos_corners.append({ # top right corner
-		'position': Vector2i(pos.x + shaped_rect.size.x, pos.y),
-		'offset': Vector2i(shaped_rect.size.x, 0)
-	})
-	pos_corners.append({ # bottom right corner
-		'position': pos + shaped_rect.size,
-		'offset': shaped_rect.size
-	})
-	pos_corners.append({ # bottom left corner
-		'position': Vector2i(pos.x, pos.y + shaped_rect.size.y),
-		'offset': Vector2i(0, shaped_rect.size.y)
-	})
-	
-	var snap_pos = null
-	var last_weight := 0
-	var wt := {'weight': 0}
-	for corner in pos_corners:
-		snap_pos = snapping(corner['position'], wt)
-		snap_pos = Vector2i(snap_pos.x, snap_pos.y)
-		if wt['weight'] > last_weight:
-			last_weight = wt['weight']
-			pos = Vector2i(snap_pos) - corner['offset']
-	
-	shaped_rect.position = pos
+	shaped_rect.position = snapping(shaped_rect, pos)
 	update_shape()
 
 
@@ -437,11 +409,12 @@ func resize_to(to_size :Vector2i):
 
 
 # snapping
-func snapping(pos, wt := {}) -> Vector2i:
-	return _snapping.call(pos, wt)
+func snapping(rect: Rect2i, pos :Vector2i) -> Vector2i:
+	return _snapping.call(rect, pos)
 
 # hook for snapping
-var _snapping = func(pos) -> Vector2i: # pass original postion if no hook.
+var _snapping = func(_rect: Rect2i, pos :Vector2i) -> Vector2i:
+	# pass original postion if no hook.
 	return pos
 
 

@@ -87,8 +87,8 @@ func _ready():
 	
 	bucket.mask = selection.mask
 	
-	var snapping_hook = func(pos :Vector2i, wt := {}) -> Vector2i:
-		return snapper.snap_position(pos, true, wt)
+	var snapping_hook = func(rect:Rect2i, pos :Vector2i) -> Vector2i:
+		return snapper.snap_boundary_position(rect, pos)
 	
 	crop_sizer.crop_canvas.connect(crop)
 	crop_sizer.cursor_changed.connect(_on_cursor_changed)
