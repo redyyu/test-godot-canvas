@@ -9,11 +9,11 @@ func shape_move(pos :Vector2i):
 			points.resize(1)
 		points.append(pos) # append last point for rectangle.
 		silhouette.shaping_rectangle(points)
-	elif is_moving:
-		silhouette.move_to(pos)
+	elif is_dragging:
+		silhouette.drag_to(pos, drag_offset)
 
 
 func apply():
-	if points.size() >0:
+	if points.size() > 0:
 		silhouette.shaped_rectangle()
 	super.apply()

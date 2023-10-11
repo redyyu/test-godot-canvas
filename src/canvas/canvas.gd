@@ -99,6 +99,7 @@ func _ready():
 	move_sizer.inject_snapping(snapping_hook)
 	
 	bucket.color_filled.connect(refresh)
+	
 	silhouette.refresh_canvas.connect(refresh)
 	silhouette.inject_snapping(snapping_hook)
 

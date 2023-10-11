@@ -20,6 +20,7 @@ var shaped_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 var shape_color := Color.BLACK
 
 var zoom_ratio := 1.0
+var last_position :Variant = null # prevent same with mouse pos from beginning.
 
 var opt_as_square := false
 var opt_from_center := false
@@ -367,20 +368,31 @@ func move_delta(delta :int, orientation:Orientation):
 	update_shape()
 
 
-func move_to(to_pos :Vector2i, use_pivot := false):
+func move_to(to_pos :Vector2i, use_pivot := true):
 	var _offset := pivot_offset if use_pivot else Vector2i.ZERO
+	
+	var target_pos := to_pos - _offset
+	var target_edge := target_pos + shaped_rect.size
+	if target_pos.x < 0:
+		to_pos.x = _offset.x
+	if target_pos.y < 0:
+		to_pos.y = _offset.y
+	if target_edge.x > size.x:
+		to_pos.x -= target_edge.x - size.x
+	if target_edge.y > size.y:
+		to_pos.y -= target_edge.y - size.y
+		
 	shaped_rect.position = to_pos - _offset
 	update_shape()
 
 
-func drag_to(pos :Vector2i):
+func drag_to(pos, drag_offset):
 	if last_position == pos:
 		return
 	# use to prevent running while already stop.
 	last_position = pos
+	pos -= drag_offset  # DO calculate drag_offset just pressed.
 	
-	pos -= drag_offset  # DO calculate drag_offset just pressed, NOT here.
-
 	# convert to local pos from the rect zero pos. 
 	# DO NOT use get_local_mouse_position, because bound_rect is not zero pos.
 	var pos_corners := []
@@ -389,16 +401,16 @@ func drag_to(pos :Vector2i):
 		'offset': Vector2i.ZERO,
 	})
 	pos_corners.append({ # top right corner
-		'position': Vector2i(pos.x + bound_rect.size.x, pos.y),
-		'offset': Vector2i(bound_rect.size.x, 0)
+		'position': Vector2i(pos.x + shaped_rect.size.x, pos.y),
+		'offset': Vector2i(shaped_rect.size.x, 0)
 	})
 	pos_corners.append({ # bottom right corner
-		'position': pos + bound_rect.size,
-		'offset': bound_rect.size
+		'position': pos + shaped_rect.size,
+		'offset': shaped_rect.size
 	})
 	pos_corners.append({ # bottom left corner
-		'position': Vector2i(pos.x, pos.y + bound_rect.size.y),
-		'offset': Vector2i(0, bound_rect.size.y)
+		'position': Vector2i(pos.x, pos.y + shaped_rect.size.y),
+		'offset': Vector2i(0, shaped_rect.size.y)
 	})
 	
 	var snap_pos = null
@@ -411,7 +423,8 @@ func drag_to(pos :Vector2i):
 			last_weight = wt['weight']
 			pos = Vector2i(snap_pos) - corner['offset']
 	
-	bound_rect.position = pos
+	shaped_rect.position = pos
+	update_shape()
 
 
 func resize_to(to_size :Vector2i):

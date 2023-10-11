@@ -2,11 +2,9 @@ class_name BaseShaper extends RefCounted
 
 
 var silhouette : Silhouette
-var moving_offset := Vector2i.ZERO
 
 var points :PackedVector2Array = []
-
-var last_position :Variant = null # prevent same with mouse pos from beginning.
+var drag_offset := Vector2i.ZERO
 
 var is_shaping := false
 var is_dragging := false
@@ -26,6 +24,7 @@ func _init(_silhouette :Silhouette):
 
 
 func reset():
+	drag_offset = Vector2i.ZERO
 	points.clear()
 	is_shaping = false
 	is_dragging = false
@@ -35,7 +34,7 @@ func reset():
 func shape_start(pos :Vector2i):
 	if silhouette.has_point(pos):
 		is_dragging = true
-		silhouette.get_offset(pos)
+		drag_offset = silhouette.get_offset(pos)
 	else:
 		reset()  # must reset here because silhouette not working a image.
 		is_shaping = true
@@ -43,22 +42,13 @@ func shape_start(pos :Vector2i):
 
 
 func shape_move(pos :Vector2i):
-	if not is_shaping:
+	if not is_operating:
 		shape_start(pos)
 
 
 func shape_end(_pos :Vector2i):
 	is_shaping = false
 	is_dragging = false
-	moving_offset = Vector2i.ZERO
-
-
-#func move_to(to_pos :Vector2i, use_pivot := true):
-#	silhouette.move_to(to_pos, use_pivot)
-#
-#
-#func resize_to(to_size:Vector2i):
-#	silhouette.resize_to(to_size)
 
 
 func apply():
