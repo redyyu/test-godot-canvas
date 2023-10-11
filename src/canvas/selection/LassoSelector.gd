@@ -8,7 +8,7 @@ func select_move(pos :Vector2i):
 		selection.selecting_lasso(points)
 
 	elif is_moving:
-		selection.move_to(pos)
+		selection.drag_to(pos, drag_offset)
 
 
 func select_end(pos :Vector2i):

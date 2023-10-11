@@ -44,6 +44,8 @@ var tolerance := 0:
 	set(val):
 		tolerance = clampi(val, 0, 100)
 
+var last_position :Variant = null # prevent same with mouse pos from beginning.
+
 var points :PackedVector2Array = []  # use to _draw preview, not for selected.
 
 var opt_as_square := false
@@ -122,6 +124,10 @@ func has_point(point :Vector2i, precisely := false) -> bool:
 		return false
 
 
+func get_drag_offset(pos :Vector2i) ->Vector2i:
+	return pos - selected_rect.position
+
+
 func deselect():
 	points.clear()
 	selection_map.select_none()
@@ -143,6 +149,47 @@ func move_to(to_pos :Vector2i, use_pivot := true):
 		to_pos.y -= target_edge.y - size.y
 		
 	selection_map.move_to(to_pos, _offset)
+	update_selection()
+
+
+func drag_to(pos, drag_offset):
+	if last_position == pos:
+		return
+	# use to prevent running while already stop.
+	last_position = pos
+	pos -= drag_offset  # DO calculate drag_offset just pressed.
+	
+	# convert to local pos from the rect zero pos. 
+	# DO NOT use get_local_mouse_position, because bound_rect is not zero pos.
+	var pos_corners := []
+	pos_corners.append({ # top left corner
+		'position': pos,
+		'offset': Vector2i.ZERO,
+	})
+	pos_corners.append({ # top right corner
+		'position': Vector2i(pos.x + selected_rect.size.x, pos.y),
+		'offset': Vector2i(selected_rect.size.x, 0)
+	})
+	pos_corners.append({ # bottom right corner
+		'position': pos + selected_rect.size,
+		'offset': selected_rect.size
+	})
+	pos_corners.append({ # bottom left corner
+		'position': Vector2i(pos.x, pos.y + selected_rect.size.y),
+		'offset': Vector2i(0, selected_rect.size.y)
+	})
+	
+	var snap_pos = null
+	var last_weight := 0
+	var wt := {'weight': 0}
+	for corner in pos_corners:
+		snap_pos = snapping(corner['position'], wt)
+		snap_pos = Vector2i(snap_pos.x, snap_pos.y)
+		if wt['weight'] > last_weight:
+			last_weight = wt['weight']
+			pos = Vector2i(snap_pos) - corner['offset']
+
+	selection_map.move_to(pos)
 	update_selection()
 
 
@@ -435,3 +482,17 @@ func _input(event):
 				delta = selected_rect.position.x
 			selection_map.move_delta(-delta, HORIZONTAL)
 			update_selection()
+
+
+# snapping
+func snapping(pos, wt := {}) -> Vector2i:
+	return _snapping.call(pos, wt)
+
+# hook for snapping
+var _snapping = func(pos) -> Vector2i: # pass original postion if no hook.
+	return pos
+
+
+func inject_snapping(callable :Callable):
+	_snapping = callable
+

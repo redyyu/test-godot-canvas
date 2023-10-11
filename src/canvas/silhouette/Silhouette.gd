@@ -96,7 +96,7 @@ func has_point(pos :Vector2i):
 	return shaped_rect.has_point(pos)
 
 
-func get_offset(pos :Vector2i):
+func get_drag_offset(pos :Vector2i):
 	return pos - shaped_rect.position
 
 
@@ -434,7 +434,6 @@ func resize_to(to_size :Vector2i):
 	shaped_rect.position += size_diff
 	shaped_rect.size = to_size
 	update_shape()
-
 
 
 # snapping

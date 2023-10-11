@@ -6,6 +6,7 @@ func select_start(pos :Vector2i):
 	if selection.has_point(pos, true):
 		if mode == Selection.Mode.REPLACE:
 			is_moving = true
+			drag_offset = selection.get_drag_offset(pos)
 		else:
 			is_selecting = true
 			points.append(pos)

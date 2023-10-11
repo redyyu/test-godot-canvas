@@ -102,6 +102,8 @@ func _ready():
 	
 	silhouette.refresh_canvas.connect(refresh)
 	silhouette.inject_snapping(snapping_hook)
+	
+	selection.inject_snapping(snapping_hook)
 
 
 func attach_project(proj):

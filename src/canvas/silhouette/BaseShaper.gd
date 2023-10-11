@@ -34,7 +34,7 @@ func reset():
 func shape_start(pos :Vector2i):
 	if silhouette.has_point(pos):
 		is_dragging = true
-		drag_offset = silhouette.get_offset(pos)
+		drag_offset = silhouette.get_drag_offset(pos)
 	else:
 		reset()  # must reset here because silhouette not working a image.
 		is_shaping = true

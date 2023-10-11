@@ -11,6 +11,7 @@ var mode :Selection.Mode:
 	get: return selection.mode
 
 var points :PackedVector2Array = []
+var drag_offset := Vector2i.ZERO
 
 var is_selecting := false
 var is_moving := false
@@ -24,6 +25,7 @@ func _init(sel :Selection):
 
 
 func reset():
+	drag_offset = Vector2i.ZERO
 	points.clear()
 	is_selecting = false
 	is_moving = false
