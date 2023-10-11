@@ -116,6 +116,8 @@ func set_state(state):
 			transform_panel.subscribe(artboard.canvas.selection)
 		Operate.SHAPE_ELLIPSE:
 			transform_panel.subscribe(artboard.canvas.silhouette)
+		Operate.SHAPE_RECTANGLE:
+			transform_panel.subscribe(artboard.canvas.silhouette)
 		_:
 			transform_panel.unsubscribe()
 

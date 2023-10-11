@@ -17,7 +17,7 @@ var symmetry_guide :SymmetryGuide
 var _weight := 0  # weight of the snapped times. reset when snap start or end.
 
 
-func snap_position(pos: Vector2, snap_to_edge := false, wt := {}) -> Vector2:
+func snap_position(pos: Vector2i, snap_to_edge := false, wt := {}) -> Vector2i:
 	# `wt` is a dict, use to pass weight results.
 	# because snap is not always need a weight, 
 	# and snap is better to output a Vector2 directly.
@@ -29,23 +29,23 @@ func snap_position(pos: Vector2, snap_to_edge := false, wt := {}) -> Vector2:
 	if snap_to_edge:  # sometime no need snap to edge, ex., draw or erasing.
 		to_guides.append_array([
 			{
-				'start': Vector2(0, 0), 
-				'end': Vector2(canvas_size.x, 0),
+				'start': Vector2i(0, 0), 
+				'end': Vector2i(canvas_size.x, 0),
 				'type': HORIZONTAL
 			},
 			{
-				'start': Vector2(0, canvas_size.y),
-				'end': Vector2(canvas_size.x, canvas_size.y),
+				'start': Vector2i(0, canvas_size.y),
+				'end': Vector2i(canvas_size.x, canvas_size.y),
 				'type': HORIZONTAL
 			},
 			{
-				'start': Vector2(0, 0),
-				'end': Vector2(0, canvas_size.y),
+				'start': Vector2i(0, 0),
+				'end': Vector2i(0, canvas_size.y),
 				'type': VERTICAL
 			},
 			{
-				'start': Vector2(canvas_size.x, 0),
-				'end': Vector2(canvas_size.x, canvas_size.y),
+				'start': Vector2i(canvas_size.x, 0),
+				'end': Vector2i(canvas_size.x, canvas_size.y),
 				'type': VERTICAL
 			}
 		])
@@ -62,29 +62,29 @@ func snap_position(pos: Vector2, snap_to_edge := false, wt := {}) -> Vector2:
 				continue
 			if guide.orientation == HORIZONTAL:
 				to_guides.append({
-					'start': Vector2(0, guide.relative_position.y),
-					'end': Vector2(canvas_size.x, guide.relative_position.y),
+					'start': Vector2i(0, guide.relative_position.y),
+					'end': Vector2i(canvas_size.x, guide.relative_position.y),
 					'type': HORIZONTAL
 				})
 			elif guide.orientation == VERTICAL:
 				to_guides.append({
-					'start': Vector2(guide.relative_position.x, 0),
-					'end': Vector2(guide.relative_position.x, canvas_size.y),
+					'start': Vector2i(guide.relative_position.x, 0),
+					'end': Vector2i(guide.relative_position.x, canvas_size.y),
 					'type': VERTICAL
 				})
 	
 	if snap_to_symmetry_guide and symmetry_guide:
 		if symmetry_guide.h_symmetry_guide.visible:
 			to_guides.append({
-				'start': Vector2(0, round(canvas_size.y / 2.0)),
-				'end': Vector2(canvas_size.x, round(canvas_size.y / 2.0)),
+				'start': Vector2i(0, round(canvas_size.y / 2.0)),
+				'end': Vector2i(canvas_size.x, round(canvas_size.y / 2.0)),
 				'type': HORIZONTAL
 			})
 			
 		if symmetry_guide.v_symmetry_guide.visible:
 			to_guides.append({
-				'start': Vector2(round(canvas_size.x / 2.0), 0),
-				'end': Vector2(round(canvas_size.x / 2.0), canvas_size.y),
+				'start': Vector2i(round(canvas_size.x / 2.0), 0),
+				'end': Vector2i(round(canvas_size.x / 2.0), canvas_size.y),
 				'type': VERTICAL
 			})
 	
@@ -105,7 +105,7 @@ func snap_position(pos: Vector2, snap_to_edge := false, wt := {}) -> Vector2:
 #		snap_to_pos = process_snap_to_perspective_guides(pos, vanishing_points)
 
 	if snap_to_pos != Vector2.INF:
-		pos = snap_to_pos.floor()
+		pos = Vector2i(snap_to_pos)
 	
 	wt['weight'] = _weight
 	_weight = 0  # reset _weight
@@ -147,10 +147,9 @@ func snap_boundary_position(rect:Rect2i, pos :Vector2i) -> Vector2:
 	var wt := {'weight': 0}
 	for corner in pos_corners:
 		snap_pos = snap_position(corner['position'], true, wt)
-		snap_pos = Vector2i(snap_pos.x, snap_pos.y)
 		if wt['weight'] > last_weight:
 			last_weight = wt['weight']
-			pos = Vector2i(snap_pos) - corner['offset']
+			pos = Vector2i(snap_pos - corner['offset'])
 
 	return pos
 
