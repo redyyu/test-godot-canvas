@@ -265,19 +265,26 @@ func shaping_line(sel_points :Array):
 
 
 func shaped_line():
-	if not has_area():
+	if not has_area() or points.size() < 1:
 		return
-	if opt_fill:
-		image.fill_rect(shaped_rect, shape_color)
-	else:
-		var tmp_img = Image.create(image.get_width(),
-								   image.get_height(),
-								   false,
-								   image.get_format())
-		var rect = shaped_rect.grow(-stroke_weight)
-		tmp_img.fill_rect(shaped_rect, shape_color)
-		tmp_img.fill_rect(rect, Color.TRANSPARENT)
-		image.blend_rect(tmp_img, shaped_rect, shaped_rect.position)
+	
+	var start := points[0]
+	var end := points[points.size() - 1]
+	var w := start.x - end.x
+	var h := start.y - end.y
+	
+	var line :PackedVector2Array = [start]
+	for x in abs(w):
+		line.append(Vector2i(
+			start.x + x,
+			start.y * x / w 
+		))
+	print(w)	
+	line.append(end)
+	print(line)
+	for pos in line:
+		if boundary.has_point(pos):
+			image.set_pixelv(pos, shape_color)
 	refresh_canvas.emit()
 	update_shape()
 
