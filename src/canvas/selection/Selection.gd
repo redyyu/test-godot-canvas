@@ -44,7 +44,7 @@ var tolerance := 0:
 	set(val):
 		tolerance = clampi(val, 0, 100)
 
-var points :PackedVector2Array = []
+var points :PackedVector2Array = []  # use to _draw preview, not for selected.
 
 var opt_as_square := false
 var opt_from_center := false

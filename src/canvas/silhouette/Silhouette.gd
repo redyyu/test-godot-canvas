@@ -20,7 +20,6 @@ var shaped_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 var shape_color := Color.BLACK
 
 var zoom_ratio := 1.0
-var last_position :Variant = null # prevent same with mouse pos from beginning.
 
 var opt_as_square := false
 var opt_from_center := false

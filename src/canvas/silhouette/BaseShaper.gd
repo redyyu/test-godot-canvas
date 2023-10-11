@@ -6,6 +6,8 @@ var moving_offset := Vector2i.ZERO
 
 var points :PackedVector2Array = []
 
+var last_position :Variant = null # prevent same with mouse pos from beginning.
+
 var is_shaping := false
 var is_dragging := false
 
