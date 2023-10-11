@@ -100,6 +100,7 @@ func _ready():
 	
 	bucket.color_filled.connect(refresh)
 	silhouette.refresh_canvas.connect(refresh)
+	silhouette.inject_snapping(snapping_hook)
 
 
 func attach_project(proj):
@@ -293,9 +294,7 @@ func process_shape(event, shaper):
 	if event is InputEventMouseButton:
 		var pos = snapper.snap_position(get_local_mouse_position())
 		if is_pressed:
-			if silhouette.has_point(pos):
-				shaper.get_moving_offset(pos)
-			else:
+			if not silhouette.has_point(pos):
 				shaper.apply()
 			# DO NOT depaned doublie_clieck here, pressed always come first.
 	elif event is InputEventMouseMotion:

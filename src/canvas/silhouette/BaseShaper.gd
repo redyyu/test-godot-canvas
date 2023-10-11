@@ -7,10 +7,10 @@ var moving_offset := Vector2i.ZERO
 var points :PackedVector2Array = []
 
 var is_shaping := false
-var is_moving := false
+var is_dragging := false
 
 var is_operating :bool :
-	get: return is_shaping or is_moving
+	get: return is_shaping or is_dragging
 
 
 func _init(_silhouette :Silhouette):
@@ -20,24 +20,20 @@ func _init(_silhouette :Silhouette):
 	# use signal to separate different shaper is current using.
 	# because shaper do not have _input event.
 	# but silhouette can emit signal when key event is triggered.
-	# then current shaper can tell sillhouette what to do.
-
-
-func get_moving_offset(pos :Vector2i):
-	moving_offset = silhouette.get_offset(pos)
+	# then current shaper can tell sillhouette what to do. 
 
 
 func reset():
 	points.clear()
 	is_shaping = false
-	is_moving = false
-	moving_offset = Vector2i.ZERO
+	is_dragging = false
 	silhouette.reset()
 
 
 func shape_start(pos :Vector2i):
 	if silhouette.has_point(pos):
-		is_moving = true
+		is_dragging = true
+		silhouette.get_offset(pos)
 	else:
 		reset()  # must reset here because silhouette not working a image.
 		is_shaping = true
@@ -51,7 +47,7 @@ func shape_move(pos :Vector2i):
 
 func shape_end(_pos :Vector2i):
 	is_shaping = false
-	is_moving = false
+	is_dragging = false
 	moving_offset = Vector2i.ZERO
 
 

@@ -20,6 +20,7 @@ var shaped_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 var shape_color := Color.BLACK
 
 var zoom_ratio := 1.0
+var last_position :Variant = null # prevent same with mouse pos from beginning.
 
 var opt_as_square := false
 var opt_from_center := false
@@ -369,31 +370,72 @@ func move_delta(delta :int, orientation:Orientation):
 
 func move_to(to_pos :Vector2i, use_pivot := false):
 	var _offset := pivot_offset if use_pivot else Vector2i.ZERO
-
-	var target_pos := to_pos - _offset
-	var target_edge := target_pos + shaped_rect.size
-	if target_pos.x < 0:
-		to_pos.x = _offset.x
-	if target_pos.y < 0:
-		to_pos.y = _offset.y
-	if target_edge.x > size.x:
-		to_pos.x -= target_edge.x - size.x
-	if target_edge.y > size.y:
-		to_pos.y -= target_edge.y - size.y
-	shaped_rect.position = to_pos
+	shaped_rect.position = to_pos - _offset
 	update_shape()
+
+
+func drag_to(pos :Vector2i):
+	if last_position == pos:
+		return
+	# use to prevent running while already stop.
+	last_position = pos
+	
+	pos -= drag_offset  # DO calculate drag_offset just pressed, NOT here.
+
+	# convert to local pos from the rect zero pos. 
+	# DO NOT use get_local_mouse_position, because bound_rect is not zero pos.
+	var pos_corners := []
+	pos_corners.append({ # top left corner
+		'position': pos,
+		'offset': Vector2i.ZERO,
+	})
+	pos_corners.append({ # top right corner
+		'position': Vector2i(pos.x + bound_rect.size.x, pos.y),
+		'offset': Vector2i(bound_rect.size.x, 0)
+	})
+	pos_corners.append({ # bottom right corner
+		'position': pos + bound_rect.size,
+		'offset': bound_rect.size
+	})
+	pos_corners.append({ # bottom left corner
+		'position': Vector2i(pos.x, pos.y + bound_rect.size.y),
+		'offset': Vector2i(0, bound_rect.size.y)
+	})
+	
+	var snap_pos = null
+	var last_weight := 0
+	var wt := {'weight': 0}
+	for corner in pos_corners:
+		snap_pos = snapping(corner['position'], wt)
+		snap_pos = Vector2i(snap_pos.x, snap_pos.y)
+		if wt['weight'] > last_weight:
+			last_weight = wt['weight']
+			pos = Vector2i(snap_pos) - corner['offset']
+	
+	bound_rect.position = pos
 
 
 func resize_to(to_size :Vector2i):
-	if not has_area():
-		return 
-	
-	var coef := Vector2(pivot_offset) / Vector2(to_size)
+	to_size = to_size.clamp(Vector2i.ONE, size)
+	var coef := Vector2(get_pivot_offset(to_size)) / Vector2(to_size)
 	var size_diff :Vector2i = Vector2(shaped_rect.size - to_size) * coef
-	print(pivot_offset)
 	shaped_rect.position += size_diff
 	shaped_rect.size = to_size
 	update_shape()
+
+
+
+# snapping
+func snapping(pos, wt := {}) -> Vector2i:
+	return _snapping.call(pos, wt)
+
+# hook for snapping
+var _snapping = func(pos) -> Vector2i: # pass original postion if no hook.
+	return pos
+
+
+func inject_snapping(callable :Callable):
+	_snapping = callable
 
 
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html

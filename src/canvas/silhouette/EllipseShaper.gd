@@ -10,7 +10,7 @@ func shape_move(pos :Vector2i):
 		points.append(pos) # append last point for rectangle.
 		silhouette.shaping_ellipse(points)
 	elif is_moving:
-		silhouette.move_to(pos - moving_offset)
+		silhouette.move_to(pos)
 
 
 func apply():
