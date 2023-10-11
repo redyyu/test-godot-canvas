@@ -17,8 +17,7 @@ var size := Vector2i.ZERO
 var boundary : Rect2i :
 	get: return Rect2i(Vector2i.ZERO, size)
 var shaped_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
-
-var points :PackedVector2Array = []  # line / polygon still need it.
+var shaped_angle := INF
 
 var shape_color := Color.BLACK
 
@@ -42,7 +41,6 @@ func attach(img :Image):
 func reset():
 	_current_shape = null
 	shaped_rect = Rect2i()
-	points.clear()
 	update_shape()
 
 
@@ -53,7 +51,7 @@ func set_pivot(pivot_id):
 
 
 func update_shape():
-	if has_area():
+	if has_area() or shaped_angle != INF:
 		updated.emit(shaped_rect, relative_position, true)
 		visible = true
 	else:
@@ -188,8 +186,7 @@ func shaping_rectangle(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_rectangle
-	points = sel_points
-	shaped_rect = points_to_rect(points)
+	shaped_rect = points_to_rect(sel_points)
 	update_shape()
 
 
@@ -218,8 +215,7 @@ func shaping_ellipse(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_ellipse
-	points = sel_points
-	shaped_rect = points_to_rect(points)
+	shaped_rect = points_to_rect(sel_points)
 	update_shape()
 
 
@@ -258,33 +254,28 @@ func shaping_line(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_line
-	points = sel_points
-	shaped_rect = points_to_rect(points)
+	var start = sel_points[0]
+	var end = sel_points[sel_points.size() - 1]
+	shaped_angle = start.angle_to_point(end)
+	shaped_rect = points_to_rect(sel_points)
 
 	update_shape()
 
 
 func shaped_line():
-	if not has_area() or points.size() < 1:
+	if not has_area():
 		return
 	
-	var start := points[0]
-	var end := points[points.size() - 1]
-	var w := start.x - end.x
-	var h := start.y - end.y
+	var start := shaped_rect.position
+	var end := shaped_rect.end
+	var distance := Vector2(start).distance_to(end)
+	var stroke_size := Vector2(stroke_weight, stroke_weight)
 	
-	var line :PackedVector2Array = [start]
-	for x in abs(w):
-		line.append(Vector2i(
-			start.x + x,
-			start.y * x / w 
-		))
-	print(w)	
-	line.append(end)
-	print(line)
+	var line := get_lines_form_points(start, end, distance)
 	for pos in line:
 		if boundary.has_point(pos):
-			image.set_pixelv(pos, shape_color)
+			var _rect = Rect2i(pos - stroke_size / 2, stroke_size)
+			image.fill_rect(_rect, shape_color)
 	refresh_canvas.emit()
 	update_shape()
 
@@ -309,18 +300,17 @@ func shaped_polygon(sel_points :Array):
 # Draw shaping
 
 func _draw():
-	if has_area():
-		if _current_shape is Callable:
-			_current_shape.call()
-		# switch in `selection_` func.
-		# try not use state, so many states in proejcts already.
-		# also there is internal useage for this class only.
+	if _current_shape is Callable:
+		_current_shape.call()
+	# switch in `selection_` func.
+	# try not use state, so many states in proejcts already.
+	# also there is internal useage for this class only.
 
 var _current_shape = null
 
 
 var _shape_rectangle = func():
-	if not shaped_rect.has_area():
+	if not has_area():
 		return
 	if opt_fill:
 		draw_rect(shaped_rect, shape_color, true)
@@ -331,7 +321,7 @@ var _shape_rectangle = func():
 
 
 var _shape_ellipse = func():
-	if not shaped_rect.has_area():
+	if not has_area():
 		return
 	var radius :float
 	var dscale :float
@@ -358,11 +348,26 @@ var _shape_ellipse = func():
 
 
 var _shape_line = func():
-	if not shaped_rect.has_area():
+	if not has_area() and shaped_angle == INF:
 		return
-	var start = points[0]
-	var end = points[points.size() - 1]
 	
+	var start = shaped_rect.position
+	var end = shaped_rect.end
+	
+	if 0 <= shaped_angle and shaped_angle <= 1.6:
+		pass
+	elif shaped_angle > 1.6:
+		start = Vector2i(shaped_rect.end.x, shaped_rect.position.y)
+		end = Vector2i(shaped_rect.position.x, shaped_rect.end.y)
+	elif 0 > shaped_angle and shaped_angle > -1.6:
+		start = Vector2i(shaped_rect.position.x, shaped_rect.end.y)
+		end = Vector2i(shaped_rect.end.x, shaped_rect.position.y)
+	elif shaped_angle < -1.6:
+		start = shaped_rect.end
+		end = shaped_rect.position
+		
+	print(shaped_angle)
+	draw_rect(shaped_rect, shape_color, false, 2)
 	draw_line(start, end, shape_color, stroke_weight / zoom_ratio)
 
 
@@ -414,7 +419,7 @@ func _input(event):
 
 
 func move_delta(delta :int, orientation:Orientation):
-	if not shaped_rect.has_area():
+	if not has_area():
 		return
 
 	match orientation:
@@ -475,6 +480,21 @@ var _snapping = func(_rect: Rect2i, pos :Vector2i) -> Vector2i:
 
 func inject_snapping(callable :Callable):
 	_snapping = callable
+
+
+func get_lines_form_points(start_point :Vector2i,
+						   end_point :Vector2i,
+						   points_total:float=0.0) -> PackedVector2Array:
+	var x_spacing := (end_point.x - start_point.x) / float(points_total + 1)
+	var y_spacing := (end_point.y - start_point.y) / float(points_total + 1)
+	
+	var line :PackedVector2Array = []
+	for i in range(1, points_total + 1):
+		line.append(Vector2i(
+			floor(start_point.x + i * x_spacing),
+			floor(start_point.y + i * y_spacing),
+		))
+	return line
 
 
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html
