@@ -23,7 +23,7 @@ var shaped_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO):
 	set(val):
 		shaped_rect = val
 		if shaped_rect.size.x > 0 or shaped_rect.size.y > 0:
-			touch_rect = shaped_rect.grow(stroke_weight)
+			touch_rect = shaped_rect.grow(stroke_width)
 		else:
 			touch_rect =Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 
@@ -37,7 +37,7 @@ var opt_as_square := false
 var opt_from_center := false
 var opt_fill := false
 
-var stroke_weight := 2
+var stroke_width := 2
 var polygon_sides := 5
 
 var is_pressed := false
@@ -116,7 +116,7 @@ func shaped_rectangle():
 								   image.get_height(),
 								   false,
 								   image.get_format())
-		var rect = shaped_rect.grow(-stroke_weight)
+		var rect = shaped_rect.grow(-stroke_width)
 		tmp_img.fill_rect(shaped_rect, shape_color)
 		tmp_img.fill_rect(rect, Color.TRANSPARENT)
 		image.blend_rect(tmp_img, shaped_rect, shaped_rect.position)
@@ -151,10 +151,10 @@ func shaped_ellipse():
 				image.set_pixelv(pos, shape_color)
 	else:
 		var ellipse = get_ellipse_points_filled(shaped_rect.size)
-		var inner_rect := shaped_rect.grow(-stroke_weight)
+		var inner_rect := shaped_rect.grow(-stroke_width)
 		var inner_ellipse = get_ellipse_points_filled(inner_rect.size)
 		for pos in ellipse:
-			if inner_ellipse.has(pos - Vector2(stroke_weight, stroke_weight)):
+			if inner_ellipse.has(pos - Vector2(stroke_width, stroke_width)):
 				continue
 			if pos_offset:
 				pos += pos_offset
@@ -186,13 +186,15 @@ func shaped_line():
 	
 	var dpoints := get_diagonal_from_rect(shaped_rect, shaped_angle)
 	var distance := Vector2(dpoints[0]).distance_to(dpoints[1])
-	var stroke_size := Vector2(stroke_weight, stroke_weight)
 	var line := get_lines_form_points(dpoints[0], dpoints[1], distance)
+#	var start = line[0]
+#	var end = line[line.size() -1]
 	for i in line.size():
 		var pos = line[i]
-		if boundary.has_point(pos) and i > 0 and i < line.size() -1:
-			var _rect = Rect2(pos - stroke_size / 2, stroke_size)
-			image.fill_rect(_rect, shape_color)
+		var rect := Rect2i(pos - Vector2.ONE * (stroke_width >> 1), 
+						   Vector2.ONE * stroke_width)
+		if boundary.has_point(pos):
+			image.fill_rect(rect, shape_color)
 	refresh_canvas.emit()
 	update_shape()
 
@@ -230,9 +232,9 @@ var _shape_rectangle = func():
 	if opt_fill:
 		draw_rect(shaped_rect, shape_color, true)
 	else:
-		var _rect = shaped_rect.grow(round(-stroke_weight / 2.0))
+		var _rect = shaped_rect.grow(round(-stroke_width / 2.0))
 		# stroke is middle of the rect boundary.
-		draw_rect(_rect, shape_color, false, stroke_weight / zoom_ratio)
+		draw_rect(_rect, shape_color, false, stroke_width / zoom_ratio)
 
 
 var _shape_ellipse = func():
@@ -254,15 +256,27 @@ var _shape_ellipse = func():
 	if opt_fill:
 		draw_circle(Vector2.ZERO, radius, shape_color)
 	else:
-		radius -= stroke_weight / 2.0  # fix draw_arc stroke expand.
+		radius -= stroke_width / 2.0  # fix draw_arc stroke expand.
 		draw_arc(Vector2.ZERO, radius, 0, 360, 36, 
-				 shape_color, stroke_weight / zoom_ratio)
+				 shape_color, stroke_width / zoom_ratio)
 		# draw_arc place center to ZERO, use tranform move to the right center.
 
 
 var _shape_line = func():
+#	var dpoints := get_diagonal_from_rect(shaped_rect, shaped_angle)
+#	var start :Vector2i = dpoints[0]
+#	var end :Vector2i = dpoints[1]
+#	draw_line(start, end, shape_color, stroke_width / zoom_ratio)
 	var dpoints := get_diagonal_from_rect(shaped_rect, shaped_angle)
-	draw_line(dpoints[0], dpoints[1], shape_color, stroke_weight / zoom_ratio)
+	var distance := Vector2(dpoints[0]).distance_to(dpoints[1])
+	var line := get_lines_form_points(dpoints[0], dpoints[1], distance)
+#	var start = line[0]
+#	var end = line[line.size() -1]
+	for pos in line:
+		if boundary.has_point(pos):
+			var rect := Rect2i(pos - Vector2.ONE * (stroke_width >> 1), 
+							   Vector2.ONE * stroke_width)
+			draw_rect(rect, shape_color)
 
 
 var _shape_polyline = func():

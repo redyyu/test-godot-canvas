@@ -194,25 +194,25 @@ func _on_btn_pressed(btn):
 			artboard.canvas.silhouette.opt_as_square = false
 			artboard.canvas.silhouette.opt_from_center = true
 			artboard.canvas.silhouette.opt_fill = false
-			artboard.canvas.silhouette.stroke_weight = 2
+			artboard.canvas.silhouette.stroke_width = 2
 		'BtnShapeEllipse':
 			set_state(Operate.SHAPE_ELLIPSE)
 			artboard.canvas.silhouette.opt_as_square = false
 			artboard.canvas.silhouette.opt_from_center = false
 			artboard.canvas.silhouette.opt_fill = false
-			artboard.canvas.silhouette.stroke_weight = 2
+			artboard.canvas.silhouette.stroke_width = 2
 		'BtnShapeLine':
 			set_state(Operate.SHAPE_LINE)
 			artboard.canvas.silhouette.opt_as_square = false
 			artboard.canvas.silhouette.opt_from_center = false
 			artboard.canvas.silhouette.opt_fill = false
-			artboard.canvas.silhouette.stroke_weight = 6
+			artboard.canvas.silhouette.stroke_width = 1
 		'BtnShapePolygon':
 			set_state(Operate.SHAPE_POLYGON)
 			artboard.canvas.silhouette.opt_as_square = false
 			artboard.canvas.silhouette.opt_from_center = false
 			artboard.canvas.silhouette.opt_fill = false
-			artboard.canvas.silhouette.stroke_weight = 2
+			artboard.canvas.silhouette.stroke_width = 2
 		'ColorPicker':
 			set_state(Operate.COLOR_PICK)
 		'BtnCenterSelector':
