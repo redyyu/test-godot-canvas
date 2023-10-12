@@ -63,7 +63,7 @@ var color_pick := ColorPick.new()
 @onready var shaper_rect := RectShaper.new(silhouette)
 @onready var shaper_ellipse := EllipseShaper.new(silhouette)
 @onready var shaper_line := LineShaper.new(silhouette)
-
+@onready var shaper_polygon := PolygonShaper.new(silhouette)
 #var mirror_view :bool = false
 #var draw_pixel_grid :bool = false
 #var grid_draw_over_tile_mode :bool = false
@@ -345,6 +345,8 @@ func _input(event :InputEvent):
 			process_shape(event, shaper_ellipse)
 		Operate.SHAPE_LINE:
 			process_shape(event, shaper_line)
+		Operate.SHAPE_POLYGON:
+			process_shape(event, shaper_polygon)
 		Operate.COLOR_PICK:
 			process_color_pick(event)
 		Operate.BUCKET:

@@ -38,7 +38,7 @@ var opt_from_center := false
 var opt_fill := false
 
 var stroke_width := 2
-var polygon_sides := 5
+var division := 5
 
 var is_pressed := false
 
@@ -124,6 +124,15 @@ func shaped_rectangle():
 	update_shape()
 
 
+var _shape_rectangle = func():
+	if opt_fill:
+		draw_rect(shaped_rect, shape_color, true)
+	else:
+		var _rect = shaped_rect.grow(round(-stroke_width / 2.0))
+		# stroke is middle of the rect boundary.
+		draw_rect(_rect, shape_color, false, stroke_width / zoom_ratio)
+
+
 # Ellipse
 
 func shaping_ellipse(sel_points :Array):
@@ -165,6 +174,31 @@ func shaped_ellipse():
 	update_shape()
 
 
+var _shape_ellipse = func():
+	var radius :float
+	var dscale :float
+	var center = shaped_rect.get_center()
+	
+	var _rect = Rect2(shaped_rect)
+	if _rect.size.x < _rect.size.y:
+		radius = _rect.size.y / 2.0
+		dscale = _rect.size.x / _rect.size.y
+		draw_set_transform(center, 0, Vector2(dscale, 1))
+		# the transform is effect whole size 
+	else:
+		radius = _rect.size.x / 2.0
+		dscale = _rect.size.y / _rect.size.x
+		draw_set_transform(center, 0, Vector2(1, dscale))
+
+	if opt_fill:
+		draw_circle(Vector2.ZERO, radius, shape_color)
+	else:
+		radius -= stroke_width / 2.0  # fix draw_arc stroke expand.
+		draw_arc(Vector2.ZERO, radius, 0, 360, 36, 
+				 shape_color, stroke_width / zoom_ratio)
+		# draw_arc place center to ZERO, use tranform move to the right center.
+
+
 # Line
 
 func shaping_line(sel_points :Array):
@@ -198,69 +232,6 @@ func shaped_line():
 	update_shape()
 
 
-# Polygon
-
-func shaping_polygon(sel_points :Array):
-	if not check_visible(sel_points):
-		return
-	_current_shape = _shape_polyline
-	shaped_rect = points_to_rect(sel_points)
-	queue_redraw()
-
-
-func shaped_polygon():
-	if not has_area():
-		return
-#	shaped_map.shape_polygon(sel_points, shape_color)
-	update_shape()
-
-
-# Draw shaping
-
-func _draw():
-	if has_area() and _current_shape is Callable:
-		_current_shape.call()
-	# switch in `selection_` func.
-	# try not use state, so many states in proejcts already.
-	# also there is internal useage for this class only.
-
-var _current_shape = null
-
-
-var _shape_rectangle = func():
-	if opt_fill:
-		draw_rect(shaped_rect, shape_color, true)
-	else:
-		var _rect = shaped_rect.grow(round(-stroke_width / 2.0))
-		# stroke is middle of the rect boundary.
-		draw_rect(_rect, shape_color, false, stroke_width / zoom_ratio)
-
-
-var _shape_ellipse = func():
-	var radius :float
-	var dscale :float
-	var center = shaped_rect.get_center()
-	
-	var _rect = Rect2(shaped_rect)
-	if _rect.size.x < _rect.size.y:
-		radius = _rect.size.y / 2.0
-		dscale = _rect.size.x / _rect.size.y
-		draw_set_transform(center, 0, Vector2(dscale, 1))
-		# the transform is effect whole size 
-	else:
-		radius = _rect.size.x / 2.0
-		dscale = _rect.size.y / _rect.size.x
-		draw_set_transform(center, 0, Vector2(1, dscale))
-
-	if opt_fill:
-		draw_circle(Vector2.ZERO, radius, shape_color)
-	else:
-		radius -= stroke_width / 2.0  # fix draw_arc stroke expand.
-		draw_arc(Vector2.ZERO, radius, 0, 360, 36, 
-				 shape_color, stroke_width / zoom_ratio)
-		# draw_arc place center to ZERO, use tranform move to the right center.
-
-
 var _shape_line = func():
 #	var dpoints := get_diagonal_from_rect(shaped_rect, shaped_angle)
 #	var start :Vector2i = dpoints[0]
@@ -277,13 +248,52 @@ var _shape_line = func():
 			draw_rect(rect, shape_color)
 
 
+# Polygon
+
+func shaping_polygon(sel_points :Array):
+	if not check_visible(sel_points):
+		return
+	_current_shape = _shape_polyline
+	var start = sel_points[0]
+	var end = sel_points[sel_points.size() - 1]
+	shaped_angle = get_angle_360(start, end)
+	sel_points = parse_two_points(sel_points)
+	shaped_rect = points_to_rect(sel_points)
+	queue_redraw()
+
+
+func shaped_polygon():
+	if not has_area():
+		return
+#	shaped_map.shape_polygon(sel_points, shape_color)
+	update_shape()
+
+
 var _shape_polyline = func():
-#	draw_polyline(points, shape_color, 1 / zoom_ratio)
+	var radius = minf(shaped_rect.size.x / 2.0, shaped_rect.size.y / 2.0)
+	var center = shaped_rect.get_center()
+	var polygon = get_arc_division_polygon(radius, division, center)
 	# calculte polygon by rect. for shape who need some point not on the rect.
 	# use the ratio of width and height to adjustment. such as Pentagram.
-	pass
+	draw_rect(shaped_rect, Color.RED, false, 1)
+	if opt_fill:
+		draw_polyline(polygon, shape_color, stroke_width / zoom_ratio)
+	else:
+		draw_colored_polygon(polygon, shape_color)
 	
-#
+
+# Draw shaping
+
+func _draw():
+	if has_area() and _current_shape is Callable:
+		_current_shape.call()
+	# switch in `selection_` func.
+	# try not use state, so many states in proejcts already.
+	# also there is internal useage for this class only.
+
+var _current_shape = null
+
+
 func _input(event):
 	if event is InputEventKey:
 
@@ -500,6 +510,19 @@ func parse_two_points(sel_points:PackedVector2Array):
 
 func get_angle_360(p1:Vector2, p2:Vector2) -> int:
 	return round(p1.angle_to_point(p2) * 180.0 / PI)
+
+
+func get_arc_division_polygon(radius:int,
+							  div_count:int,
+							  center:Vector2) ->PackedVector2Array:
+	var polygon :PackedVector2Array = []
+	var radians :float = (PI / 180.0) * round(360.0 / div_count)
+	for i in div_count:
+		polygon.append(Vector2(
+			center.x - radius * sin(radians * i),
+			center.y - radius * cos(radians * i)
+		).floor())
+	return polygon
 
 
 func points_to_rect(pts) -> Rect2i:

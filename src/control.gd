@@ -124,6 +124,8 @@ func set_state(state):
 			transform_panel.subscribe(artboard.canvas.silhouette)
 		Operate.SHAPE_LINE:
 			transform_panel.subscribe(artboard.canvas.silhouette)
+		Operate.SHAPE_POLYGON:
+			transform_panel.subscribe(artboard.canvas.silhouette)
 		_:
 			transform_panel.unsubscribe()
 
@@ -204,7 +206,7 @@ func _on_btn_pressed(btn):
 		'BtnShapeLine':
 			set_state(Operate.SHAPE_LINE)
 			artboard.canvas.silhouette.opt_as_square = true
-			artboard.canvas.silhouette.opt_from_center = true
+			artboard.canvas.silhouette.opt_from_center = false
 			artboard.canvas.silhouette.opt_fill = true
 			artboard.canvas.silhouette.stroke_width = 6
 		'BtnShapePolygon':
@@ -213,6 +215,7 @@ func _on_btn_pressed(btn):
 			artboard.canvas.silhouette.opt_from_center = false
 			artboard.canvas.silhouette.opt_fill = false
 			artboard.canvas.silhouette.stroke_width = 2
+			artboard.canvas.silhouette.division = 3
 		'ColorPicker':
 			set_state(Operate.COLOR_PICK)
 		'BtnCenterSelector':
