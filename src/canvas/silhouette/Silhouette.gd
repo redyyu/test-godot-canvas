@@ -95,13 +95,13 @@ func get_drag_offset(pos :Vector2i):
 # Rectangle
 
 func shaping_rectangle(sel_points :Array):
-	sel_points = parse_two_points(sel_points)
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_rectangle
 	var start = sel_points[0]
 	var end = sel_points[sel_points.size() - 1]
 	shaped_angle = get_angle_360(start, end)
+	sel_points = parse_two_points(sel_points)
 	shaped_rect = points_to_rect(sel_points)
 	update_shape()
 
@@ -127,13 +127,13 @@ func shaped_rectangle():
 # Ellipse
 
 func shaping_ellipse(sel_points :Array):
-	sel_points = parse_two_points(sel_points)
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_ellipse
 	var start = sel_points[0]
 	var end = sel_points[sel_points.size() - 1]
 	shaped_angle = get_angle_360(start, end)
+	sel_points = parse_two_points(sel_points)
 	shaped_rect = points_to_rect(sel_points)
 	update_shape()
 
@@ -165,17 +165,16 @@ func shaped_ellipse():
 	update_shape()
 
 
-
 # Line
 
 func shaping_line(sel_points :Array):
-	sel_points = parse_two_points(sel_points)
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_line
 	var start = sel_points[0]
 	var end = sel_points[sel_points.size() - 1]
 	shaped_angle = get_angle_360(start, end)
+	sel_points = parse_two_points(sel_points)
 	shaped_rect = points_to_rect(sel_points)
 	update_shape()
 
@@ -266,7 +265,6 @@ var _shape_line = func():
 #	var dpoints := get_diagonal_from_rect(shaped_rect, shaped_angle)
 #	var start :Vector2i = dpoints[0]
 #	var end :Vector2i = dpoints[1]
-#	draw_line(start, end, shape_color, stroke_width / zoom_ratio)
 	var dpoints := get_diagonal_from_rect(shaped_rect, shaped_angle)
 	var distance := Vector2(dpoints[0]).distance_to(dpoints[1])
 	var line := get_lines_form_points(dpoints[0], dpoints[1], distance)

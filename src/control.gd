@@ -191,22 +191,22 @@ func _on_btn_pressed(btn):
 			artboard.canvas.selector_magic.tolerance = 0
 		'BtnShapeRect':
 			set_state(Operate.SHAPE_RECTANGLE)
-			artboard.canvas.silhouette.opt_as_square = false
+			artboard.canvas.silhouette.opt_as_square = true
 			artboard.canvas.silhouette.opt_from_center = true
 			artboard.canvas.silhouette.opt_fill = false
 			artboard.canvas.silhouette.stroke_width = 2
 		'BtnShapeEllipse':
 			set_state(Operate.SHAPE_ELLIPSE)
-			artboard.canvas.silhouette.opt_as_square = false
-			artboard.canvas.silhouette.opt_from_center = false
+			artboard.canvas.silhouette.opt_as_square = true
+			artboard.canvas.silhouette.opt_from_center = true
 			artboard.canvas.silhouette.opt_fill = false
 			artboard.canvas.silhouette.stroke_width = 2
 		'BtnShapeLine':
 			set_state(Operate.SHAPE_LINE)
-			artboard.canvas.silhouette.opt_as_square = false
-			artboard.canvas.silhouette.opt_from_center = false
-			artboard.canvas.silhouette.opt_fill = false
-			artboard.canvas.silhouette.stroke_width = 1
+			artboard.canvas.silhouette.opt_as_square = true
+			artboard.canvas.silhouette.opt_from_center = true
+			artboard.canvas.silhouette.opt_fill = true
+			artboard.canvas.silhouette.stroke_width = 6
 		'BtnShapePolygon':
 			set_state(Operate.SHAPE_POLYGON)
 			artboard.canvas.silhouette.opt_as_square = false
