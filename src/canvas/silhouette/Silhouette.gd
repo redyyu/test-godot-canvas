@@ -16,8 +16,17 @@ var relative_position :Vector2i :  # with pivot, for display on panel
 var size := Vector2i.ZERO
 var boundary : Rect2i :
 	get: return Rect2i(Vector2i.ZERO, size)
-var shaped_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
-var shaped_angle := INF
+
+var touch_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
+var shaped_angle = null # angle 0 ~360.
+var shaped_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO):
+	set(val):
+		shaped_rect = val
+		if shaped_rect.size.x > 0 or shaped_rect.size.y > 0:
+			touch_rect = shaped_rect.grow(stroke_weight)
+		else:
+			touch_rect =Rect2i(Vector2i.ZERO, Vector2i.ZERO)
+
 
 var shape_color := Color.BLACK
 
@@ -40,6 +49,7 @@ func attach(img :Image):
 
 func reset():
 	_current_shape = null
+	shaped_angle = null
 	shaped_rect = Rect2i()
 	update_shape()
 
@@ -51,36 +61,13 @@ func set_pivot(pivot_id):
 
 
 func update_shape():
-	if has_area() or shaped_angle != INF:
+	if has_area():
 		updated.emit(shaped_rect, relative_position, true)
 		visible = true
 	else:
 		updated.emit(shaped_rect, relative_position, false)
 		visible = false
 	queue_redraw()
-
-
-func points_to_rect(pts) -> Rect2i:
-	if pts.size() < 1:
-		return Rect2i()
-	var start = null
-	var end = null
-	for p in pts:
-		if start == null:
-			start = p
-		if end == null:
-			end = p
-			
-		if start.x > p.x:
-			start.x = p.x
-		if start.y > p.y:
-			start.y = p.y
-		
-		if end.x < p.x:
-			end.x = p.x
-		if end.y < p.y:
-			end.y = p.y
-	return Rect2i(start, end - start).abs()
 
 
 func check_visible(sel_points) -> bool:
@@ -91,92 +78,17 @@ func check_visible(sel_points) -> bool:
 	
 
 func has_area():
-	return shaped_rect.has_area()
+#	return shaped_rect.has_area()
+	return touch_rect.has_area()
 
 
 func has_point(pos :Vector2i):
-	return shaped_rect.has_point(pos)
+#	return shaped_rect.has_point(pos)
+	return touch_rect.has_point(pos)
 
 
 func get_drag_offset(pos :Vector2i):
 	return pos - shaped_rect.position
-
-
-func get_pivot_offset(to_size:Vector2i) -> Vector2i:
-	var _offset = Vector2i.ZERO
-	match pivot:
-		Pivot.TOP_LEFT:
-			pass
-			
-		Pivot.TOP_CENTER:
-			_offset.x = to_size.x / 2.0
-
-		Pivot.TOP_RIGHT:
-			_offset.x = to_size.x
-
-		Pivot.MIDDLE_RIGHT:
-			_offset.x = to_size.x
-			_offset.y = to_size.y / 2.0
-
-		Pivot.BOTTOM_RIGHT:
-			_offset.x = to_size.x
-			_offset.y = to_size.y
-
-		Pivot.BOTTOM_CENTER:
-			_offset.x = to_size.x / 2.0
-			_offset.y = to_size.y
-
-		Pivot.BOTTOM_LEFT:
-			_offset.y = to_size.y
-
-		Pivot.MIDDLE_LEFT:
-			_offset.y = to_size.y / 2.0
-		
-		Pivot.CENTER:
-			_offset.x = to_size.x / 2.0
-			_offset.y = to_size.y / 2.0
-			
-	return _offset
-
-
-func parse_two_points(sel_points:PackedVector2Array):
-	if sel_points.size() < 2:
-		# skip parse if points is not up to 2.
-		# the _draw() will take off the rest.
-		return sel_points
-		
-	var pts :PackedVector2Array = []
-	var start := sel_points[0]
-	var end := sel_points[sel_points.size() - 1]
-	var sel_size := (start - end).abs()
-	
-	if opt_as_square:
-		# Make rect 1:1 while centering it on the mouse
-		var square_size :float = max(sel_size.x, sel_size.y)
-		sel_size = Vector2(square_size, square_size)
-		end = start - sel_size if start > end else start + sel_size
-
-	if opt_from_center:
-		var _start = Vector2(start.x, start.y)
-		if start.x < end.x:
-			start.x -= sel_size.x
-			end.x += 2 * sel_size.x
-		else:
-			_start.x = end.x - 2 * sel_size.x
-			end.x = start.x + sel_size.x
-			start.x = _start.x
-			
-		if start.y < end.y:
-			start.y -= sel_size.y
-			end.y += 2 * sel_size.y
-		else:
-			_start.y = end.y - 2 * sel_size.y
-			end.y = start.y + sel_size.y
-			start.y = _start.y
-			
-	pts.append(start)
-	pts.append(end)
-	return pts
 
 
 # Rectangle
@@ -186,6 +98,9 @@ func shaping_rectangle(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_rectangle
+	var start = sel_points[0]
+	var end = sel_points[sel_points.size() - 1]
+	shaped_angle = get_angle_360(start, end)
 	shaped_rect = points_to_rect(sel_points)
 	update_shape()
 
@@ -215,6 +130,9 @@ func shaping_ellipse(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_ellipse
+	var start = sel_points[0]
+	var end = sel_points[sel_points.size() - 1]
+	shaped_angle = get_angle_360(start, end)
 	shaped_rect = points_to_rect(sel_points)
 	update_shape()
 
@@ -256,9 +174,14 @@ func shaping_line(sel_points :Array):
 	_current_shape = _shape_line
 	var start = sel_points[0]
 	var end = sel_points[sel_points.size() - 1]
-	shaped_angle = start.angle_to_point(end)
+	shaped_angle = get_angle_360(start, end)
 	shaped_rect = points_to_rect(sel_points)
-
+#	if abs(shaped_angle) == 90:
+#		shaped_rect = shaped_rect.grow_side(SIDE_LEFT, stroke_weight)
+#		print('fuck', shaped_rect)
+#	if abs(shaped_angle) == 180 or shaped_angle == 0:
+#		shaped_rect = shaped_rect.grow_side(SIDE_TOP, stroke_weight)
+#		print(shaped_rect)
 	update_shape()
 
 
@@ -348,25 +271,20 @@ var _shape_ellipse = func():
 
 
 var _shape_line = func():
-	if not has_area() and shaped_angle == INF:
-		return
-	
-	var start = shaped_rect.position
-	var end = shaped_rect.end
-	
-	if 0 <= shaped_angle and shaped_angle <= 1.6:
+	var start := shaped_rect.position
+	var end := shaped_rect.end
+	if shaped_angle >= 0 and shaped_angle < 90:
 		pass
-	elif shaped_angle > 1.6:
+	elif shaped_angle >= 90 and shaped_angle < 180:
 		start = Vector2i(shaped_rect.end.x, shaped_rect.position.y)
 		end = Vector2i(shaped_rect.position.x, shaped_rect.end.y)
-	elif 0 > shaped_angle and shaped_angle > -1.6:
-		start = Vector2i(shaped_rect.position.x, shaped_rect.end.y)
-		end = Vector2i(shaped_rect.end.x, shaped_rect.position.y)
-	elif shaped_angle < -1.6:
+	elif shaped_angle >= -180 and shaped_angle < -90:
 		start = shaped_rect.end
 		end = shaped_rect.position
-		
-	print(shaped_angle)
+	elif shaped_angle > -90 and shaped_angle < 0:
+		start = Vector2i(shaped_rect.position.x, shaped_rect.end.y)
+		end = Vector2i(shaped_rect.end.x, shaped_rect.position.y)
+
 	draw_rect(shaped_rect, shape_color, false, 2)
 	draw_line(start, end, shape_color, stroke_weight / zoom_ratio)
 
@@ -482,6 +400,8 @@ func inject_snapping(callable :Callable):
 	_snapping = callable
 
 
+# cal
+
 func get_lines_form_points(start_point :Vector2i,
 						   end_point :Vector2i,
 						   points_total:float=0.0) -> PackedVector2Array:
@@ -495,6 +415,111 @@ func get_lines_form_points(start_point :Vector2i,
 			floor(start_point.y + i * y_spacing),
 		))
 	return line
+
+
+
+func get_pivot_offset(to_size:Vector2i) -> Vector2i:
+	var _offset = Vector2i.ZERO
+	match pivot:
+		Pivot.TOP_LEFT:
+			pass
+			
+		Pivot.TOP_CENTER:
+			_offset.x = to_size.x / 2.0
+
+		Pivot.TOP_RIGHT:
+			_offset.x = to_size.x
+
+		Pivot.MIDDLE_RIGHT:
+			_offset.x = to_size.x
+			_offset.y = to_size.y / 2.0
+
+		Pivot.BOTTOM_RIGHT:
+			_offset.x = to_size.x
+			_offset.y = to_size.y
+
+		Pivot.BOTTOM_CENTER:
+			_offset.x = to_size.x / 2.0
+			_offset.y = to_size.y
+
+		Pivot.BOTTOM_LEFT:
+			_offset.y = to_size.y
+
+		Pivot.MIDDLE_LEFT:
+			_offset.y = to_size.y / 2.0
+		
+		Pivot.CENTER:
+			_offset.x = to_size.x / 2.0
+			_offset.y = to_size.y / 2.0
+			
+	return _offset
+
+
+func parse_two_points(sel_points:PackedVector2Array):
+	if sel_points.size() < 2:
+		# skip parse if points is not up to 2.
+		# the _draw() will take off the rest.
+		return sel_points
+		
+	var pts :PackedVector2Array = []
+	var start := sel_points[0]
+	var end := sel_points[sel_points.size() - 1]
+	var sel_size := (start - end).abs()
+	
+	if opt_as_square:
+		# Make rect 1:1 while centering it on the mouse
+		var square_size :float = max(sel_size.x, sel_size.y)
+		sel_size = Vector2(square_size, square_size)
+		end = start - sel_size if start > end else start + sel_size
+
+	if opt_from_center:
+		var _start = Vector2(start.x, start.y)
+		if start.x < end.x:
+			start.x -= sel_size.x
+			end.x += 2 * sel_size.x
+		else:
+			_start.x = end.x - 2 * sel_size.x
+			end.x = start.x + sel_size.x
+			start.x = _start.x
+			
+		if start.y < end.y:
+			start.y -= sel_size.y
+			end.y += 2 * sel_size.y
+		else:
+			_start.y = end.y - 2 * sel_size.y
+			end.y = start.y + sel_size.y
+			start.y = _start.y
+			
+	pts.append(start)
+	pts.append(end)
+	return pts
+
+
+func get_angle_360(p1:Vector2, p2:Vector2) -> int:
+	return round(p1.angle_to_point(p2) * 180.0 / PI)
+
+
+func points_to_rect(pts) -> Rect2i:
+	if pts.size() < 1:
+		return Rect2i()
+	var start = null
+	var end = null
+	for p in pts:
+		if start == null:
+			start = p
+		if end == null:
+			end = p
+			
+		if start.x > p.x:
+			start.x = p.x
+		if start.y > p.y:
+			start.y = p.y
+		
+		if end.x < p.x:
+			end.x = p.x
+		if end.y < p.y:
+			end.y = p.y
+	return Rect2i(start, end - start).abs()
 
 
 ## Algorithm based on http://members.chello.at/easyfilter/bresenham.html

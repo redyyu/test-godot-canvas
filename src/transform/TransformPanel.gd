@@ -25,8 +25,6 @@ func _ready():
 	
 
 func set_transform(rect :Rect2i, status := false):
-	if not rect.has_area():
-		status = false
 	input_x.set_value_no_signal(rect.position.x)
 	input_y.set_value_no_signal(rect.position.y)
 	input_width.set_value_no_signal(rect.size.x)
