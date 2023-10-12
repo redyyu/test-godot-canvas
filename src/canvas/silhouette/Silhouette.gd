@@ -186,13 +186,12 @@ func shaped_line():
 	
 	var dpoints := get_diagonal_from_rect(shaped_rect, shaped_angle)
 	var distance := Vector2(dpoints[0]).distance_to(dpoints[1])
-
 	var stroke_size := Vector2(stroke_weight, stroke_weight)
-	
 	var line := get_lines_form_points(dpoints[0], dpoints[1], distance)
-	for pos in line:
-		if boundary.has_point(pos):
-			var _rect = Rect2i(pos - stroke_size / 2, stroke_size)
+	for i in line.size():
+		var pos = line[i]
+		if boundary.has_point(pos) and i > 0 and i < line.size() -1:
+			var _rect = Rect2(pos - stroke_size / 2, stroke_size)
 			image.fill_rect(_rect, shape_color)
 	refresh_canvas.emit()
 	update_shape()
@@ -264,7 +263,6 @@ var _shape_ellipse = func():
 var _shape_line = func():
 	var dpoints := get_diagonal_from_rect(shaped_rect, shaped_angle)
 	draw_line(dpoints[0], dpoints[1], shape_color, stroke_weight / zoom_ratio)
-
 
 
 var _shape_polyline = func():

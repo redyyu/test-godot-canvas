@@ -206,7 +206,7 @@ func _on_btn_pressed(btn):
 			artboard.canvas.silhouette.opt_as_square = false
 			artboard.canvas.silhouette.opt_from_center = false
 			artboard.canvas.silhouette.opt_fill = false
-			artboard.canvas.silhouette.stroke_weight = 5
+			artboard.canvas.silhouette.stroke_weight = 6
 		'BtnShapePolygon':
 			set_state(Operate.SHAPE_POLYGON)
 			artboard.canvas.silhouette.opt_as_square = false
