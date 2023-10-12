@@ -63,10 +63,8 @@ func cancel():
 
 
 func _on_applied(_rect):
-	if is_shaping:
-		apply()
+	apply()
 
 
 func _on_canceled():
-	if is_shaping:
-		cancel()
+	cancel()

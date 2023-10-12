@@ -38,6 +38,7 @@ var opt_from_center := false
 var opt_fill := false
 
 var stroke_weight := 2
+var polygon_sides := 5
 
 var is_pressed := false
 
@@ -176,12 +177,6 @@ func shaping_line(sel_points :Array):
 	var end = sel_points[sel_points.size() - 1]
 	shaped_angle = get_angle_360(start, end)
 	shaped_rect = points_to_rect(sel_points)
-#	if abs(shaped_angle) == 90:
-#		shaped_rect = shaped_rect.grow_side(SIDE_LEFT, stroke_weight)
-#		print('fuck', shaped_rect)
-#	if abs(shaped_angle) == 180 or shaped_angle == 0:
-#		shaped_rect = shaped_rect.grow_side(SIDE_TOP, stroke_weight)
-#		print(shaped_rect)
 	update_shape()
 
 
@@ -189,12 +184,12 @@ func shaped_line():
 	if not has_area():
 		return
 	
-	var start := shaped_rect.position
-	var end := shaped_rect.end
-	var distance := Vector2(start).distance_to(end)
+	var dpoints := get_diagonal_from_rect(shaped_rect, shaped_angle)
+	var distance := Vector2(dpoints[0]).distance_to(dpoints[1])
+
 	var stroke_size := Vector2(stroke_weight, stroke_weight)
 	
-	var line := get_lines_form_points(start, end, distance)
+	var line := get_lines_form_points(dpoints[0], dpoints[1], distance)
 	for pos in line:
 		if boundary.has_point(pos):
 			var _rect = Rect2i(pos - stroke_size / 2, stroke_size)
@@ -213,8 +208,8 @@ func shaping_polygon(sel_points :Array):
 	queue_redraw()
 
 
-func shaped_polygon(sel_points :Array):
-	if not check_visible(sel_points):
+func shaped_polygon():
+	if not has_area():
 		return
 #	shaped_map.shape_polygon(sel_points, shape_color)
 	update_shape()
@@ -223,7 +218,7 @@ func shaped_polygon(sel_points :Array):
 # Draw shaping
 
 func _draw():
-	if _current_shape is Callable:
+	if has_area() and _current_shape is Callable:
 		_current_shape.call()
 	# switch in `selection_` func.
 	# try not use state, so many states in proejcts already.
@@ -233,8 +228,6 @@ var _current_shape = null
 
 
 var _shape_rectangle = func():
-	if not has_area():
-		return
 	if opt_fill:
 		draw_rect(shaped_rect, shape_color, true)
 	else:
@@ -244,8 +237,6 @@ var _shape_rectangle = func():
 
 
 var _shape_ellipse = func():
-	if not has_area():
-		return
 	var radius :float
 	var dscale :float
 	var center = shaped_rect.get_center()
@@ -271,22 +262,8 @@ var _shape_ellipse = func():
 
 
 var _shape_line = func():
-	var start := shaped_rect.position
-	var end := shaped_rect.end
-	if shaped_angle >= 0 and shaped_angle < 90:
-		pass
-	elif shaped_angle >= 90 and shaped_angle < 180:
-		start = Vector2i(shaped_rect.end.x, shaped_rect.position.y)
-		end = Vector2i(shaped_rect.position.x, shaped_rect.end.y)
-	elif shaped_angle >= -180 and shaped_angle < -90:
-		start = shaped_rect.end
-		end = shaped_rect.position
-	elif shaped_angle > -90 and shaped_angle < 0:
-		start = Vector2i(shaped_rect.position.x, shaped_rect.end.y)
-		end = Vector2i(shaped_rect.end.x, shaped_rect.position.y)
-
-	draw_rect(shaped_rect, shape_color, false, 2)
-	draw_line(start, end, shape_color, stroke_weight / zoom_ratio)
+	var dpoints := get_diagonal_from_rect(shaped_rect, shaped_angle)
+	draw_line(dpoints[0], dpoints[1], shape_color, stroke_weight / zoom_ratio)
 
 
 
@@ -400,7 +377,7 @@ func inject_snapping(callable :Callable):
 	_snapping = callable
 
 
-# cal
+# calculate points and shape
 
 func get_lines_form_points(start_point :Vector2i,
 						   end_point :Vector2i,
@@ -416,6 +393,22 @@ func get_lines_form_points(start_point :Vector2i,
 		))
 	return line
 
+
+func get_diagonal_from_rect(rect:Rect2i, angle:int) -> PackedVector2Array:
+	var start :Vector2i = rect.position
+	var end :Vector2i = rect.end
+	if angle >= 0 and angle < 90:
+		pass
+	elif angle >= 90 and angle < 180:
+		start = Vector2i(rect.end.x, rect.position.y)
+		end = Vector2i(rect.position.x, rect.end.y)
+	elif angle >= -180 and angle < -90:
+		start = rect.end
+		end = rect.position
+	elif angle > -90 and angle < 0:
+		start = Vector2i(rect.position.x, rect.end.y)
+		end = Vector2i(rect.end.x, rect.position.y)
+	return [start, end]
 
 
 func get_pivot_offset(to_size:Vector2i) -> Vector2i:
