@@ -18,17 +18,13 @@ var boundary : Rect2i :
 	get: return Rect2i(Vector2i.ZERO, size)
 
 var touch_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
-var shaped_angle = null # angle 0 ~360.
-var shaped_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO):
-	set(val):
-		shaped_rect = val
-		if shaped_rect.size.x > 0 or shaped_rect.size.y > 0:
-			touch_rect = shaped_rect.grow(stroke_width)
-		else:
-			touch_rect =Rect2i(Vector2i.ZERO, Vector2i.ZERO)
-
+var shaped_rect := Rect2i(Vector2i.ZERO, Vector2i.ZERO)
 
 var shape_color := Color.BLACK
+
+#var shaped_angle = null # angle 0 ~360.
+var start_point := Vector2i.ZERO
+var end_point := Vector2i.ZERO
 
 var zoom_ratio := 1.0
 var last_position :Variant = null # prevent same with mouse pos from beginning.
@@ -48,10 +44,26 @@ func attach(img :Image):
 	size = Vector2i(image.get_width(), image.get_height())
 
 
+func apply():
+	match _current_shape:
+		_shape_rectangle: shaped_rectangle()
+		_shape_ellipse: shaped_ellipse()
+		_shape_line: shaped_line()
+		_shape_polygon: shaped_polygon()
+	reset()
+	applied.emit(shaped_rect)
+
+
+func cancel():
+	reset()
+	canceled.emit()
+
+
 func reset():
+#	shaped_angle = null
 	_current_shape = null
-	shaped_angle = null
 	shaped_rect = Rect2i()
+	touch_rect = Rect2i()
 	update_shape()
 
 
@@ -98,11 +110,11 @@ func shaping_rectangle(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_rectangle
-	var start = sel_points[0]
-	var end = sel_points[sel_points.size() - 1]
-	shaped_angle = get_angle_360(start, end)
+	start_point = sel_points[0]
+	end_point = sel_points[sel_points.size() - 1]
 	sel_points = parse_two_points(sel_points)
 	shaped_rect = points_to_rect(sel_points)
+	touch_rect = shaped_rect.grow(stroke_width)
 	update_shape()
 
 
@@ -139,11 +151,11 @@ func shaping_ellipse(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_ellipse
-	var start = sel_points[0]
-	var end = sel_points[sel_points.size() - 1]
-	shaped_angle = get_angle_360(start, end)
+	start_point = sel_points[0]
+	end_point = sel_points[sel_points.size() - 1]
 	sel_points = parse_two_points(sel_points)
 	shaped_rect = points_to_rect(sel_points)
+	touch_rect = shaped_rect.grow(stroke_width)
 	update_shape()
 
 
@@ -205,42 +217,38 @@ func shaping_line(sel_points :Array):
 	if not check_visible(sel_points):
 		return
 	_current_shape = _shape_line
-	var start = sel_points[0]
-	var end = sel_points[sel_points.size() - 1]
-	shaped_angle = get_angle_360(start, end)
+	start_point = sel_points[0]
+	end_point = sel_points[sel_points.size() - 1]
+	var angle = get_angle_360(start_point, end_point)
 	sel_points = parse_two_points(sel_points)
 	shaped_rect = points_to_rect(sel_points)
+	var dpoints := get_diagonal_from_rect(shaped_rect, angle)
+	start_point = dpoints[0]
+	end_point = dpoints[1]
+	touch_rect = shaped_rect.grow(stroke_width)
 	update_shape()
 
 
 func shaped_line():
 	if not has_area():
 		return
-	
-	var dpoints := get_diagonal_from_rect(shaped_rect, shaped_angle)
-	var distance := Vector2(dpoints[0]).distance_to(dpoints[1])
-	var line := get_lines_form_points(dpoints[0], dpoints[1], distance)
-#	var start = line[0]
-#	var end = line[line.size() -1]
+	var distance := Vector2(start_point).distance_to(end_point)
+	var line := get_lines_form_points(start_point, end_point, distance)
 	for i in line.size():
 		var pos = line[i]
 		var rect := Rect2i(pos - Vector2.ONE * (stroke_width >> 1), 
 						   Vector2.ONE * stroke_width)
 		if boundary.has_point(pos):
 			image.fill_rect(rect, shape_color)
+
 	refresh_canvas.emit()
 	update_shape()
 
 
 var _shape_line = func():
-#	var dpoints := get_diagonal_from_rect(shaped_rect, shaped_angle)
-#	var start :Vector2i = dpoints[0]
-#	var end :Vector2i = dpoints[1]
-	var dpoints := get_diagonal_from_rect(shaped_rect, shaped_angle)
-	var distance := Vector2(dpoints[0]).distance_to(dpoints[1])
-	var line := get_lines_form_points(dpoints[0], dpoints[1], distance)
-#	var start = line[0]
-#	var end = line[line.size() -1]
+	# DO NOT draw_line might not exactly same when applied.
+	var distance := Vector2(start_point).distance_to(end_point)
+	var line := get_lines_form_points(start_point, end_point, distance)
 	for pos in line:
 		if boundary.has_point(pos):
 			var rect := Rect2i(pos - Vector2.ONE * (stroke_width >> 1), 
@@ -253,34 +261,95 @@ var _shape_line = func():
 func shaping_polygon(sel_points :Array):
 	if not check_visible(sel_points):
 		return
-	_current_shape = _shape_polyline
-	var start = sel_points[0]
-	var end = sel_points[sel_points.size() - 1]
-	shaped_angle = get_angle_360(start, end)
+	_current_shape = _shape_polygon
+	start_point = sel_points[0]
+	end_point = sel_points[sel_points.size() - 1]
 	sel_points = parse_two_points(sel_points)
 	shaped_rect = points_to_rect(sel_points)
-	queue_redraw()
+	# Make rect 1:1 while centering it on the mouse
+	var sel_size = Vector2i.ONE * maxi(shaped_rect.size.x, shaped_rect.size.y)
+	if shaped_rect.position.x < shaped_rect.end.x:
+		shaped_rect.end.x = shaped_rect.position.x + sel_size.x
+	else:
+		shaped_rect.end.x = shaped_rect.position.x - sel_size.x
+	
+	if shaped_rect.position.y < shaped_rect.end.y:
+		shaped_rect.end.y = shaped_rect.position.y + sel_size.y
+	else:
+		shaped_rect.end.y = shaped_rect.position.y - sel_size.y
+	touch_rect = shaped_rect.grow(stroke_width)
+#	var diff = shaped_rect.size.x - shaped_rect.size.y
+#	if diff > 0:
+#		touch_rect = shaped_rect.grow_individual(-diff/2.0, 0, -diff/2.0, 0)
+#	else:
+#		touch_rect = shaped_rect.grow_individual(0, diff/2.0, 0, diff/2.0)
+#		# diff is negative
+	update_shape()
 
 
 func shaped_polygon():
 	if not has_area():
 		return
-#	shaped_map.shape_polygon(sel_points, shape_color)
+	var radius = minf(shaped_rect.size.x / 2.0, shaped_rect.size.y / 2.0)
+	var center = shaped_rect.get_center()
+	if opt_fill:
+		var polygon = get_arc_division_polygon(
+			radius, division, center, start_point.y > end_point.y)
+		for x in range(shaped_rect.position.x, shaped_rect.end.x):
+			for y in range(shaped_rect.position.y, shaped_rect.end.y):
+				var pos = Vector2i(x, y)
+				if boundary.has_point(pos) and \
+				   Geometry2D.is_point_in_polygon(pos, polygon):
+					image.set_pixelv(pos, shape_color)
+	else:
+		var outer_polygon = get_arc_division_polygon(
+			radius, division, center,
+			start_point.y > end_point.y)
+		var inner_polygon = get_arc_division_polygon(
+			radius - stroke_width, division, center,
+			start_point.y > end_point.y)
+		for x in range(touch_rect.position.x, touch_rect.end.x -1):
+			for y in range(touch_rect.position.y, touch_rect.end.y -1):
+				var pos = Vector2(x, y)
+				if boundary.has_point(pos) and \
+				   Geometry2D.is_point_in_polygon(pos, outer_polygon) and \
+				   not Geometry2D.is_point_in_polygon(pos, inner_polygon):
+					image.set_pixelv(pos, shape_color)
+	refresh_canvas.emit()
 	update_shape()
 
 
-var _shape_polyline = func():
+var _shape_polygon = func():
 	var radius = minf(shaped_rect.size.x / 2.0, shaped_rect.size.y / 2.0)
 	var center = shaped_rect.get_center()
-	var polygon = get_arc_division_polygon(radius, division, center)
+	var polygon = get_arc_division_polygon(radius,
+										   division,
+										   center,
+										   start_point.y > end_point.y)
+	draw_rect(touch_rect, Color.BLUE, false, 1)
+	draw_rect(shaped_rect, Color.RED, false, 1)
 	# calculte polygon by rect. for shape who need some point not on the rect.
 	# use the ratio of width and height to adjustment. such as Pentagram.
-	draw_rect(shaped_rect, Color.RED, false, 1)
 	if opt_fill:
-		draw_polyline(polygon, shape_color, stroke_width / zoom_ratio)
-	else:
 		draw_colored_polygon(polygon, shape_color)
-	
+	else:
+#		draw_polyline(polygon, shape_color, stroke_width / zoom_ratio)
+		# DO NOT draw_polyline might not exactly same when applied.
+		var outer_polygon = get_arc_division_polygon(
+			radius, division, center,
+			start_point.y > end_point.y)
+		var inner_polygon = get_arc_division_polygon(
+			radius - stroke_width, division, center,
+			start_point.y > end_point.y)
+		for x in range(touch_rect.position.x, touch_rect.end.x -1):
+			for y in range(touch_rect.position.y, touch_rect.end.y -1):
+				var pos = Vector2(x, y)
+				if boundary.has_point(pos) and \
+				   Geometry2D.is_point_in_polygon(pos, outer_polygon) and \
+				   not Geometry2D.is_point_in_polygon(pos, inner_polygon):
+					draw_rect(Rect2i(pos, Vector2i.ONE), shape_color)
+					# draw one pixel rect, same with set_pixelv on image.
+
 
 # Draw shaping
 
@@ -299,12 +368,12 @@ func _input(event):
 
 		if Input.is_key_pressed(KEY_ENTER) and \
 		   event.is_command_or_control_pressed():
-			applied.emit(shaped_rect)
+			apply()
 			# send signal to Shaper,
 			# it's for separaate different shaper current using.
 			# because shaper does not have _input, but sillhouette has.
 		elif Input.is_key_pressed(KEY_ESCAPE):
-			canceled.emit()
+			cancel()
 		
 		var delta := 1
 		if Input.is_key_pressed(KEY_SHIFT):
@@ -340,6 +409,7 @@ func move_delta(delta :int, orientation:Orientation):
 	match orientation:
 		HORIZONTAL: shaped_rect.position.x += delta
 		VERTICAL: shaped_rect.position.y += delta
+	touch_rect = shaped_rect.grow(stroke_width)
 	update_shape()
 
 
@@ -358,6 +428,9 @@ func move_to(to_pos :Vector2i, use_pivot := true):
 		to_pos.y -= target_edge.y - size.y
 		
 	shaped_rect.position = to_pos - _offset
+	touch_rect = shaped_rect.grow(stroke_width)
+#	var touch_diff = Vector2i(touch_rect.size.x / 2, touch_rect.size.y / 2)
+#	touch_rect.position = shaped_rect.get_center() - touch_diff
 	update_shape()
 
 
@@ -370,7 +443,10 @@ func drag_to(pos, drag_offset):
 	
 	# convert to local pos from the rect zero pos. 
 	# DO NOT use get_local_mouse_position, because bound_rect is not zero pos.
-	shaped_rect.position = snapping(shaped_rect, pos)
+	shaped_rect.position  = snapping(shaped_rect, pos)
+	touch_rect = shaped_rect.grow(stroke_width)
+#	var touch_diff = Vector2i(touch_rect.size.x / 2, touch_rect.size.y / 2)
+#	touch_rect.position = shaped_rect.get_center() - touch_diff
 	update_shape()
 
 
@@ -380,6 +456,7 @@ func resize_to(to_size :Vector2i):
 	var size_diff :Vector2i = Vector2(shaped_rect.size - to_size) * coef
 	shaped_rect.position += size_diff
 	shaped_rect.size = to_size
+	touch_rect = shaped_rect.grow(stroke_width)
 	update_shape()
 
 
@@ -399,17 +476,16 @@ func inject_snapping(callable :Callable):
 
 # calculate points and shape
 
-func get_lines_form_points(start_point :Vector2i,
-						   end_point :Vector2i,
+func get_lines_form_points(start :Vector2i, end :Vector2i,
 						   points_total:float=0.0) -> PackedVector2Array:
-	var x_spacing := (end_point.x - start_point.x) / float(points_total + 1)
-	var y_spacing := (end_point.y - start_point.y) / float(points_total + 1)
+	var x_spacing := (end.x - start.x) / float(points_total + 1)
+	var y_spacing := (end.y - start.y) / float(points_total + 1)
 	
 	var line :PackedVector2Array = []
 	for i in range(1, points_total + 1):
 		line.append(Vector2i(
-			floor(start_point.x + i * x_spacing),
-			floor(start_point.y + i * y_spacing),
+			floor(start.x + i * x_spacing),
+			floor(start.y + i * y_spacing),
 		))
 	return line
 
@@ -477,13 +553,20 @@ func parse_two_points(sel_points:PackedVector2Array):
 	var pts :PackedVector2Array = []
 	var start := sel_points[0]
 	var end := sel_points[sel_points.size() - 1]
-	var sel_size := (start - end).abs()
+	var sel_size :Vector2i = (start - end).abs()
 	
 	if opt_as_square:
 		# Make rect 1:1 while centering it on the mouse
-		var square_size :float = max(sel_size.x, sel_size.y)
-		sel_size = Vector2(square_size, square_size)
-		end = start - sel_size if start > end else start + sel_size
+		sel_size = Vector2i.ONE * maxi(sel_size.x, sel_size.y)
+		if start.x < end.x:
+			end.x = start.x + sel_size.x
+		else:
+			end.x = start.x - sel_size.x
+		
+		if start.y < end.y:
+			end.y = start.y + sel_size.y
+		else:
+			end.y = start.y - sel_size.y
 
 	if opt_from_center:
 		var _start = Vector2(start.x, start.y)
@@ -514,14 +597,22 @@ func get_angle_360(p1:Vector2, p2:Vector2) -> int:
 
 func get_arc_division_polygon(radius:int,
 							  div_count:int,
-							  center:Vector2) ->PackedVector2Array:
+							  center:Vector2,
+							  reverse:= false) ->PackedVector2Array:
 	var polygon :PackedVector2Array = []
 	var radians :float = (PI / 180.0) * round(360.0 / div_count)
 	for i in div_count:
-		polygon.append(Vector2(
-			center.x - radius * sin(radians * i),
-			center.y - radius * cos(radians * i)
-		).floor())
+		if reverse:
+			polygon.append(Vector2(
+				center.x + radius * sin(radians * i),
+				center.y + radius * cos(radians * i)
+			).floor())
+		else:
+			polygon.append(Vector2(
+				center.x - radius * sin(radians * i),
+				center.y - radius * cos(radians * i)
+			).floor())
+	polygon.append(polygon[0])  # join first point
 	return polygon
 
 

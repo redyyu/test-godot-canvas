@@ -153,6 +153,9 @@ func set_state(val):  # triggered when state changing.
 		# selection must clear after mover setted, 
 		# mover still need it once.
 		selection.deselect()
+	elif state in [Operate.SHAPE_ELLIPSE, Operate.SHAPE_LINE,
+				   Operate.SHAPE_POLYGON, Operate.SHAPE_RECTANGLE]:
+		silhouette.apply()
 	else:
 		move_sizer.apply()
 		crop_sizer.cancel()

@@ -194,7 +194,7 @@ func _on_btn_pressed(btn):
 		'BtnShapeRect':
 			set_state(Operate.SHAPE_RECTANGLE)
 			artboard.canvas.silhouette.opt_as_square = true
-			artboard.canvas.silhouette.opt_from_center = true
+			artboard.canvas.silhouette.opt_from_center = false
 			artboard.canvas.silhouette.opt_fill = false
 			artboard.canvas.silhouette.stroke_width = 2
 		'BtnShapeEllipse':
@@ -214,8 +214,8 @@ func _on_btn_pressed(btn):
 			artboard.canvas.silhouette.opt_as_square = false
 			artboard.canvas.silhouette.opt_from_center = false
 			artboard.canvas.silhouette.opt_fill = false
-			artboard.canvas.silhouette.stroke_width = 2
-			artboard.canvas.silhouette.division = 3
+			artboard.canvas.silhouette.stroke_width = 4
+			artboard.canvas.silhouette.division = 5
 		'ColorPicker':
 			set_state(Operate.COLOR_PICK)
 		'BtnCenterSelector':

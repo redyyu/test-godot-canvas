@@ -28,7 +28,6 @@ func reset():
 	points.clear()
 	is_shaping = false
 	is_dragging = false
-	silhouette.reset()
 
 
 func shape_start(pos :Vector2i):
@@ -52,13 +51,11 @@ func shape_end(_pos :Vector2i):
 
 
 func apply():
-	silhouette.reset()
 	reset()
 
 
 func cancel():
 	reset()
-	silhouette.reset()
 
 
 
