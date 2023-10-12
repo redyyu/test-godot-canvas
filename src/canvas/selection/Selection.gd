@@ -236,13 +236,21 @@ func parse_two_points(sel_points:PackedVector2Array):
 	var pts :PackedVector2Array = []
 	var start := sel_points[0]
 	var end := sel_points[sel_points.size() - 1]
-	var sel_size := (start - end).abs()
+	var sel_size :Vector2i = (start - end).abs()
 	
 	if opt_as_square:
 		# Make rect 1:1 while centering it on the mouse
-		var square_size :float = max(sel_size.x, sel_size.y)
-		sel_size = Vector2(square_size, square_size)
-		end = start - sel_size if start > end else start + sel_size
+		# Make rect 1:1 while centering it on the mouse
+		sel_size = Vector2i.ONE * maxi(sel_size.x, sel_size.y)
+		if start.x < end.x:
+			end.x = start.x + sel_size.x
+		else:
+			end.x = start.x - sel_size.x
+		
+		if start.y < end.y:
+			end.y = start.y + sel_size.y
+		else:
+			end.y = start.y - sel_size.y
 
 	if opt_from_center:
 		var _start = Vector2(start.x, start.y)
