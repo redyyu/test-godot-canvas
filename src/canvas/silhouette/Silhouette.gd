@@ -5,6 +5,17 @@ signal applied(rect)
 signal canceled
 signal refresh_canvas
 
+enum {
+	NONE,
+	RECTANGLE,
+	ELLIPSE,
+	POLYGON,
+	LINE,
+}
+
+var type := NONE :
+	set = set_type
+
 var image := Image.new()
 var pivot := Pivot.TOP_LEFT  # Pivot class in /core.
 var pivot_offset :Vector2i :
@@ -29,15 +40,37 @@ var end_point := Vector2i.ZERO
 var zoom_ratio := 1.0
 var last_position :Variant = null # prevent same with mouse pos from beginning.
 
-var opt_as_square := false
-var opt_from_center := false
-var opt_fill := false
+var opt_as_square := false :
+	get: return opt_as_square and force_as_square
+	
+var opt_from_center := false :
+	get: return opt_from_center and force_from_center
+	
+var opt_fill := false :
+	get: return opt_fill and not force_outline
+
+var force_as_square := false
+var force_from_center := false
+var force_outline := false
 
 var stroke_width := 2
 var division := 5
+var edge_expands := 0
 
 var is_pressed := false
 
+
+func set_type(val):
+	if type != val:
+		type = val
+		force_as_square = false
+		force_from_center = false
+		force_outline = false
+		if type == POLYGON:
+			force_as_square = true
+		if type == LINE:
+			force_outline = true
+		
 
 func attach(img :Image):
 	image = img
@@ -45,11 +78,11 @@ func attach(img :Image):
 
 
 func apply():
-	match _current_shape:
-		_shape_rectangle: shaped_rectangle()
-		_shape_ellipse: shaped_ellipse()
-		_shape_line: shaped_line()
-		_shape_polygon: shaped_polygon()
+	match type:
+		RECTANGLE: shaped_rectangle()
+		ELLIPSE: shaped_ellipse()
+		LINE: shaped_line()
+		POLYGON: shaped_polygon()
 	reset()
 	applied.emit(shaped_rect)
 
@@ -266,25 +299,16 @@ func shaping_polygon(sel_points :Array):
 	end_point = sel_points[sel_points.size() - 1]
 	sel_points = parse_two_points(sel_points)
 	shaped_rect = points_to_rect(sel_points)
-	# Make rect 1:1 while centering it on the mouse
-	var sel_size = Vector2i.ONE * maxi(shaped_rect.size.x, shaped_rect.size.y)
-	if shaped_rect.position.x < shaped_rect.end.x:
-		shaped_rect.end.x = shaped_rect.position.x + sel_size.x
-	else:
-		shaped_rect.end.x = shaped_rect.position.x - sel_size.x
-	
-	if shaped_rect.position.y < shaped_rect.end.y:
-		shaped_rect.end.y = shaped_rect.position.y + sel_size.y
-	else:
-		shaped_rect.end.y = shaped_rect.position.y - sel_size.y
 	touch_rect = shaped_rect.grow(stroke_width)
+	update_shape()
+	
+	# DO NOT NEED those
 #	var diff = shaped_rect.size.x - shaped_rect.size.y
 #	if diff > 0:
 #		touch_rect = shaped_rect.grow_individual(-diff/2.0, 0, -diff/2.0, 0)
 #	else:
 #		touch_rect = shaped_rect.grow_individual(0, diff/2.0, 0, diff/2.0)
 #		# diff is negative
-	update_shape()
 
 
 func shaped_polygon():
@@ -295,6 +319,7 @@ func shaped_polygon():
 	if opt_fill:
 		var polygon = get_arc_division_polygon(
 			radius, division, center, start_point.y > end_point.y)
+		polygon = parse_polygon_expends(polygon, shaped_rect.get_center())
 		for x in range(shaped_rect.position.x, shaped_rect.end.x):
 			for y in range(shaped_rect.position.y, shaped_rect.end.y):
 				var pos = Vector2i(x, y)
@@ -305,9 +330,13 @@ func shaped_polygon():
 		var outer_polygon = get_arc_division_polygon(
 			radius, division, center,
 			start_point.y > end_point.y)
+		outer_polygon = parse_polygon_expends(outer_polygon,
+											  shaped_rect.get_center())
 		var inner_polygon = get_arc_division_polygon(
 			radius - stroke_width, division, center,
 			start_point.y > end_point.y)
+		inner_polygon = parse_polygon_expends(inner_polygon,
+											  shaped_rect.get_center())
 		for x in range(touch_rect.position.x, touch_rect.end.x -1):
 			for y in range(touch_rect.position.y, touch_rect.end.y -1):
 				var pos = Vector2(x, y)
@@ -318,7 +347,6 @@ func shaped_polygon():
 	refresh_canvas.emit()
 	update_shape()
 
-
 var _shape_polygon = func():
 	var radius = minf(shaped_rect.size.x / 2.0, shaped_rect.size.y / 2.0)
 	var center = shaped_rect.get_center()
@@ -326,8 +354,9 @@ var _shape_polygon = func():
 										   division,
 										   center,
 										   start_point.y > end_point.y)
-	draw_rect(touch_rect, Color.BLUE, false, 1)
-	draw_rect(shaped_rect, Color.RED, false, 1)
+	polygon = parse_polygon_expends(polygon, shaped_rect.get_center())
+#	draw_rect(touch_rect, Color.BLUE, false, 1)
+#	draw_rect(shaped_rect, Color.RED, false, 1)
 	# calculte polygon by rect. for shape who need some point not on the rect.
 	# use the ratio of width and height to adjustment. such as Pentagram.
 	if opt_fill:
@@ -338,9 +367,13 @@ var _shape_polygon = func():
 		var outer_polygon = get_arc_division_polygon(
 			radius, division, center,
 			start_point.y > end_point.y)
+		outer_polygon = parse_polygon_expends(outer_polygon,
+											  shaped_rect.get_center())
 		var inner_polygon = get_arc_division_polygon(
 			radius - stroke_width, division, center,
 			start_point.y > end_point.y)
+		inner_polygon = parse_polygon_expends(inner_polygon,
+											  shaped_rect.get_center())
 		for x in range(touch_rect.position.x, touch_rect.end.x -1):
 			for y in range(touch_rect.position.y, touch_rect.end.y -1):
 				var pos = Vector2(x, y)
@@ -476,6 +509,14 @@ func inject_snapping(callable :Callable):
 
 # calculate points and shape
 
+func parse_polygon_expends(polygon:PackedVector2Array,
+						   center_point:Vector2) -> PackedVector2Array:
+	for i in polygon.size():
+		if i % 2 :
+			polygon[i] -= (polygon[i] - center_point) * edge_expands / 100
+	return polygon
+	
+
 func get_lines_form_points(start :Vector2i, end :Vector2i,
 						   points_total:float=0.0) -> PackedVector2Array:
 	var x_spacing := (end.x - start.x) / float(points_total + 1)
@@ -542,6 +583,21 @@ func get_pivot_offset(to_size:Vector2i) -> Vector2i:
 			_offset.y = to_size.y / 2.0
 			
 	return _offset
+
+
+func make_square(rect:Rect2i) ->Rect2i:
+	# Make rect 1:1 while centering it on the mouse
+	var sel_size = Vector2i.ONE * maxi(rect.size.x, rect.size.y)
+	if rect.position.x < rect.end.x:
+		rect.end.x = rect.position.x + sel_size.x
+	else:
+		rect.end.x = rect.position.x - sel_size.x
+	
+	if rect.position.y < rect.end.y:
+		rect.end.y = rect.position.y + sel_size.y
+	else:
+		rect.end.y = rect.position.y - sel_size.y
+	return rect
 
 
 func parse_two_points(sel_points:PackedVector2Array):

@@ -215,7 +215,8 @@ func _on_btn_pressed(btn):
 			artboard.canvas.silhouette.opt_from_center = false
 			artboard.canvas.silhouette.opt_fill = false
 			artboard.canvas.silhouette.stroke_width = 4
-			artboard.canvas.silhouette.division = 5
+			artboard.canvas.silhouette.division = 12
+			artboard.canvas.silhouette.edge_expands = 40
 		'ColorPicker':
 			set_state(Operate.COLOR_PICK)
 		'BtnCenterSelector':
